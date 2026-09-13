@@ -1,0 +1,59 @@
+services:
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: aksharsetu_web
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://aksharsetu:password@db:5432/aksharsetu
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - aksharsetu_network
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    container_name: aksharsetu_db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: aksharsetu
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: aksharsetu
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - aksharsetu_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aksharsetu -d aksharsetu"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: aksharsetu_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - aksharsetu_network
+    restart: unless-stopped
+
+networks:
+  aksharsetu_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
