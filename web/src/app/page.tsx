@@ -66,7 +66,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.8, delay: i * 0.1, ease: "easeOut" }}
-                className={`flex flex-col p-8 md:p-12 rounded-[2.5rem] bg-white shadow-sm overflow-hidden relative group ${feature.span}`}
+                className={`flex flex-col p-8 md:p-12 rounded-2xl bg-white shadow-sm overflow-hidden relative group ${feature.span}`}
               >
                 <div className="mb-6 z-10">
                   <feature.icon className={`h-10 w-10 ${feature.iconColor}`} />
