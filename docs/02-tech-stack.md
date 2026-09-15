@@ -5,6 +5,7 @@ To build a modern, responsive, and robust platform, the following tech stack is 
 ## Frontend (Client-Side)
 - **Framework**: **Next.js** (React) - Great for SEO, server-side rendering (SSR), and fast page loads, which is crucial for a public-facing marketplace.
 - **Styling**: **Tailwind CSS** or Custom Vanilla CSS (with modern aesthetics: glassmorphism, smooth animations, dark mode support).
+- **3D Graphics & Animations**: **React Three Fiber (R3F)**, **Three.js**, **@react-three/drei**, and **@react-three/postprocessing** (for cinematic, immersive WebGL backgrounds and effects like Bloom and Depth of Field).
 - **State Management**: **Zustand** or **Redux Toolkit** (for handling user sessions, cart/wishlist state).
 - **Icons & Typography**: Google Fonts (e.g., Inter, Outfit), Lucide Icons / Heroicons.
 
