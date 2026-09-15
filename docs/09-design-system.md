@@ -1,6 +1,6 @@
 # AksharSetu - Design System & UI Guidelines
 
-This document outlines the official design system for AksharSetu, inspired by the minimalist, high-contrast aesthetic of **Apple.com**.
+This document outlines the official design system for AksharSetu, featuring a modern, minimalist, high-contrast aesthetic.
 
 ---
 
@@ -23,14 +23,14 @@ This document outlines the official design system for AksharSetu, inspired by th
 | **Light Background** | `#f5f5f7` | Section backgrounds, bento grid containers |
 | **Card Surface** | `#ffffff` | Bento cards, listing cards, modal dialogs |
 | **Light Foreground** | `#1d1d1f` | Primary text on light backgrounds |
-| **Apple Blue (Accent)**| `#0066cc` | CTAs, hyperlinks, active states (hover: `#0071e3`) |
+| **Cobalt Blue (Accent)**| `#0066cc` | CTAs, hyperlinks, active states (hover: `#0071e3`) |
 | **Secondary Gray** | `#e8e8ed` | Pill badges, secondary button backgrounds |
 
 ---
 
 ## 3. Typography
 
-- **Font Family**: `-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif`
+- **Font Family**: `system-ui, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif`
 - **Headings**: Extra bold / tight tracking (`tracking-tighter font-bold leading-none`)
 - **Body**: Medium weight, high readability (`font-medium tracking-tight text-[#86868b]`)
 
