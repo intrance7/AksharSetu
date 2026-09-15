@@ -1,124 +1,128 @@
 "use client"
 
-import React, { useRef, useMemo, useState } from "react"
+import React, { useRef, useMemo, Suspense } from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
-import { Text } from "@react-three/drei"
-import { EffectComposer, Bloom, DepthOfField, Noise, Vignette } from "@react-three/postprocessing"
+import { Text, Html } from "@react-three/drei"
 import * as THREE from "three"
 
+// Multilingual dictionary
 const DICTIONARY = [
-  // Latin (English)
+  // Latin
   ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
-  // Devanagari (Hindi - "Akshar")
+  // Devanagari (Hindi)
   ..."अआइईउऊकखगघचछजझटठडढतथदधनपफबभमयरलवशषसह".split(""),
   // Greek
   ..."αβγδεζηθλμξπρστφψω".split(""),
-  // Cyrillic (Russian)
+  // Cyrillic
   ..."АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩ".split(""),
-  // Japanese (Katakana)
+  // Japanese Katakana
   ..."アイウエオカキクケコサシスセソタチツテト".split(""),
-  // Korean (Hangul Jamo)
+  // Korean Hangul Jamo
   ..."ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎㅏㅑㅓㅕㅗㅛㅜㅠㅡㅣ".split("")
 ]
 
 const PALETTE = [
-  "#00f0ff", // cyan
-  "#0055ff", // electric blue
-  "#8a2be2", // violet
-  "#ff00ff", // magenta
-  "#ff7f50", // coral
-  "#ffaa00", // orange
-  "#ffff00", // yellow
-  "#00ffa6", // mint
-  "#ff66b2", // pink
-  "#ffffff", // white
-  "#e2e8f0", // slate
+  "#FF5C00", // vibrant pop orange (Mars Orange)
+  "#E85D04", // deep orange
+  "#2D2D2D", // dark gray
+  "#1A1A1A", // almost black
+  "#404040", // medium dark gray
+  "#8C8C8C", // neutral gray
+  "#FF5C00", // more orange
 ]
 
-function Word({ word, pos, color, scale, speed, rot }: any) {
-  const ref = useRef<THREE.Mesh>(null)
-  const materialRef = useRef<THREE.MeshBasicMaterial>(null)
-  
+function Word({ word, pos, color, scale, speed }: any) {
+  const groupRef = useRef<THREE.Group>(null)
+
   // Create organic drifting offsets
   const timeOffset = useMemo(() => Math.random() * 100, [])
-  const hovered = useRef(false)
-  const currentScale = useRef(scale)
-  
-  const baseColor = useMemo(() => new THREE.Color(color), [color])
-  const hoverColor = useMemo(() => new THREE.Color("#ffffff"), [])
-  
+  const offset = useRef(new THREE.Vector3(0, 0, 0))
+
   useFrame((state) => {
-    if (!ref.current) return
+    if (!groupRef.current) return
     const t = state.clock.elapsedTime + timeOffset
 
-    // Revolve math (Orbit around Y axis)
-    const orbitSpeed = 0.05
-    const radius = Math.sqrt(pos.x * pos.x + pos.z * pos.z)
-    const initialAngle = Math.atan2(pos.z, pos.x)
-    // Positive angle goes counter-clockwise (right to left in the front)
+    // Orbital movement around a deep background center to prevent passing behind camera
+    const orbitSpeed = 0.03
+    const orbitCenterX = 0
+    const orbitCenterZ = -15
+    const relX = pos.x - orbitCenterX
+    const relZ = pos.z - orbitCenterZ
+
+    const radius = Math.sqrt(relX * relX + relZ * relZ)
+    const initialAngle = Math.atan2(relZ, relX)
     const currentAngle = initialAngle + (t * orbitSpeed)
+
+    const orbitX = orbitCenterX + Math.cos(currentAngle) * radius
+    const orbitZ = orbitCenterZ + Math.sin(currentAngle) * radius
+
+    // Controlled floating
+    const floatX = Math.cos(t * speed.x) * 1.5
+    const floatY = Math.sin(t * speed.y) * 1.5
+    const floatZ = Math.sin(t * speed.z) * 1.5
+
+    const baseX = orbitX + floatX
+    const baseY = pos.y + floatY
+    const baseZ = orbitZ + floatZ
+
+    // Subtle rotation
+    groupRef.current.rotation.z = Math.sin(t * speed.x) * 0.06
+
+    // Professional Global Parallax Hover Effect
+    // Instead of weird localized repulsion, characters gently sway based on mouse position and their Z-depth.
+    const mouseX = state.pointer.x * 3
+    const mouseY = state.pointer.y * 3
+
+    // Calculate a depth multiplier (closer objects move more, deeper objects move less)
+    // pos.z ranges from roughly -45 to +15.
+    const depthFactor = Math.max(0.2, (pos.z + 50) / 60)
     
-    const orbitX = Math.cos(currentAngle) * radius
-    const orbitZ = Math.sin(currentAngle) * radius
+    // Target offset moves opposite to the mouse
+    const targetX = -mouseX * depthFactor
+    const targetY = -mouseY * depthFactor
 
-    // Organic floating movement added to orbit
-    ref.current.position.y = pos.y + Math.sin(t * speed.y) * 1.5
-    ref.current.position.x = orbitX + Math.cos(t * speed.x) * 1.5
-    ref.current.position.z = orbitZ + Math.sin(t * speed.z) * 1.5
+    // Silky smooth interpolation
+    offset.current.x = THREE.MathUtils.lerp(offset.current.x, targetX, 0.05)
+    offset.current.y = THREE.MathUtils.lerp(offset.current.y, targetY, 0.05)
 
-    // Mouse repulsion logic
-    const pointer = state.pointer
-    const viewport = state.viewport
-    // Map normalized pointer coordinates to 3D space roughly at z=0
-    const mouseX = (pointer.x * viewport.width) / 2
-    const mouseY = (pointer.y * viewport.height) / 2
+    // Apply final position with strict NaN protection to prevent silent Canvas crashes
+    const finalX = baseX + offset.current.x
+    const finalY = baseY + offset.current.y
+    const finalZ = baseZ
 
-    // Calculate distance between word and mouse in XY plane
-    const dx = ref.current.position.x - mouseX
-    const dy = ref.current.position.y - mouseY
-    const dist = Math.sqrt(dx * dx + dy * dy)
-    
-    // If mouse is close (and word is not too far back), push it away slightly
-    const isClose = dist < 4 && ref.current.position.z > -15
-    hovered.current = isClose
-    
-    if (isClose) {
-      const safeDist = Math.max(dist, 0.001)
-      const force = (4 - safeDist) * 0.5
-      ref.current.position.x += (dx / safeDist) * force
-      ref.current.position.y += (dy / safeDist) * force
-    }
-
-    // Smooth color interpolation
-    if (materialRef.current) {
-      materialRef.current.color.lerp(hovered.current ? hoverColor : baseColor, 0.1)
+    if (!isNaN(finalX) && !isNaN(finalY) && !isNaN(finalZ)) {
+      groupRef.current.position.set(finalX, finalY, finalZ)
     }
   })
 
   return (
-    <Text
-      ref={ref}
-      position={[pos.x, pos.y, pos.z]}
-      fontSize={1.5}
-      anchorX="center"
-      anchorY="middle"
-    >
-      {word}
-      <meshBasicMaterial
-        ref={materialRef}
-        color={baseColor}
-        toneMapped={false}
-        transparent
-        opacity={pos.z < -20 ? 0.4 : pos.z < -10 ? 0.7 : 1}
-      />
-    </Text>
+    <group ref={groupRef} position={[pos.x, pos.y, pos.z]}>
+      <Html transform center sprite zIndexRange={[0, 0]}>
+        <div 
+          style={{ 
+            color: color, 
+            fontSize: `${scale * 90}px`, 
+            fontWeight: '900',
+            WebkitTextStroke: `3px ${color}`,
+            fontFamily: '"Silkscreen", system-ui, sans-serif',
+            opacity: pos.z < -15 ? 0.2 : pos.z < -8 ? 0.5 : 0.9,
+            filter: pos.z < -15 ? 'blur(8px)' : pos.z < -8 ? 'blur(4px)' : 'blur(1px)',
+            pointerEvents: 'none',
+            userSelect: 'none',
+            whiteSpace: 'nowrap',
+            willChange: 'transform, filter',
+          }}
+        >
+          {word}
+        </div>
+      </Html>
+    </group>
   )
 }
 
 function WordCloud() {
-
   const words = useMemo(() => {
-    const count = 90 // Adjust based on performance
+    const count = 35 // Increased count for a bulkier, more populated scene
     const temp = []
 
     for (let i = 0; i < count; i++) {
@@ -131,8 +135,8 @@ function WordCloud() {
         y = (Math.random() - 0.5) * 35
         z = (Math.random() - 0.5) * 40 - 5 // Range: -25 to +15
 
-        // If the word is near the center (X/Y) AND not deep in the background, reject it
-        if (Math.abs(x) < 10 && Math.abs(y) < 8 && z > -15) {
+        // If the word is near the center (X/Y), reject it
+        if (Math.abs(x) < 10 && Math.abs(y) < 8) {
           isCenter = true
         } else {
           isCenter = false
@@ -164,16 +168,6 @@ function WordCloud() {
   )
 }
 
-function ParallaxCamera() {
-  useFrame((state) => {
-    // Smooth camera parallax based on mouse position
-    state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, state.pointer.x * 2, 0.05)
-    state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, state.pointer.y * 2, 0.05)
-    state.camera.lookAt(0, 0, -10)
-  })
-  return null
-}
-
 class ErrorBoundary extends React.Component<any, { hasError: boolean, error: any }> {
   constructor(props: any) {
     super(props)
@@ -200,32 +194,20 @@ class ErrorBoundary extends React.Component<any, { hasError: boolean, error: any
 
 export function WordUniverse() {
   return (
-    <div className="fixed inset-0 z-0 w-full h-full bg-[#050505]">
+    <div className="absolute inset-0 z-0 w-full h-full bg-[#F5F5DC]">
       {/* Background Gradient */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-[#050505] to-[#050505]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-200/40 via-[#F5F5DC] to-[#F5F5DC]" />
 
       <ErrorBoundary>
-        <Canvas camera={{ position: [0, 0, 10], fov: 60 }}>
+        <Canvas 
+          camera={{ position: [0, 0, 10], fov: 55, near: 0.1, far: 100 }}
+          eventSource={typeof document !== 'undefined' ? document.body : undefined}
+          eventPrefix="client"
+        >
+          <color attach="background" args={["#F5F5DC"]} />
           <ambientLight intensity={0.5} />
           
-          <ParallaxCamera />
           <WordCloud />
-
-          <EffectComposer disableNormalPass>
-            <DepthOfField
-              focusDistance={0.05}
-              focalLength={0.15}
-              bokehScale={4}
-              height={480}
-            />
-            <Bloom
-              luminanceThreshold={0.2}
-              luminanceSmoothing={0.9}
-              intensity={1.5}
-            />
-            <Noise opacity={0.03} />
-            <Vignette eskil={false} offset={0.1} darkness={1.1} />
-          </EffectComposer>
         </Canvas>
       </ErrorBoundary>
     </div>

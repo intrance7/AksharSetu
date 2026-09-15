@@ -4,10 +4,12 @@ import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import { BookOpen, Menu } from "lucide-react"
 import { Button } from "@/components/ui/Button"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, Variants } from "framer-motion"
 
 export function Navbar() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
+  const [menuHeight, setMenuHeight] = useState<number>(64)
+  const contentRef = useRef<HTMLDivElement>(null)
   const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const switchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const wasOpen = useRef(false)
@@ -15,6 +17,33 @@ export function Navbar() {
   useEffect(() => {
     wasOpen.current = !!activeMenu
   }, [activeMenu])
+
+  const activeNavData = navData.find((item) => item.label === activeMenu)
+
+  useEffect(() => {
+    if (!contentRef.current) return
+
+    if (!activeMenu || !activeNavData?.dropdown) {
+      setMenuHeight(64)
+      return
+    }
+
+    const updateHeight = () => {
+      if (contentRef.current) {
+        const height = contentRef.current.offsetHeight || contentRef.current.scrollHeight
+        if (height > 0) setMenuHeight(height)
+      }
+    }
+
+    updateHeight()
+
+    const observer = new ResizeObserver(() => {
+      updateHeight()
+    })
+
+    observer.observe(contentRef.current)
+    return () => observer.disconnect()
+  }, [activeMenu, activeNavData])
 
   const handleMouseEnter = (label: string) => {
     if (leaveTimeoutRef.current) clearTimeout(leaveTimeoutRef.current)
@@ -24,136 +53,137 @@ export function Navbar() {
 
   const handleMouseLeave = () => {
     if (switchTimeoutRef.current) clearTimeout(switchTimeoutRef.current)
-    
+
     leaveTimeoutRef.current = setTimeout(() => {
       setActiveMenu(null)
     }, 150)
   }
-
-  const activeNavData = navData.find((item) => item.label === activeMenu)
 
   return (
     <>
       <AnimatePresence>
         {activeMenu && activeNavData?.dropdown && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+            animate={{ opacity: 1, backdropFilter: "blur(4px)" }} // <-- CHANGE THIS VALUE
+            exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-black/20"
           />
+
         )}
       </AnimatePresence>
-      <div className="sticky top-0 z-50 w-full h-12" onMouseLeave={handleMouseLeave}>
-        <motion.div 
-        className={`absolute top-0 left-0 w-full overflow-hidden backdrop-blur-md text-[#f5f5f7] border-b border-white/10 transition-colors duration-200 ease-in-out ${activeMenu && activeNavData?.dropdown ? 'bg-[#1d1d1f]/85 shadow-2xl' : 'bg-[rgba(0,0,0,0.8)]'}`}
-        initial={false}
-        animate={{ height: activeMenu && activeNavData?.dropdown ? "auto" : 48 }}
-        transition={{ duration: wasOpen.current ? 0.4 : 0.9, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <header className="w-full h-12">
-          <div className="container mx-auto flex h-12 items-center justify-between px-4 md:px-8 text-xs font-medium">
-            
-            {/* Left: Logo */}
-            <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity z-50">
-              <BookOpen className="h-4 w-4" />
-              <span className="font-semibold tracking-tight">AksharSetu</span>
-            </Link>
-            
-            {/* Center: Links */}
-            <nav className="hidden md:flex flex-1 items-center justify-center gap-8 text-[#cecece] z-50 h-full">
-              {navData.map((item) => (
-                <div 
-                  key={item.label}
-                  className="h-full flex items-center"
-                  onMouseEnter={() => handleMouseEnter(item.label)}
-                >
-                  <Link href={item.href} className={`transition-colors ${activeMenu === item.label ? "text-white" : "hover:text-white"}`}>
-                    {item.label}
-                  </Link>
-                </div>
-              ))}
-            </nav>
-
-            {/* Right: Actions */}
-            <div className="flex items-center gap-6 z-50">
-              <div className="hidden md:flex items-center gap-4">
-                <Link href="/login" className="hover:text-white transition-colors">
-                  Log In
-                </Link>
-                <Button variant="default" size="sm" className="h-6 text-[10px] px-3 font-semibold bg-[#f5f5f7] text-black hover:bg-white">
-                  List a Book
-                </Button>
-              </div>
-              <button className="md:hidden text-[#f5f5f7] hover:text-white">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle Menu</span>
-              </button>
-            </div>
-
-          </div>
-        </header>
-
-        {/* Mega Menu Dropdown */}
-        <div 
-          className={`w-full ${activeMenu && activeNavData?.dropdown ? 'pointer-events-auto' : 'pointer-events-none'}`}
-          onMouseEnter={() => activeMenu && handleMouseEnter(activeMenu)}
-          onMouseLeave={handleMouseLeave}
+      <div className="sticky top-0 z-50 w-full h-16" onMouseLeave={handleMouseLeave} style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+        <motion.div
+          className={`absolute top-0 left-0 w-full overflow-hidden text-[#C84200] border-b border-[#C84200]/20 transition-colors duration-200 ease-in-out ${activeMenu && activeNavData?.dropdown ? 'bg-[#F5F5DC]/80 backdrop-blur-xl shadow-2xl'
+ : 'bg-[#F5F5DC]/50 backdrop-blur-md'}`}
+          initial={false}
+          animate={{ height: activeMenu && activeNavData?.dropdown ? menuHeight : 64 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="container mx-auto px-4 md:px-8 py-12">
-            <AnimatePresence>
-              {activeMenu && activeNavData?.dropdown && (
-                <motion.div
-                  initial={{ y: -8 }}
-                  animate={{ y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.17 }}
-                  className="relative w-full"
-                >
-                  <AnimatePresence mode="popLayout">
-                    <motion.div 
-                      key={activeMenu}
-                      custom={!wasOpen.current}
-                      variants={containerVariants}
-                      initial="hidden"
-                      animate="show"
-                      exit="exit"
-                      className="flex justify-center gap-12 md:gap-24 text-sm max-w-5xl mx-auto w-full"
+          <div ref={contentRef} className="w-full flex flex-col">
+            <header className="w-full h-16 shrink-0">
+              <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8 font-medium">
+
+                {/* Left: Logo */}
+                <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity z-50">
+                  <BookOpen className="h-4 w-4" />
+                  <span className="font-black uppercase tracking-tight text-lg md:text-xl">AksharSetu</span>
+                </Link>
+
+                {/* Center: Links */}
+                <nav className="hidden md:flex flex-1 items-center justify-center gap-8 text-[#C84200] z-50 h-full">
+                  {navData.map((item) => (
+                    <div
+                      key={item.label}
+                      className="h-full flex items-center"
+                      onMouseEnter={() => handleMouseEnter(item.label)}
                     >
-                      {activeNavData.dropdown.columns.map((col, idx) => (
-                        <motion.div 
-                          key={idx} 
-                          variants={columnVariants}
-                          className={`flex flex-col gap-3 ${idx === 0 ? "min-w-[200px]" : "min-w-[140px]"}`}
+                      <Link href={item.href} className={`transition-colors font-black uppercase tracking-wider text-sm md:text-base ${activeMenu === item.label ? "text-[#C84200] underline underline-offset-8 decoration-2" : "hover:text-[#A33500]"}`}>
+                        {item.label}
+                      </Link>
+                    </div>
+                  ))}
+                </nav>
+
+                {/* Right: Actions */}
+                <div className="flex items-center gap-6 z-50">
+                  <div className="hidden md:flex items-center gap-4">
+                    <Link href="/login" className="hover:text-[#A33500] font-black uppercase tracking-wider text-sm md:text-base transition-colors">
+                      Log In
+                    </Link>
+                    <Button variant="default" size="sm" className="h-9 text-xs md:text-sm px-6 font-black uppercase tracking-wider bg-[#C84200] text-[#F5F5DC] hover:bg-[#A33500] rounded-full shadow-md">
+                      List a Book
+                    </Button>
+                  </div>
+                  <button className="md:hidden text-[#C84200] hover:text-[#A33500]">
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Toggle Menu</span>
+                  </button>
+                </div>
+
+              </div>
+            </header>
+
+            {/* Mega Menu Dropdown */}
+            <div
+              className={`w-full ${activeMenu && activeNavData?.dropdown ? 'pointer-events-auto' : 'pointer-events-none'}`}
+              onMouseEnter={() => activeMenu && handleMouseEnter(activeMenu)}
+              onMouseLeave={handleMouseLeave}
+            >
+              <div className="container mx-auto px-4 md:px-8 py-12">
+                <AnimatePresence>
+                  {activeMenu && activeNavData?.dropdown && (
+                    <motion.div
+                      initial={{ y: -8 }}
+                      animate={{ y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.17 }}
+                      className="relative w-full"
+                    >
+                      <AnimatePresence mode="popLayout">
+                        <motion.div
+                          key={activeMenu}
+                          custom={!wasOpen.current}
+                          variants={containerVariants}
+                          initial="hidden"
+                          animate="show"
+                          exit="exit"
+                          className="flex justify-center gap-12 md:gap-24 text-sm max-w-5xl mx-auto w-full"
                         >
-                          <h3 className="text-[#86868b] text-[11px] font-semibold mb-2 tracking-wide">{col.title}</h3>
-                          <div className="flex flex-col gap-3">
-                            {col.links.map((link, lIdx) => (
-                              <Link 
-                                key={lIdx} 
-                                href={link.href}
-                                className={`text-[#f5f5f7] hover:text-white transition-colors ${
-                                  idx === 0 
-                                    ? "text-xl md:text-2xl font-bold tracking-tight mb-1" 
-                                    : "text-[13px] font-medium"
-                                }`}
-                              >
-                                {link.label}
-                              </Link>
-                            ))}
-                          </div>
+                          {activeNavData.dropdown.columns.map((col, idx) => (
+                            <motion.div
+                              key={idx}
+                              variants={columnVariants}
+                              className={`flex flex-col gap-3 ${idx === 0 ? "min-w-[200px]" : "min-w-[140px]"}`}
+                            >
+                              <h3 className="text-[#C84200]/75 text-xs md:text-sm font-black uppercase mb-4 tracking-widest">{col.title}</h3>
+                              <div className="flex flex-col gap-4">
+                                {col.links.map((link, lIdx) => (
+                                  <Link
+                                    key={lIdx}
+                                    href={link.href}
+                                    className={`text-[#C84200] hover:text-[#A33500] transition-colors ${idx === 0
+                                        ? "text-xl md:text-2xl font-black uppercase tracking-tight mb-2"
+                                        : "text-[14px] md:text-base font-bold uppercase tracking-wider"
+                                      }`}
+                                  >
+                                    {link.label}
+                                  </Link>
+                                ))}
+                              </div>
+                            </motion.div>
+                          ))}
                         </motion.div>
-                      ))}
+                      </AnimatePresence>
                     </motion.div>
-                  </AnimatePresence>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
           </div>
-        </div>
-      </motion.div>
-    </div>
+        </motion.div>
+      </div>
     </>
   )
 }
@@ -174,15 +204,15 @@ const containerVariants = {
   }
 }
 
-const columnVariants = {
+const columnVariants: Variants = {
   hidden: { opacity: 0 },
-  show: { 
-    opacity: 1, 
-    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } 
+  show: {
+    opacity: 1,
+    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] }
   },
-  exit: { 
-    opacity: 0, 
-    transition: { duration: 0.15, ease: "easeOut" } 
+  exit: {
+    opacity: 0,
+    transition: { duration: 0.15, ease: "easeOut" }
   }
 }
 
@@ -249,4 +279,3 @@ const navData = [
     dropdown: null
   }
 ]
-
