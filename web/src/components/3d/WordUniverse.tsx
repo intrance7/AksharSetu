@@ -1,13 +1,24 @@
 "use client"
 
-import React, { useRef, useMemo } from "react"
+import React, { useRef, useMemo, Suspense } from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
 import { Text, Html } from "@react-three/drei"
 import * as THREE from "three"
 
-// Using pure Latin to guarantee WebGL font glyph support without loading a 20MB font file
+// Multilingual dictionary
 const DICTIONARY = [
-  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
+  // Latin
+  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
+  // Devanagari (Hindi)
+  ..."अआइईउऊकखगघचछजझटठडढतथदधनपफबभमयरलवशषसह".split(""),
+  // Greek
+  ..."αβγδεζηθλμξπρστφψω".split(""),
+  // Cyrillic
+  ..."АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩ".split(""),
+  // Japanese Katakana
+  ..."アイウエオカキクケコサシスセソタチツテト".split(""),
+  // Korean Hangul Jamo
+  ..."ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎㅏㅑㅓㅕㅗㅛㅜㅠㅡㅣ".split("")
 ]
 
 const PALETTE = [
@@ -86,23 +97,32 @@ function Word({ word, pos, color, scale, speed }: any) {
 
   return (
     <group ref={groupRef} position={[pos.x, pos.y, pos.z]}>
-      <Text
-        color={color}
-        fontSize={scale * 2.5} // Scale for WebGL Text
-        font="https://fonts.gstatic.com/s/silkscreen/v2/m8JXjfWVPX5-jS5Q-S218i2rA2iBAXg.woff"
-        fillOpacity={pos.z < -15 ? 0.15 : pos.z < -8 ? 0.4 : 0.8}
-        anchorX="center"
-        anchorY="middle"
-      >
-        {word}
-      </Text>
+      <Html transform center sprite zIndexRange={[0, 0]}>
+        <div 
+          style={{ 
+            color: color, 
+            fontSize: `${scale * 90}px`, 
+            fontWeight: '900',
+            WebkitTextStroke: `3px ${color}`,
+            fontFamily: '"Silkscreen", system-ui, sans-serif',
+            opacity: pos.z < -15 ? 0.2 : pos.z < -8 ? 0.5 : 0.9,
+            filter: pos.z < -15 ? 'blur(8px)' : pos.z < -8 ? 'blur(4px)' : 'blur(1px)',
+            pointerEvents: 'none',
+            userSelect: 'none',
+            whiteSpace: 'nowrap',
+            willChange: 'transform, filter',
+          }}
+        >
+          {word}
+        </div>
+      </Html>
     </group>
   )
 }
 
 function WordCloud() {
   const words = useMemo(() => {
-    const count = 45 // Increased back to 45 since WebGL Text is insanely fast
+    const count = 35 // Increased count for a bulkier, more populated scene
     const temp = []
 
     for (let i = 0; i < count; i++) {
