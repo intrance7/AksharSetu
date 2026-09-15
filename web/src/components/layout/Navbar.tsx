@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import Link from "next/link"
 import { BookOpen, Menu } from "lucide-react"
 import { Button } from "@/components/ui/Button"
@@ -8,15 +8,27 @@ import { motion, AnimatePresence } from "framer-motion"
 
 export function Navbar() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
-  let timeoutId: NodeJS.Timeout
+  const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const switchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const handleMouseEnter = (label: string) => {
-    clearTimeout(timeoutId)
-    setActiveMenu(label)
+    if (leaveTimeoutRef.current) clearTimeout(leaveTimeoutRef.current)
+    
+    // If a menu is already open and we're hovering a different one, add a small delay
+    if (activeMenu && activeMenu !== label) {
+      if (switchTimeoutRef.current) clearTimeout(switchTimeoutRef.current)
+      switchTimeoutRef.current = setTimeout(() => {
+        setActiveMenu(label)
+      }, 100) // 100ms delay to prevent accidental flashing
+    } else {
+      setActiveMenu(label)
+    }
   }
 
   const handleMouseLeave = () => {
-    timeoutId = setTimeout(() => {
+    if (switchTimeoutRef.current) clearTimeout(switchTimeoutRef.current)
+    
+    leaveTimeoutRef.current = setTimeout(() => {
       setActiveMenu(null)
     }, 150)
   }
@@ -84,28 +96,37 @@ export function Navbar() {
               onMouseLeave={handleMouseLeave}
             >
               <div className="container mx-auto px-4 md:px-8 py-12">
-                <div className="flex justify-center gap-12 md:gap-24 text-sm max-w-5xl mx-auto w-full">
-                  {activeNavData.dropdown.columns.map((col, idx) => (
-                    <div key={idx} className={`flex flex-col gap-3 ${idx === 0 ? "min-w-[200px]" : "min-w-[140px]"}`}>
-                      <h3 className="text-[#86868b] text-[11px] font-semibold mb-2 tracking-wide">{col.title}</h3>
-                      <div className="flex flex-col gap-3">
-                        {col.links.map((link, lIdx) => (
-                          <Link 
-                            key={lIdx} 
-                            href={link.href}
-                            className={`text-[#f5f5f7] hover:text-white transition-colors ${
-                              idx === 0 
-                                ? "text-xl md:text-2xl font-bold tracking-tight mb-1" 
-                                : "text-[13px] font-medium"
-                            }`}
-                          >
-                            {link.label}
-                          </Link>
-                        ))}
+                <AnimatePresence mode="wait">
+                  <motion.div 
+                    key={activeMenu}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                    className="flex justify-center gap-12 md:gap-24 text-sm max-w-5xl mx-auto w-full"
+                  >
+                    {activeNavData.dropdown.columns.map((col, idx) => (
+                      <div key={idx} className={`flex flex-col gap-3 ${idx === 0 ? "min-w-[200px]" : "min-w-[140px]"}`}>
+                        <h3 className="text-[#86868b] text-[11px] font-semibold mb-2 tracking-wide">{col.title}</h3>
+                        <div className="flex flex-col gap-3">
+                          {col.links.map((link, lIdx) => (
+                            <Link 
+                              key={lIdx} 
+                              href={link.href}
+                              className={`text-[#f5f5f7] hover:text-white transition-colors ${
+                                idx === 0 
+                                  ? "text-xl md:text-2xl font-bold tracking-tight mb-1" 
+                                  : "text-[13px] font-medium"
+                              }`}
+                            >
+                              {link.label}
+                            </Link>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </motion.div>
           )}
