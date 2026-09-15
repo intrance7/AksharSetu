@@ -7,20 +7,18 @@ import { EffectComposer, Bloom, DepthOfField, Noise, Vignette } from "@react-thr
 import * as THREE from "three"
 
 const DICTIONARY = [
-  // English
-  "BOOKS", "READ", "KNOWLEDGE", "STORIES", "IMAGINATION", "LEARN", "DISCOVER", "WISDOM",
-  // Hindi
-  "ज्ञान", "किताब", "कहानी", "पुस्तक", "पढ़ना", "शिक्षा", "सत्य", "विचार",
-  // Arabic
-  "كتاب", "اقرأ", "علم", "نور", "حكمة", "قصة",
-  // Japanese
-  "本", "物語", "知識", "夢", "希望", "平和",
-  // Korean
-  "사랑", "지혜", "책", "배움", "이야기", "꿈",
-  // Chinese
-  "书", "知识", "学习", "智慧", "真理", "世界",
-  // Spanish & French
-  "AMOR", "LIBERTÉ", "PAZ", "ESPERANZA", "HISTOIRE", "SAGESSE"
+  // Latin (English)
+  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
+  // Devanagari (Hindi - "Akshar")
+  ..."अआइईउऊकखगघचछजझटठडढतथदधनपफबभमयरलवशषसह".split(""),
+  // Greek
+  ..."αβγδεζηθλμξπρστφψω".split(""),
+  // Cyrillic (Russian)
+  ..."АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩ".split(""),
+  // Japanese (Katakana)
+  ..."アイウエオカキクケコサシスセソタチツテト".split(""),
+  // Korean (Hangul Jamo)
+  ..."ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎㅏㅑㅓㅕㅗㅛㅜㅠㅡㅣ".split("")
 ]
 
 const PALETTE = [
