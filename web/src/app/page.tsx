@@ -3,12 +3,16 @@
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { MapPin, Heart, BookCopy } from "lucide-react"
+import dynamic from "next/dynamic"
+
+const WordUniverse = dynamic(() => import("@/components/3d/WordUniverse").then(mod => mod.WordUniverse), { ssr: false })
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-black text-white">
+    <div className="flex flex-col min-h-screen bg-transparent text-white">
       {/* Hero Section */}
       <section className="relative w-full h-screen min-h-[600px] flex flex-col items-center justify-center overflow-hidden">
+        <WordUniverse />
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -43,7 +47,7 @@ export default function Home() {
       </section>
 
       {/* Features Section - Bento Box Style */}
-      <section className="w-full bg-[#f5f5f7] text-[#1d1d1f] py-24 md:py-32">
+      <section className="relative z-10 w-full bg-[#f5f5f7] text-[#1d1d1f] py-24 md:py-32">
         <div className="container mx-auto px-4 md:px-8 max-w-7xl">
           <motion.div 
             initial={{ opacity: 0, y: 30 }}

@@ -17,10 +17,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     
     let variantStyles = ""
     switch (variant) {
-      case "default": // Apple Blue
+      case "default":
         variantStyles = "bg-[#0066cc] text-white hover:bg-[#0071e3]"
         break
-      case "primary": // Also Apple Blue for legacy usage
+      case "primary":
         variantStyles = "bg-[#0066cc] text-white hover:bg-[#0071e3]"
         break
       case "outline":
