@@ -1,10 +1,18 @@
 "use client"
 
-import React, { useRef, useMemo, Suspense } from "react"
+import React, { useRef, useMemo, Suspense, useEffect, useState } from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
 import { Text } from "@react-three/drei"
 import { EffectComposer, DepthOfField } from "@react-three/postprocessing"
 import * as THREE from "three"
+
+import { PlaceholderBook } from "./PlaceholderBook"
+import gsap from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger)
+}
 
 // Multilingual dictionary
 const DICTIONARY = [
@@ -32,18 +40,36 @@ const PALETTE = [
   "#FF5C00", // more orange
 ]
 
-function Word({ word, pos, color, scale, speed }: any) {
-  const groupRef = useRef<THREE.Group>(null)
+const Word = React.forwardRef(({ word, pos, color, scale, speed }: any, ref: any) => {
+  const innerGroupRef = useRef<THREE.Group>(null)
 
   // Create organic drifting offsets
   const timeOffset = useMemo(() => Math.random() * 100, [])
   const offset = useRef(new THREE.Vector3(0, 0, 0))
 
+  // Pop-in animation on load
+  useEffect(() => {
+    if (!innerGroupRef.current) return
+    
+    // Scale from 0 to 1 with a random delay and a slight bounce
+    innerGroupRef.current.scale.set(0, 0, 0)
+    gsap.to(innerGroupRef.current.scale, {
+      x: 1,
+      y: 1,
+      z: 1,
+      duration: 1 + Math.random() * 1.5,
+      delay: Math.random() * 0.5,
+      ease: "back.out(1.5)"
+    })
+  }, [])
+
   useFrame((state) => {
-    if (!groupRef.current) return
+    if (!innerGroupRef.current) return
+    // Since scroll controls the parent group, we can let them keep floating slowly
+    // or just tone it down. We'll leave the floating active to keep it organic.
     const t = state.clock.elapsedTime + timeOffset
 
-    // Orbital movement around a deep background center to prevent passing behind camera
+    // Orbital movement around a deep background center
     const orbitSpeed = 0.03
     const orbitCenterX = 0
     const orbitCenterZ = -15
@@ -66,76 +92,69 @@ function Word({ word, pos, color, scale, speed }: any) {
     const baseY = pos.y + floatY
     const baseZ = orbitZ + floatZ
 
-    // Subtle rotation
-    groupRef.current.rotation.z = Math.sin(t * speed.x) * 0.06
+    innerGroupRef.current.rotation.z = Math.sin(t * speed.x) * 0.06
 
-    // Professional Global Parallax Hover Effect
-    // Instead of weird localized repulsion, characters gently sway based on mouse position and their Z-depth.
     const mouseX = state.pointer.x * 3
     const mouseY = state.pointer.y * 3
-
-    // Calculate a depth multiplier (closer objects move more, deeper objects move less)
-    // pos.z ranges from roughly -45 to +15.
     const depthFactor = Math.max(0.2, (pos.z + 50) / 60)
     
-    // Target offset moves opposite to the mouse
     const targetX = -mouseX * depthFactor
     const targetY = -mouseY * depthFactor
 
-    // Silky smooth interpolation
     offset.current.x = THREE.MathUtils.lerp(offset.current.x, targetX, 0.05)
     offset.current.y = THREE.MathUtils.lerp(offset.current.y, targetY, 0.05)
 
-    // Apply final position with strict NaN protection to prevent silent Canvas crashes
     const finalX = baseX + offset.current.x
     const finalY = baseY + offset.current.y
     const finalZ = baseZ
 
     if (!isNaN(finalX) && !isNaN(finalY) && !isNaN(finalZ)) {
-      groupRef.current.position.set(finalX, finalY, finalZ)
+      innerGroupRef.current.position.set(finalX, finalY, finalZ)
     }
   })
 
   return (
-    <group ref={groupRef} position={[pos.x, pos.y, pos.z]}>
-      <Text
-        color={color}
-        fontSize={scale * 2.5}
-        fontWeight={900}
-        fillOpacity={pos.z < -15 ? 0.2 : pos.z < -8 ? 0.5 : 0.9}
-        outlineWidth={0.05}
-        outlineColor={color}
-        anchorX="center"
-        anchorY="middle"
-      >
-        {word}
-      </Text>
+    <group ref={ref} position={[pos.x, pos.y, pos.z]}>
+      <group ref={innerGroupRef}>
+        <Text
+          color={color}
+          fontSize={scale * 2.5}
+          fontWeight={900}
+          fillOpacity={pos.z < -15 ? 0.2 : pos.z < -8 ? 0.5 : 0.9}
+          outlineWidth={0.05}
+          outlineColor={color}
+          anchorX="center"
+          anchorY="middle"
+          depthTest={false} // Always render on top of other 3D objects
+          renderOrder={1} // Draw after the book
+        >
+          {word}
+        </Text>
+      </group>
     </group>
   )
-}
+})
+
+Word.displayName = 'Word'
 
 function WordCloud() {
-  const words = useMemo(() => {
-    const count = 75 // Increased count for a bulkier, more populated scene
-    const temp = []
+  const wordRefs = useRef<(THREE.Group | null)[]>([])
 
+  const words = useMemo(() => {
+    // ... same logic ...
+    const count = 75
+    const temp = []
     for (let i = 0; i < count; i++) {
       let x = 0, y = 0, z = 0
-
-      // We'll use a simple stratified sampling approach (jittered grid) to prevent clumping.
-      // This gives an "equal but informal" distribution.
       let isCenter = true
       while (isCenter) {
-        // Grid size: 6x5x3 = 90 cells (we need 75)
         const gridX = 6
         const gridY = 5
         const gridZ = 3
-        
         const ix = i % gridX
         const iy = Math.floor((i / gridX)) % gridY
         const iz = Math.floor(i / (gridX * gridY)) % gridZ
         
-        // Base cell position
         const cellWidth = 50 / gridX
         const cellHeight = 35 / gridY
         const cellDepth = 40 / gridZ
@@ -144,7 +163,6 @@ function WordCloud() {
         const baseY = (iy * cellHeight) - 17.5 + (cellHeight / 2)
         const baseZ = (iz * cellDepth) - 25 + (cellDepth / 2)
         
-        // Add random jitter within the cell to make it feel organic, not rigid
         const jitterX = (Math.random() - 0.5) * (cellWidth * 0.8)
         const jitterY = (Math.random() - 0.5) * (cellHeight * 0.8)
         const jitterZ = (Math.random() - 0.5) * (cellDepth * 0.8)
@@ -153,11 +171,7 @@ function WordCloud() {
         y = baseY + jitterY
         z = baseZ + jitterZ
 
-        // If the word is near the center (X/Y), try regenerating with fully random fallback
         if (Math.abs(x) < 12 && Math.abs(y) < 9 && z > -15) {
-          isCenter = true
-          // If we're stuck in the center cell, just randomize it entirely outside the center bounds
-          // so we don't get stuck in an infinite loop
           x = (Math.random() > 0.5 ? 1 : -1) * (15 + Math.random() * 10)
           y = (Math.random() > 0.5 ? 1 : -1) * (12 + Math.random() * 8)
           z = (Math.random() - 0.5) * 40 - 5
@@ -166,13 +180,12 @@ function WordCloud() {
           isCenter = false
         }
       }
-
       temp.push({
         id: i,
         word: DICTIONARY[Math.floor(Math.random() * DICTIONARY.length)],
         color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
         pos: new THREE.Vector3(x, y, z),
-        scale: 0.5 + Math.random() * 0.8, // 0.5x to 1.3x size
+        scale: 0.5 + Math.random() * 0.8,
         speed: new THREE.Vector3(
           0.1 + Math.random() * 0.2,
           0.1 + Math.random() * 0.2,
@@ -183,10 +196,58 @@ function WordCloud() {
     return temp
   }, [])
 
+  useEffect(() => {
+    const validRefs = wordRefs.current.filter(Boolean) as THREE.Group[]
+    
+    // Wait for the text to fade out before starting the collapse
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: "#hero-scroll-container",
+        start: "6% top", // Starts right after "Unlimited Gyaan" fades out
+        end: "16% top",
+        scrub: 1, // Smooth scrubbing
+      }
+    })
+    
+    const STAGGER = 0.015
+    const DURATION = 0.4
+
+    // 1. Stagger position
+    tl.to(validRefs.map(r => r.position), {
+      x: 0,
+      y: 0,
+      z: 0,
+      duration: DURATION,
+      stagger: STAGGER,
+      ease: "power2.in"
+    }, 0)
+
+    // Entrance animation on load (delayed to prevent lag)
+    gsap.fromTo(validRefs.map(r => r.scale), 
+      { x: 0, y: 0, z: 0 },
+      { x: 1, y: 1, z: 1, duration: 1.5, ease: "back.out(1.7)", stagger: 0.02, delay: 1.0 }
+    )
+
+    // 2. Stagger scale on scroll (collapse into book)
+    tl.to(validRefs.map(r => r.scale), {
+      x: 0,
+      y: 0,
+      z: 0,
+      duration: DURATION,
+      stagger: STAGGER,
+      ease: "power2.in"
+    }, 0)
+
+    return () => {
+      if (tl.scrollTrigger) tl.scrollTrigger.kill()
+      tl.kill()
+    }
+  }, [])
+
   return (
     <>
-      {words.map((w) => (
-        <Word key={w.id} {...w} />
+      {words.map((w, i) => (
+        <Word key={w.id} ref={(el: any) => wordRefs.current[i] = el} {...w} />
       ))}
     </>
   )
@@ -216,10 +277,47 @@ class ErrorBoundary extends React.Component<any, { hasError: boolean, error: any
   }
 }
 
+function PostProcessingEffects() {
+  const dofRef = useRef<any>(null)
+
+  useFrame(() => {
+    if (!dofRef.current) return
+    
+    // We want the blur to fade out over the first 10% of the 400vh scroll container.
+    // 10% of 400vh = 0.4 * window.innerHeight
+    const maxScroll = window.innerHeight * 0.4
+    const progress = Math.min(Math.max(window.scrollY / maxScroll, 0), 1)
+    
+    // Fade from 3 to 0 for a more subtle cinematic effect
+    const currentBlur = 3 * (1 - progress)
+    
+    try {
+      // Set bokeh scale
+      dofRef.current.bokehScale = currentBlur
+      
+      // As a fallback, fade out the effect's opacity entirely
+      if (dofRef.current.blendMode && dofRef.current.blendMode.opacity) {
+        dofRef.current.blendMode.opacity.value = 1 - progress
+      }
+    } catch (e) {}
+  })
+
+  return (
+    <EffectComposer disableNormalPass>
+      <DepthOfField 
+        ref={dofRef}
+        target={[0, 0, 0]} 
+        focalLength={0.05} 
+        bokehScale={3} 
+        height={480} 
+      />
+    </EffectComposer>
+  )
+}
+
 export function WordUniverse() {
   return (
-    <div className="absolute inset-0 z-0 w-full h-full bg-[#F5F5DC]">
-      {/* Background Gradient */}
+    <div className="absolute inset-0 z-0 w-full h-full bg-[#F5F5DC] pointer-events-none">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-200/40 via-[#F5F5DC] to-[#F5F5DC]" />
 
       <ErrorBoundary>
@@ -232,15 +330,9 @@ export function WordUniverse() {
           <ambientLight intensity={0.5} />
           
           <Suspense fallback={null}>
+            <PlaceholderBook />
             <WordCloud />
-            <EffectComposer disableNormalPass>
-              <DepthOfField 
-                target={[0, 0, 0]} 
-                focalLength={0.05} 
-                bokehScale={3} 
-                height={480} 
-              />
-            </EffectComposer>
+            <PostProcessingEffects />
           </Suspense>
         </Canvas>
       </ErrorBoundary>

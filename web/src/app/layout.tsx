@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AksharSetu - Bridge Knowledge Through Books",
+  title: "Aksharसेतु - Bridge Knowledge Through Books",
   description: "A platform bridging people through knowledge via book resale and donations.",
 };
 

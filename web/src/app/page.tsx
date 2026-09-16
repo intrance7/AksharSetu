@@ -1,60 +1,202 @@
 "use client"
 
 import Link from "next/link"
-import { motion, useScroll, useSpring } from "framer-motion"
+import { motion, useScroll, useSpring, useTransform, AnimatePresence } from "framer-motion"
 import { MapPin, Heart, BookCopy } from "lucide-react"
 import dynamic from "next/dynamic"
+import { useEffect, useRef } from "react"
+import Lenis from "lenis"
+import { useIntroStore } from "@/store/useIntroStore"
+import gsap from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger)
+}
 
 const WordUniverse = dynamic(() => import("@/components/3d/WordUniverse").then(mod => mod.WordUniverse), { ssr: false })
 
 export default function Home() {
+  const introState = useIntroStore(state => state.introState)
+  const introPlayed = useIntroStore(state => state.introPlayed)
+  const setIntroPlayed = useIntroStore(state => state.setIntroPlayed)
+  const lenisRef = useRef<Lenis | null>(null)
+
+  useEffect(() => {
+    // Initialize Lenis for buttery smooth scrolling
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
+    })
+    lenisRef.current = lenis
+
+    function raf(time: number) {
+      lenis.raf(time)
+      requestAnimationFrame(raf)
+    }
+    requestAnimationFrame(raf)
+
+    return () => lenis.destroy()
+  }, [])
+
+  useEffect(() => {
+    // Lenis is now always running so the user can scroll the intro
+    if (!lenisRef.current) return
+    lenisRef.current.start()
+  }, [])
+
+  useEffect(() => {
+    // 0. Smooth fade-in on load
+    // We use a 1.0s delay because Three.js causes massive frame drops (jank) during the first 
+    // few hundred milliseconds while it compiles shaders and generates 3D text geometry.
+    gsap.fromTo("#hero-initial-text-inner", 
+      { opacity: 0, y: 50 },
+      { opacity: 1, y: 0, duration: 1.5, ease: "power3.out", delay: 1.0 }
+    )
+
+    // 1. Fade out the original text on scroll (targets a wrapper to avoid conflicts)
+    const tl1 = gsap.to("#hero-initial-text-wrapper", {
+      opacity: 0,
+      scale: 0.9,
+      y: -50,
+      scrollTrigger: {
+        trigger: "#hero-scroll-container",
+        start: "top top",
+        end: "6% top", // Fades out very quickly now
+        scrub: 1,
+      }
+    })
+
+    // 2. Animate the new text reveal based on scroll
+    const tl2 = gsap.to("#hero-title-new", {
+      opacity: 1,
+      x: -50, // slide in slightly
+      scrollTrigger: {
+        trigger: "#hero-scroll-container",
+        start: "45% top", // Starts after book moves
+        end: "60% top", // Finishes well before the next section appears
+        scrub: 1,
+      }
+    })
+
+    // 3. Fade out the ambient glow (smudge) so it doesn't hide the book
+    const tl3 = gsap.to("#ambient-glow", {
+      opacity: 0,
+      scrollTrigger: {
+        trigger: "#hero-scroll-container",
+        start: "top top", 
+        end: "6% top", // Fades out at the exact same time as the text
+        scrub: 1,
+      }
+    })
+
+    return () => {
+      if (tl1.scrollTrigger) tl1.scrollTrigger.kill()
+      if (tl2.scrollTrigger) tl2.scrollTrigger.kill()
+      if (tl3.scrollTrigger) tl3.scrollTrigger.kill()
+      tl1.kill()
+      tl2.kill()
+      tl3.kill()
+    }
+  }, [])
+
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(useTransform(scrollYProgress, [0, 0.4], [0, 1]), {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
   return (
     <div className="flex flex-col min-h-screen bg-[#F5F5DC] text-black">
-      {/* Hero Section */}
-      <section className="relative w-full h-screen min-h-[600px] flex flex-col items-center justify-center overflow-hidden">
-        <WordUniverse />
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.7, ease: [0.16, 1, 0.3, 1] }}
-          className="z-10 flex flex-col items-center text-center px-4"
-        >
-          <h2 className="text-xl md:text-2xl font-semibold tracking-tight text-[#FF5C00] mb-2">AksharSetu.</h2>
-          <motion.h1 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="text-5xl sm:text-7xl md:text-8xl lg:text-[120px] font-black tracking-normal leading-none mb-6 text-[#FF5C00]"
-            style={{ fontFamily: "'Momo Trust Display', sans-serif" }}
-          >
-            Unlimited ज्ञान.<br />
-            Zero distance.
-          </motion.h1>
-          <p className="text-lg md:text-2xl text-[#FF5C00]/80 max-w-2xl font-medium tracking-tight mb-10">
-            The smartest way to buy, sell, and donate used books.
-          </p>
-          <div className="flex flex-row items-center gap-6">
-            <Link 
-              href="/catalog"    
-              className="bg-[#FF5C00] text-[#F5F5DC] px-8 py-3 rounded-full font-bold text-lg hover:bg-[#E85D04] transition-colors shadow-lg shadow-[#FF5C00]/20"
+      {/* Scroll-Driven Hero Section */}
+      <section id="hero-scroll-container" className="relative w-full h-[400vh]">
+        <div className="sticky top-0 w-full h-screen min-h-[600px] flex flex-col items-center justify-center overflow-hidden">
+          <WordUniverse />
+          
+          {/* ORIGINAL INITIAL TEXT */}
+          <div id="hero-initial-text-wrapper" className="absolute z-10 flex flex-col items-center justify-center w-full pointer-events-none">
+            <div 
+              id="hero-initial-text-inner"
+              className="flex flex-col items-center text-center px-4 pointer-events-auto"
             >
-              Browse Books
-            </Link>
-            <Link 
-              href="/donate" 
-              className="text-[#FF5C00] font-bold text-lg hover:underline underline-offset-4 flex items-center group"
-            >
-              Learn more about donating <span className="ml-1 group-hover:translate-x-1 transition-transform">›</span>
-            </Link>
+              <h2 className="text-xl md:text-2xl font-semibold tracking-tight text-[#FF5C00] mb-2">Aksharसेतु.</h2>
+              <motion.h1 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className="text-5xl sm:text-7xl md:text-8xl lg:text-[120px] font-black tracking-normal leading-none mb-6 text-[#FF5C00]"
+                style={{ fontFamily: "'Momo Trust Display', sans-serif" }}
+              >
+                Unlimited ज्ञान.<br />
+                Zero distance.
+              </motion.h1>
+              <p className="text-lg md:text-2xl text-black max-w-2xl font-medium tracking-tight mb-10">
+                The smartest way to buy, sell, and donate used books.
+              </p>
+              <div className="flex flex-row items-center gap-6">
+                <Link 
+                  href="/catalog"    
+                  className="bg-[#FF5C00] text-[#F5F5DC] px-8 py-3 rounded-full font-bold text-lg hover:bg-[#E85D04] transition-colors shadow-lg shadow-[#FF5C00]/20 pointer-events-auto"
+                >
+                  Browse Books
+                </Link>
+                <Link 
+                  href="/donate" 
+                  className="text-[#FF5C00] font-bold text-lg hover:underline underline-offset-4 flex items-center group pointer-events-auto"
+                >
+                  Learn more about donating <span className="ml-1 group-hover:translate-x-1 transition-transform">›</span>
+                </Link>
+              </div>
+            </div>
           </div>
-        </motion.div>
 
-        {/* Ambient Glow (Using safe radial-gradient instead of buggy CSS blur) */}
-        <div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full pointer-events-none z-0" 
-          style={{ background: 'radial-gradient(circle, rgba(255,92,0,0.15) 0%, rgba(255,92,0,0) 70%)' }}
-        />
+          {/* NEW TEXT (Fades in after book animation) */}
+          <div 
+            id="hero-title-new"
+            className="z-10 flex flex-col items-center md:items-start text-center md:text-left px-4 absolute right-[5%] md:right-[15%] opacity-0 translate-x-[50px] pointer-events-none"
+          >
+            <h1 
+              className="text-6xl sm:text-7xl md:text-8xl lg:text-[100px] font-black tracking-normal leading-none mb-6 text-[#8B4513]"
+              style={{ fontFamily: "'Momo Trust Display', sans-serif" }}
+            >
+              Akshar<span className="font-serif">सेतु</span>
+            </h1>
+            <p className="text-lg md:text-2xl text-black/80 max-w-xl font-medium tracking-tight mb-10">
+              The smartest way to buy, sell, and donate used books.
+            </p>
+            <div className="flex flex-row items-center gap-6">
+              <Link 
+                href="/catalog"    
+                className="bg-[#8B4513] text-[#F5F5DC] px-8 py-3 rounded-full font-bold text-lg hover:bg-[#6b3410] transition-colors shadow-lg shadow-[#8B4513]/20"
+              >
+                Browse Books
+              </Link>
+              <Link 
+                href="/donate" 
+                className="text-[#8B4513] font-bold text-lg hover:underline underline-offset-4 flex items-center group"
+              >
+                Learn more <span className="ml-1 group-hover:translate-x-1 transition-transform">›</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Ambient Glow / Contrast Halo */}
+          <div 
+            id="ambient-glow"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1400px] h-[800px] rounded-[100%] pointer-events-none z-0" 
+            style={{ background: 'radial-gradient(ellipse, rgba(245,245,220,0.9) 0%, rgba(245,245,220,0.6) 35%, rgba(245,245,220,0) 70%)' }}
+          />
+        </div>
       </section>
+
+      {/* Scroll Synced Animated Divider */}
+      <div className="w-full bg-[#F5F5DC] flex items-center justify-center relative z-20">
+        <motion.div 
+          className="h-3 bg-black w-full origin-center"
+          style={{ scaleX }}
+        />
+      </div>
 
       {/* Features Section - Playing Card Style */}
       <section className="relative z-10 w-full bg-[#F5F5DC] py-24 md:py-32">
