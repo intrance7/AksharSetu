@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { motion } from "framer-motion"
+import { motion, useScroll, useSpring } from "framer-motion"
 import { MapPin, Heart, BookCopy } from "lucide-react"
 import dynamic from "next/dynamic"
 

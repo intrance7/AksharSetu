@@ -2,7 +2,8 @@
 
 import React, { useRef, useMemo, Suspense } from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
-import { Text, Html } from "@react-three/drei"
+import { Text } from "@react-three/drei"
+import { EffectComposer, DepthOfField } from "@react-three/postprocessing"
 import * as THREE from "three"
 
 // Multilingual dictionary
@@ -97,47 +98,70 @@ function Word({ word, pos, color, scale, speed }: any) {
 
   return (
     <group ref={groupRef} position={[pos.x, pos.y, pos.z]}>
-      <Html transform center sprite zIndexRange={[0, 0]}>
-        <div 
-          style={{ 
-            color: color, 
-            fontSize: `${scale * 90}px`, 
-            fontWeight: '900',
-            WebkitTextStroke: `3px ${color}`,
-            fontFamily: '"Silkscreen", system-ui, sans-serif',
-            opacity: pos.z < -15 ? 0.2 : pos.z < -8 ? 0.5 : 0.9,
-            filter: pos.z < -15 ? 'blur(8px)' : pos.z < -8 ? 'blur(4px)' : 'blur(1px)',
-            pointerEvents: 'none',
-            userSelect: 'none',
-            whiteSpace: 'nowrap',
-            willChange: 'transform, filter',
-          }}
-        >
-          {word}
-        </div>
-      </Html>
+      <Text
+        color={color}
+        fontSize={scale * 2.5}
+        fontWeight={900}
+        fillOpacity={pos.z < -15 ? 0.2 : pos.z < -8 ? 0.5 : 0.9}
+        outlineWidth={0.05}
+        outlineColor={color}
+        anchorX="center"
+        anchorY="middle"
+      >
+        {word}
+      </Text>
     </group>
   )
 }
 
 function WordCloud() {
   const words = useMemo(() => {
-    const count = 35 // Increased count for a bulkier, more populated scene
+    const count = 75 // Increased count for a bulkier, more populated scene
     const temp = []
 
     for (let i = 0; i < count; i++) {
       let x = 0, y = 0, z = 0
 
-      // Rejection sampling to keep the center clean for hero text readability
+      // We'll use a simple stratified sampling approach (jittered grid) to prevent clumping.
+      // This gives an "equal but informal" distribution.
       let isCenter = true
       while (isCenter) {
-        x = (Math.random() - 0.5) * 50
-        y = (Math.random() - 0.5) * 35
-        z = (Math.random() - 0.5) * 40 - 5 // Range: -25 to +15
+        // Grid size: 6x5x3 = 90 cells (we need 75)
+        const gridX = 6
+        const gridY = 5
+        const gridZ = 3
+        
+        const ix = i % gridX
+        const iy = Math.floor((i / gridX)) % gridY
+        const iz = Math.floor(i / (gridX * gridY)) % gridZ
+        
+        // Base cell position
+        const cellWidth = 50 / gridX
+        const cellHeight = 35 / gridY
+        const cellDepth = 40 / gridZ
+        
+        const baseX = (ix * cellWidth) - 25 + (cellWidth / 2)
+        const baseY = (iy * cellHeight) - 17.5 + (cellHeight / 2)
+        const baseZ = (iz * cellDepth) - 25 + (cellDepth / 2)
+        
+        // Add random jitter within the cell to make it feel organic, not rigid
+        const jitterX = (Math.random() - 0.5) * (cellWidth * 0.8)
+        const jitterY = (Math.random() - 0.5) * (cellHeight * 0.8)
+        const jitterZ = (Math.random() - 0.5) * (cellDepth * 0.8)
 
-        // If the word is near the center (X/Y), reject it
-        if (Math.abs(x) < 10 && Math.abs(y) < 8) {
+        x = baseX + jitterX
+        y = baseY + jitterY
+        z = baseZ + jitterZ
+
+        // If the word is near the center (X/Y), try regenerating with fully random fallback
+        if (Math.abs(x) < 12 && Math.abs(y) < 9 && z > -15) {
           isCenter = true
+          // If we're stuck in the center cell, just randomize it entirely outside the center bounds
+          // so we don't get stuck in an infinite loop
+          x = (Math.random() > 0.5 ? 1 : -1) * (15 + Math.random() * 10)
+          y = (Math.random() > 0.5 ? 1 : -1) * (12 + Math.random() * 8)
+          z = (Math.random() - 0.5) * 40 - 5
+          isCenter = false
         } else {
           isCenter = false
         }
@@ -207,7 +231,17 @@ export function WordUniverse() {
           <color attach="background" args={["#F5F5DC"]} />
           <ambientLight intensity={0.5} />
           
-          <WordCloud />
+          <Suspense fallback={null}>
+            <WordCloud />
+            <EffectComposer disableNormalPass>
+              <DepthOfField 
+                target={[0, 0, 0]} 
+                focalLength={0.05} 
+                bokehScale={3} 
+                height={480} 
+              />
+            </EffectComposer>
+          </Suspense>
         </Canvas>
       </ErrorBoundary>
     </div>
