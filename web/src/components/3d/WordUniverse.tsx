@@ -50,7 +50,7 @@ const Word = React.forwardRef(({ word, pos, color, scale, speed }: any, ref: any
   // Pop-in animation on load
   useEffect(() => {
     if (!innerGroupRef.current) return
-    
+
     // Scale from 0 to 1 with a random delay and a slight bounce
     innerGroupRef.current.scale.set(0, 0, 0)
     gsap.to(innerGroupRef.current.scale, {
@@ -97,7 +97,7 @@ const Word = React.forwardRef(({ word, pos, color, scale, speed }: any, ref: any
     const mouseX = state.pointer.x * 3
     const mouseY = state.pointer.y * 3
     const depthFactor = Math.max(0.2, (pos.z + 50) / 60)
-    
+
     const targetX = -mouseX * depthFactor
     const targetY = -mouseY * depthFactor
 
@@ -125,8 +125,9 @@ const Word = React.forwardRef(({ word, pos, color, scale, speed }: any, ref: any
           outlineColor={color}
           anchorX="center"
           anchorY="middle"
-          depthTest={false} // Always render on top of other 3D objects
-          renderOrder={1} // Draw after the book
+          material-depthTest={false}
+          material-depthWrite={false}
+          renderOrder={999}
         >
           {word}
         </Text>
@@ -154,15 +155,15 @@ function WordCloud() {
         const ix = i % gridX
         const iy = Math.floor((i / gridX)) % gridY
         const iz = Math.floor(i / (gridX * gridY)) % gridZ
-        
+
         const cellWidth = 50 / gridX
         const cellHeight = 35 / gridY
         const cellDepth = 40 / gridZ
-        
+
         const baseX = (ix * cellWidth) - 25 + (cellWidth / 2)
         const baseY = (iy * cellHeight) - 17.5 + (cellHeight / 2)
         const baseZ = (iz * cellDepth) - 25 + (cellDepth / 2)
-        
+
         const jitterX = (Math.random() - 0.5) * (cellWidth * 0.8)
         const jitterY = (Math.random() - 0.5) * (cellHeight * 0.8)
         const jitterZ = (Math.random() - 0.5) * (cellDepth * 0.8)
@@ -198,32 +199,32 @@ function WordCloud() {
 
   useEffect(() => {
     const validRefs = wordRefs.current.filter(Boolean) as THREE.Group[]
-    
+
     // Wait for the text to fade out before starting the collapse
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: "#hero-scroll-container",
         start: "6% top", // Starts right after "Unlimited Gyaan" fades out
-        end: "16% top",
+        end: "40% top",  // Increased from 16% so the animation is much slower and takes more scrolling!
         scrub: 1, // Smooth scrubbing
       }
     })
-    
+
     const STAGGER = 0.015
     const DURATION = 0.4
 
-    // 1. Stagger position
+    // 1. Stagger position (Fly to the right page where the magical circle is)
     tl.to(validRefs.map(r => r.position), {
-      x: 0,
-      y: 0,
-      z: 0,
+      x: 2.0,
+      y: -0.5,
+      z: 1.0,
       duration: DURATION,
       stagger: STAGGER,
-      ease: "power2.in"
+      ease: "power3.in" // Zips into the book rapidly at the end
     }, 0)
 
     // Entrance animation on load (delayed to prevent lag)
-    gsap.fromTo(validRefs.map(r => r.scale), 
+    gsap.fromTo(validRefs.map(r => r.scale),
       { x: 0, y: 0, z: 0 },
       { x: 1, y: 1, z: 1, duration: 1.5, ease: "back.out(1.7)", stagger: 0.02, delay: 1.0 }
     )
@@ -235,7 +236,7 @@ function WordCloud() {
       z: 0,
       duration: DURATION,
       stagger: STAGGER,
-      ease: "power2.in"
+      ease: "expo.in" // Stays large until the very end, then snaps to 0 just as it hits the circle!
     }, 0)
 
     return () => {
@@ -282,34 +283,34 @@ function PostProcessingEffects() {
 
   useFrame(() => {
     if (!dofRef.current) return
-    
+
     // We want the blur to fade out over the first 10% of the 400vh scroll container.
     // 10% of 400vh = 0.4 * window.innerHeight
     const maxScroll = window.innerHeight * 0.4
     const progress = Math.min(Math.max(window.scrollY / maxScroll, 0), 1)
-    
+
     // Fade from 3 to 0 for a more subtle cinematic effect
     const currentBlur = 3 * (1 - progress)
-    
+
     try {
       // Set bokeh scale
       dofRef.current.bokehScale = currentBlur
-      
+
       // As a fallback, fade out the effect's opacity entirely
       if (dofRef.current.blendMode && dofRef.current.blendMode.opacity) {
         dofRef.current.blendMode.opacity.value = 1 - progress
       }
-    } catch (e) {}
+    } catch (e) { }
   })
 
   return (
     <EffectComposer disableNormalPass>
-      <DepthOfField 
+      <DepthOfField
         ref={dofRef}
-        target={[0, 0, 0]} 
-        focalLength={0.05} 
-        bokehScale={3} 
-        height={480} 
+        target={[0, 0, 0]}
+        focalLength={0.05}
+        bokehScale={3}
+        height={480}
       />
     </EffectComposer>
   )
@@ -321,14 +322,14 @@ export function WordUniverse() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-200/40 via-[#F5F5DC] to-[#F5F5DC]" />
 
       <ErrorBoundary>
-        <Canvas 
+        <Canvas
           camera={{ position: [0, 0, 10], fov: 55, near: 0.1, far: 100 }}
           eventSource={typeof document !== 'undefined' ? document.body : undefined}
           eventPrefix="client"
         >
           <color attach="background" args={["#F5F5DC"]} />
           <ambientLight intensity={0.5} />
-          
+
           <Suspense fallback={null}>
             <PlaceholderBook />
             <WordCloud />

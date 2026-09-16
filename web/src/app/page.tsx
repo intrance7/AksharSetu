@@ -120,7 +120,7 @@ export default function Home() {
               id="hero-initial-text-inner"
               className="flex flex-col items-center text-center px-4 pointer-events-auto"
             >
-              <h2 className="text-xl md:text-2xl font-semibold tracking-tight text-[#FF5C00] mb-2">Aksharसेतु.</h2>
+              <h2 className="text-xl md:text-2xl font-black tracking-tight text-[#C84A04] mb-2">Aksharसेतु.</h2>
               <motion.h1 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
