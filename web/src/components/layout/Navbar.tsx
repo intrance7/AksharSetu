@@ -88,7 +88,7 @@ export function Navbar() {
                 {/* Left: Logo */}
                 <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity z-50">
                   <BookOpen className="h-4 w-4" />
-                  <span className="font-black uppercase tracking-tight text-lg md:text-xl">AksharSetu</span>
+                  <span className="font-black tracking-tight text-lg md:text-xl">Aksharसेतु</span>
                 </Link>
 
                 {/* Center: Links */}
@@ -241,7 +241,7 @@ const navData = [
           ]
         },
         {
-          title: "More from AksharSetu",
+          title: "More from Aksharसेतु",
           links: [
             { label: "Request a Book", href: "/request" },
             { label: "Book Bundles", href: "/bundles" },

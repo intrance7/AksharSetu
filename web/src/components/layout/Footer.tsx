@@ -9,7 +9,7 @@ export function Footer() {
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2">
               <BookOpen className="h-6 w-6 text-blue-600" />
-              <span className="text-xl font-bold tracking-tight">AksharSetu</span>
+              <span className="text-xl font-bold tracking-tight">Aksharसेतु</span>
             </Link>
             <p className="text-sm text-gray-500">
               Bridging people through knowledge via book resale and donations. Let's make books accessible to everyone.
@@ -44,7 +44,7 @@ export function Footer() {
         </div>
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-gray-200 pt-6 sm:flex-row">
           <p className="text-xs text-gray-500">
-            © {new Date().getFullYear()} AksharSetu. All rights reserved.
+            © {new Date().getFullYear()} Aksharसेतु. All rights reserved.
           </p>
           <div className="flex gap-4">
             {/* Social Icons would go here */}
