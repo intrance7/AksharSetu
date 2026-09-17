@@ -6,7 +6,9 @@
 *We will need to generate real production keys for these when deploying. Do **NOT** put the actual secret values in this file!*
 
 - [ ] `DATABASE_URL` (The connection string to our production PostgreSQL database, e.g., Supabase or Vercel Postgres)
-- [ ] Authentication Secrets (e.g., `NEXTAUTH_SECRET`, `GOOGLE_CLIENT_ID` if we use OAuth, or Clerk/Supabase keys)
+- [ ] `AUTH_SECRET` (A random 32-byte string for NextAuth session encryption. Generate with `openssl rand -base64 33`)
+- [ ] `AUTH_GOOGLE_ID` (Client ID for Google OAuth)
+- [ ] `AUTH_GOOGLE_SECRET` (Client Secret for Google OAuth)
 
 ## 2. Infrastructure & Services
 *Services we need to provision before launch:*

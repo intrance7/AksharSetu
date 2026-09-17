@@ -26,7 +26,7 @@ export default function Home() {
     // Initialize Lenis for buttery smooth scrolling
     const lenis = new Lenis({
       duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     })
     lenisRef.current = lenis
 
@@ -49,7 +49,7 @@ export default function Home() {
     // 0. Smooth fade-in on load
     // We use a 1.0s delay because Three.js causes massive frame drops (jank) during the first 
     // few hundred milliseconds while it compiles shaders and generates 3D text geometry.
-    gsap.fromTo("#hero-initial-text-inner", 
+    gsap.fromTo("#hero-initial-text-inner",
       { opacity: 0, y: 50 },
       { opacity: 1, y: 0, duration: 1.5, ease: "power3.out", delay: 1.0 }
     )
@@ -84,7 +84,7 @@ export default function Home() {
       opacity: 0,
       scrollTrigger: {
         trigger: "#hero-scroll-container",
-        start: "top top", 
+        start: "top top",
         end: "4.5% top",
         scrub: 1,
       }
@@ -113,15 +113,15 @@ export default function Home() {
       <section id="hero-scroll-container" className="relative w-full h-[550vh]">
         <div className="sticky top-0 w-full h-screen min-h-[600px] flex flex-col items-center justify-center overflow-hidden">
           <WordUniverse />
-          
+
           {/* ORIGINAL INITIAL TEXT */}
           <div id="hero-initial-text-wrapper" className="absolute z-10 flex flex-col items-center justify-center w-full pointer-events-none">
-            <div 
+            <div
               id="hero-initial-text-inner"
               className="flex flex-col items-center text-center px-4 pointer-events-auto"
             >
               <h2 className="text-xl md:text-2xl font-black tracking-tight text-[#C84A04] mb-2">Aksharसेतु.</h2>
-              <motion.h1 
+              <motion.h1
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
@@ -135,14 +135,14 @@ export default function Home() {
                 The smartest way to buy, sell, and donate used books.
               </p>
               <div className="flex flex-row items-center gap-6">
-                <Link 
-                  href="/catalog"    
+                <Link
+                  href="/catalog"
                   className="bg-[#FF5C00] text-[#F5F5DC] px-8 py-3 rounded-full font-bold text-lg hover:bg-[#E85D04] transition-colors shadow-lg shadow-[#FF5C00]/20 pointer-events-auto"
                 >
                   Browse Books
                 </Link>
-                <Link 
-                  href="/donate" 
+                <Link
+                  href="/donate"
                   className="text-[#FF5C00] font-bold text-lg hover:underline underline-offset-4 flex items-center group pointer-events-auto"
                 >
                   Learn more about donating <span className="ml-1 group-hover:translate-x-1 transition-transform">›</span>
@@ -152,11 +152,11 @@ export default function Home() {
           </div>
 
           {/* NEW TEXT (Fades in after book animation) */}
-          <div 
+          <div
             id="hero-title-new"
             className="z-10 flex flex-col items-center md:items-start text-center md:text-left px-4 absolute right-[5%] md:right-[15%] opacity-0 translate-x-[50px] pointer-events-none"
           >
-            <h1 
+            <h1
               className="text-6xl sm:text-7xl md:text-8xl lg:text-[100px] font-black tracking-normal leading-none mb-6 text-[#8B4513]"
               style={{ fontFamily: "'Momo Trust Display', sans-serif" }}
             >
@@ -166,14 +166,14 @@ export default function Home() {
               The smartest way to buy, sell, and donate used books.
             </p>
             <div className="flex flex-row items-center gap-6">
-              <Link 
-                href="/catalog"    
+              <Link
+                href="/catalog"
                 className="bg-[#8B4513] text-[#F5F5DC] px-8 py-3 rounded-full font-bold text-lg hover:bg-[#6b3410] transition-colors shadow-lg shadow-[#8B4513]/20"
               >
                 Browse Books
               </Link>
-              <Link 
-                href="/donate" 
+              <Link
+                href="/donate"
                 className="text-[#8B4513] font-bold text-lg hover:underline underline-offset-4 flex items-center group"
               >
                 Learn more <span className="ml-1 group-hover:translate-x-1 transition-transform">›</span>
@@ -182,9 +182,9 @@ export default function Home() {
           </div>
 
           {/* Ambient Glow / Contrast Halo */}
-          <div 
+          <div
             id="ambient-glow"
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1400px] h-[800px] rounded-[100%] pointer-events-none z-0" 
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1400px] h-[800px] rounded-[100%] pointer-events-none z-0"
             style={{ background: 'radial-gradient(ellipse, rgba(245,245,220,0.9) 0%, rgba(245,245,220,0.6) 35%, rgba(245,245,220,0) 70%)' }}
           />
         </div>
@@ -192,7 +192,7 @@ export default function Home() {
 
       {/* Scroll Synced Animated Divider */}
       <div className="w-full bg-[#F5F5DC] flex items-center justify-center relative z-20">
-        <motion.div 
+        <motion.div
           className="h-3 bg-black w-full origin-center"
           style={{ scaleX }}
         />
@@ -212,7 +212,7 @@ export default function Home() {
                 className="w-full"
               >
                 <div
-                  style={{ 
+                  style={{
                     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
                     animation: `float 2s ease-in-out ${i * 0.15}s infinite`,
                     willChange: 'transform'
@@ -224,14 +224,14 @@ export default function Home() {
                     <h3 className="text-xl md:text-2xl font-black tracking-tight uppercase text-black">
                       {card.title}
                     </h3>
-                    <span 
-                      style={{ fontFamily: "'Silkscreen', cursive, sans-serif" }} 
+                    <span
+                      style={{ fontFamily: "'Silkscreen', cursive, sans-serif" }}
                       className="text-[#FF5C00] font-bold text-2xl md:text-3xl leading-none select-none"
                     >
                       {card.letter}
                     </span>
                   </div>
-                  
+
                   {/* List Items with dotted dividers */}
                   <div className="flex flex-col justify-center flex-1 my-6 space-y-3.5">
                     {card.items.map((item, idx) => (
@@ -251,8 +251,8 @@ export default function Home() {
                     <h3 className="text-xl md:text-2xl font-black tracking-tight uppercase text-black">
                       {card.title}
                     </h3>
-                    <span 
-                      style={{ fontFamily: "'Silkscreen', cursive, sans-serif" }} 
+                    <span
+                      style={{ fontFamily: "'Silkscreen', cursive, sans-serif" }}
                       className="text-[#FF5C00] font-bold text-2xl md:text-3xl leading-none select-none"
                     >
                       {card.letter}
