@@ -62,7 +62,7 @@ export default function Home() {
       scrollTrigger: {
         trigger: "#hero-scroll-container",
         start: "top top",
-        end: "6% top", // Fades out very quickly now
+        end: "4.5% top", // Scaled for 550vh container
         scrub: 1,
       }
     })
@@ -73,8 +73,8 @@ export default function Home() {
       x: -50, // slide in slightly
       scrollTrigger: {
         trigger: "#hero-scroll-container",
-        start: "45% top", // Starts after book moves
-        end: "60% top", // Finishes well before the next section appears
+        start: "33% top", // Scaled for 550vh container
+        end: "44% top",
         scrub: 1,
       }
     })
@@ -85,7 +85,7 @@ export default function Home() {
       scrollTrigger: {
         trigger: "#hero-scroll-container",
         start: "top top", 
-        end: "6% top", // Fades out at the exact same time as the text
+        end: "4.5% top",
         scrub: 1,
       }
     })
@@ -110,7 +110,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-[#F5F5DC] text-black">
       {/* Scroll-Driven Hero Section */}
-      <section id="hero-scroll-container" className="relative w-full h-[400vh]">
+      <section id="hero-scroll-container" className="relative w-full h-[550vh]">
         <div className="sticky top-0 w-full h-screen min-h-[600px] flex flex-col items-center justify-center overflow-hidden">
           <WordUniverse />
           

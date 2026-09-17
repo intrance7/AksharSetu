@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
-import { BookOpen, Menu } from "lucide-react"
+import { BookOpen, Menu, Github } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { motion, AnimatePresence, Variants } from "framer-motion"
 
@@ -109,6 +109,15 @@ export function Navbar() {
                 {/* Right: Actions */}
                 <div className="flex items-center gap-6 z-50">
                   <div className="hidden md:flex items-center gap-4">
+                    <a 
+                      href="https://github.com/intrance7/AksharSetu" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-[#C84200] hover:text-[#A33500] transition-colors flex items-center mr-2"
+                      title="View on GitHub"
+                    >
+                      <Github className="h-[22px] w-[22px]" />
+                    </a>
                     <Link href="/login" className="hover:text-[#A33500] font-black uppercase tracking-wider text-sm md:text-base transition-colors">
                       Log In
                     </Link>

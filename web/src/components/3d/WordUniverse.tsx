@@ -14,30 +14,30 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger)
 }
 
-// Multilingual dictionary
-const DICTIONARY = [
-  // Latin
-  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
-  // Devanagari (Hindi)
-  ..."अआइईउऊकखगघचछजझटठडढतथदधनपफबभमयरलवशषसह".split(""),
-  // Greek
-  ..."αβγδεζηθλμξπρστφψω".split(""),
-  // Cyrillic
-  ..."АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩ".split(""),
-  // Japanese Katakana
-  ..."アイウエオカキクケコサシスセソタチツテト".split(""),
-  // Korean Hangul Jamo
-  ..."ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎㅏㅑㅓㅕㅗㅛㅜㅠㅡㅣ".split("")
-]
+// Multilingual dictionaries
+const ENGLISH = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split("")
+const HINDI = "अआइईउऊएऐओऔकखगघचछजझटठडढतथदधनपफबभमयरलवशषसह".split("")
+const SANSKRIT = ["ॐ", "क्ष", "त्र", "ज्ञ", "श्र", "ऋ", "ॠ", "ऌ", "ॡ", "अं", "अः", "ऽ", "१", "२", "३", "४", "५", "६", "७", "८", "९", "०"]
+
+function getRandomWord() {
+  const r = Math.random()
+  if (r < 0.5) {
+    return ENGLISH[Math.floor(Math.random() * ENGLISH.length)]
+  } else if (r < 0.75) {
+    return HINDI[Math.floor(Math.random() * HINDI.length)]
+  } else {
+    return SANSKRIT[Math.floor(Math.random() * SANSKRIT.length)]
+  }
+}
 
 const PALETTE = [
-  "#FF5C00", // vibrant pop orange (Mars Orange)
-  "#E85D04", // deep orange
-  "#2D2D2D", // dark gray
-  "#1A1A1A", // almost black
-  "#404040", // medium dark gray
-  "#8C8C8C", // neutral gray
-  "#FF5C00", // more orange
+  "#FF5C00", // Vibrant Orange (Primary Theme Accent)
+  "#8B4513", // Rich Saddle Brown (Deep Theme Accent)
+  "#0066CC", // Cobalt Blue (Crisp High-Contrast Pop from Design System)
+  "#1D1D1F", // Premium Deep Charcoal (For high-contrast text)
+  "#434345", // Medium Charcoal (Adds depth)
+  "#86868B", // Soft Neutral Gray (For subtle blending)
+  "#C84A04", // Deep Burnt Orange (Warmth)
 ]
 
 const Word = React.forwardRef(({ word, pos, color, scale, speed }: any, ref: any) => {
@@ -183,7 +183,7 @@ function WordCloud() {
       }
       temp.push({
         id: i,
-        word: DICTIONARY[Math.floor(Math.random() * DICTIONARY.length)],
+        word: getRandomWord(),
         color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
         pos: new THREE.Vector3(x, y, z),
         scale: 0.5 + Math.random() * 0.8,
@@ -204,8 +204,8 @@ function WordCloud() {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: "#hero-scroll-container",
-        start: "6% top", // Starts right after "Unlimited Gyaan" fades out
-        end: "40% top",  // Increased from 16% so the animation is much slower and takes more scrolling!
+        start: "4.5% top", // Scaled for 550vh container
+        end: "25.5% top",  // Scaled down from 35% so the absolute scroll distance is exactly the same!
         scrub: 1, // Smooth scrubbing
       }
     })
