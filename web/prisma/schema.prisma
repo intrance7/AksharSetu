@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String?
+  avatar        String?
+  role          String    @default("USER") // USER, ADMIN
+  
+  // Relations
+  books         Book[]    @relation("OwnerToBook")
+  requests      BookRequest[] @relation("RequesterToRequest")
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Book {
+  id            String    @id @default(uuid())
+  title         String
+  author        String
+  isbn          String?
+  description   String?
+  condition     String    // NEW, LIKE_NEW, GOOD, FAIR, POOR
+  category      String
+  status        String    @default("AVAILABLE") // AVAILABLE, RESERVED, DONATED, SOLD
+  price         Float     @default(0) // 0 if donation
+  
+  images        String[]  // Array of image URLs
+
+  // Relations
+  ownerId       String
+  owner         User      @relation("OwnerToBook", fields: [ownerId], references: [id])
+  requests      BookRequest[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model BookRequest {
+  id            String    @id @default(uuid())
+  status        String    @default("PENDING") // PENDING, APPROVED, REJECTED, COMPLETED
+  message       String?
+
+  // Relations
+  bookId        String
+  book          Book      @relation(fields: [bookId], references: [id])
+  
+  requesterId   String
+  requester     User      @relation("RequesterToRequest", fields: [requesterId], references: [id])
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
