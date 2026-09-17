@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
-import { BookOpen, Menu, Github } from "lucide-react"
+import { BookOpen, Menu } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { motion, AnimatePresence, Variants } from "framer-motion"
 
@@ -76,7 +76,7 @@ export function Navbar() {
       <div className="sticky top-0 z-50 w-full h-16" onMouseLeave={handleMouseLeave} style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
         <motion.div
           className={`absolute top-0 left-0 w-full overflow-hidden text-[#C84200] border-b border-[#C84200]/20 transition-colors duration-200 ease-in-out ${activeMenu && activeNavData?.dropdown ? 'bg-[#F5F5DC]/80 backdrop-blur-xl shadow-2xl'
- : 'bg-[#F5F5DC]/50 backdrop-blur-md'}`}
+            : 'bg-[#F5F5DC]/50 backdrop-blur-md'}`}
           initial={false}
           animate={{ height: activeMenu && activeNavData?.dropdown ? menuHeight : 64 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
@@ -109,15 +109,6 @@ export function Navbar() {
                 {/* Right: Actions */}
                 <div className="flex items-center gap-6 z-50">
                   <div className="hidden md:flex items-center gap-4">
-                    <a 
-                      href="https://github.com/intrance7/AksharSetu" 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="text-[#C84200] hover:text-[#A33500] transition-colors flex items-center mr-2"
-                      title="View on GitHub"
-                    >
-                      <Github className="h-[22px] w-[22px]" />
-                    </a>
                     <Link href="/login" className="hover:text-[#A33500] font-black uppercase tracking-wider text-sm md:text-base transition-colors">
                       Log In
                     </Link>
@@ -173,8 +164,8 @@ export function Navbar() {
                                     key={lIdx}
                                     href={link.href}
                                     className={`text-[#C84200] hover:text-[#A33500] transition-colors ${idx === 0
-                                        ? "text-xl md:text-2xl font-black uppercase tracking-tight mb-2"
-                                        : "text-[14px] md:text-base font-bold uppercase tracking-wider"
+                                      ? "text-xl md:text-2xl font-black uppercase tracking-tight mb-2"
+                                      : "text-[14px] md:text-base font-bold uppercase tracking-wider"
                                       }`}
                                   >
                                     {link.label}
