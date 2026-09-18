@@ -36,14 +36,14 @@ export function LoginCarousel() {
   }, [])
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[#000000]">
-      <AnimatePresence initial={false} mode="wait">
+    <div className="relative w-full h-full overflow-hidden bg-black">
+      <AnimatePresence initial={false}>
         <motion.div
           key={currentIndex}
           initial={{ opacity: 0, scale: 1.05 }}
           animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.8, ease: "easeInOut" }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1, ease: "easeInOut" }}
           className="absolute inset-0"
         >
           <Image
@@ -54,7 +54,7 @@ export function LoginCarousel() {
             priority
           />
           {/* Overlay gradient for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-black/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
         </motion.div>
       </AnimatePresence>
 

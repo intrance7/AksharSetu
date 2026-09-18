@@ -7,6 +7,7 @@ import { motion } from "framer-motion"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff, AlertCircle, BookOpen } from "lucide-react"
 import { LoginCarousel } from "@/components/auth/LoginCarousel"
+import { SmokeBackground } from "@/components/auth/SmokeBackground"
 import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google"
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] })
@@ -46,9 +47,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#E5E7EB] flex items-center justify-center p-4 sm:p-8">
+    <div className="min-h-screen relative flex items-center justify-center p-4 sm:p-8 overflow-hidden bg-black">
+      <SmokeBackground />
+      
       {/* Main Floating Card */}
-      <div className="w-full max-w-[1300px] h-[90vh] min-h-[750px] bg-gradient-to-br from-[#FDFCF8] to-[#F3EFE6] rounded-[40px] shadow-2xl flex overflow-hidden relative">
+      <div className="w-full max-w-[1300px] h-[90vh] min-h-[750px] bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[40px] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] flex overflow-hidden relative z-10">
         
         {/* Left Column - Graphic (Hidden on mobile) */}
         <div className="hidden lg:block lg:w-[55%] p-4 h-full relative">
@@ -61,8 +64,8 @@ export default function LoginPage() {
         <div className="w-full lg:w-[45%] flex flex-col p-8 sm:p-12 md:p-16 relative overflow-y-auto">
           
           {/* Logo at top */}
-          <div className="flex items-center gap-2 text-[#C84200] mb-12">
-            <BookOpen className="w-6 h-6" />
+          <div className="flex items-center gap-2 text-white mb-12">
+            <BookOpen className="w-6 h-6 text-[#C84200]" />
             <span className="font-bold text-lg tracking-tight">AksharSetu</span>
           </div>
 
@@ -74,8 +77,8 @@ export default function LoginPage() {
           >
             <div className="flex flex-col gap-8">
               <div className="flex flex-col gap-2 text-center mb-4">
-                <h1 className={`text-4xl md:text-5xl font-medium text-[#1D1D1F] ${playfair.className}`}>Welcome Back</h1>
-                <p className="text-sm text-[#86868b] mt-1">
+                <h1 className={`text-4xl md:text-5xl font-medium text-white ${playfair.className}`}>Welcome Back</h1>
+                <p className="text-sm text-gray-400 mt-1">
                   Enter your email and password to access your account
                 </p>
               </div>
@@ -89,20 +92,20 @@ export default function LoginPage() {
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-[#1D1D1F] ml-1">Email</label>
+                  <label className="text-sm font-medium text-gray-300 ml-1">Email</label>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-white/80 border-0 shadow-sm rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D1D1F]/20 transition-all placeholder:text-gray-400"
+                    className="w-full bg-white/5 border border-white/10 text-white shadow-sm rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-white/30 transition-all placeholder:text-gray-500"
                     placeholder="Enter your email"
                   />
                 </div>
                 
                 <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-center ml-1 mr-1">
-                    <label className="text-sm font-medium text-[#1D1D1F]">Password</label>
+                    <label className="text-sm font-medium text-gray-300">Password</label>
                   </div>
                   <div className="relative">
                     <input
@@ -110,13 +113,13 @@ export default function LoginPage() {
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-white/80 border-0 shadow-sm rounded-xl px-4 py-3.5 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D1D1F]/20 transition-all placeholder:text-gray-400"
+                      className="w-full bg-white/5 border border-white/10 text-white shadow-sm rounded-xl px-4 py-3.5 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-white/30 transition-all placeholder:text-gray-500"
                       placeholder="Enter your password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -126,9 +129,9 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full mt-2 bg-[#FDD835] hover:bg-[#FBC02D] text-[#1D1D1F] rounded-full py-6 font-semibold tracking-wide text-base transition-colors shadow-md border-0"
+                  className="w-full mt-2 bg-[#C84200] hover:bg-[#A13500] text-white rounded-full py-6 font-semibold tracking-wide text-base transition-colors shadow-md border-0"
                 >
-                  {isLoading ? "Signing in..." : "Submit"}
+                  {isLoading ? "Signing in..." : "Sign in"}
                 </Button>
               </form>
 
@@ -136,7 +139,7 @@ export default function LoginPage() {
               <div className="flex items-center gap-4 mt-2">
                 <button
                   type="button"
-                  className="flex-1 flex items-center justify-center gap-2 bg-white/80 hover:bg-white shadow-sm border-0 py-3.5 px-4 rounded-full transition-colors text-sm font-semibold text-[#1D1D1F]"
+                  className="flex-1 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 shadow-sm border border-white/10 py-3.5 px-4 rounded-full transition-colors text-sm font-medium text-white"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.164 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
@@ -145,7 +148,7 @@ export default function LoginPage() {
                 </button>
                 <button
                   onClick={() => signIn("google", { callbackUrl: "/catalog" })}
-                  className="flex-1 flex items-center justify-center gap-2 bg-white/80 hover:bg-white shadow-sm border-0 py-3.5 px-4 rounded-full transition-colors text-sm font-semibold text-[#1D1D1F]"
+                  className="flex-1 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 shadow-sm border border-white/10 py-3.5 px-4 rounded-full transition-colors text-sm font-medium text-white"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -157,9 +160,9 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              <div className="flex items-center justify-between mt-8 text-xs font-semibold text-[#86868b]">
-                <p>Have an account? <a href="/register" className="text-[#1D1D1F] underline decoration-[#86868b]/30 underline-offset-4 hover:decoration-[#1D1D1F]">Sign in</a></p>
-                <a href="#" className="underline decoration-[#86868b]/30 underline-offset-4 hover:decoration-[#1D1D1F]">Terms & Conditions</a>
+              <div className="flex items-center justify-between mt-8 text-xs font-medium text-gray-400">
+                <p>Have an account? <a href="/register" className="text-white hover:underline underline-offset-4">Sign in</a></p>
+                <a href="#" className="hover:text-white transition-colors">Terms & Conditions</a>
               </div>
 
             </div>
