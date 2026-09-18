@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
-import { BookOpen, Menu } from "lucide-react"
+import { BookOpen, Menu, User } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/Button"
 import { motion, AnimatePresence, Variants } from "framer-motion"
@@ -112,25 +112,34 @@ export function Navbar() {
                 <div className="flex items-center gap-6 z-50">
                   <div className="hidden md:flex items-center gap-4">
                     {session ? (
-                      <div className="flex items-center gap-4">
-                        <span className="text-sm font-bold text-[#C84200]">
-                          {session.user?.name || session.user?.email || "User"}
-                        </span>
-                        <button 
-                          onClick={() => signOut()}
-                          className="hover:text-[#A33500] font-black uppercase tracking-wider text-sm md:text-base transition-colors"
-                        >
-                          Log Out
-                        </button>
-                      </div>
+                      <button 
+                        onClick={() => signOut()}
+                        className="hover:text-[#A33500] font-black uppercase tracking-wider text-sm md:text-base transition-colors"
+                      >
+                        Log Out
+                      </button>
                     ) : (
                       <Link href="/login" className="hover:text-[#A33500] font-black uppercase tracking-wider text-sm md:text-base transition-colors">
                         Log In
                       </Link>
                     )}
-                    <Button variant="default" size="sm" className="h-9 text-xs md:text-sm px-6 font-black uppercase tracking-wider bg-[#C84200] text-[#F5F5DC] hover:bg-[#A33500] rounded-full shadow-md">
-                      List a Book
-                    </Button>
+                    
+                    <Link href="/catalog/new">
+                      <Button variant="default" size="sm" className="h-9 text-xs md:text-sm px-6 font-black uppercase tracking-wider bg-[#C84200] text-[#F5F5DC] hover:bg-[#A33500] rounded-full shadow-md">
+                        List a Book
+                      </Button>
+                    </Link>
+
+                    {session && (
+                      <div className="flex items-center gap-2 ml-2">
+                        <span className="text-sm font-bold text-[#C84200]">
+                          {session.user?.name || session.user?.email?.split('@')[0] || "User"}
+                        </span>
+                        <div className="h-8 w-8 bg-[#C84200]/10 rounded-full flex items-center justify-center">
+                           <User className="h-4 w-4 text-[#C84200]" />
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <button className="md:hidden text-[#C84200] hover:text-[#A33500]">
                     <Menu className="h-5 w-5" />
