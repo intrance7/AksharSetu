@@ -35,7 +35,7 @@ export function BookCard({ book }: BookCardProps) {
   const condColor = CONDITION_COLORS[book.condition] || CONDITION_COLORS.GOOD
 
   return (
-    <article className="flex flex-col min-w-0 group relative">
+    <article className="flex flex-col min-w-0 group relative h-full">
       {/* Tile Container */}
       <div className="relative grid place-items-center aspect-[1/1.08] rounded-3xl overflow-hidden isolate" style={{ backgroundColor: `${catColor}15` }}>
         
@@ -51,7 +51,7 @@ export function BookCard({ book }: BookCardProps) {
         {/* Wishlist Heart (Top Right) */}
         <button 
           onClick={(e) => { e.preventDefault() }}
-          className="absolute top-3 right-3 z-40 grid place-items-center w-10 h-10 rounded-full bg-white text-[#1D1D1F] shadow-sm hover:scale-110 hover:text-[#D6335F] transition-all"
+          className="absolute top-3 right-3 z-50 grid place-items-center w-10 h-10 rounded-full bg-white text-[#1D1D1F] shadow-sm hover:scale-110 hover:text-[#D6335F] transition-all cursor-pointer"
           aria-label="Save to wishlist"
         >
           <Heart className="w-5 h-5" />
@@ -93,7 +93,10 @@ export function BookCard({ book }: BookCardProps) {
         </div>
         
         <h3 title={book.title} className="font-bold text-lg leading-tight tracking-tight text-[#1D1D1F] line-clamp-2 mt-1 mb-1">
-          <Link href={`/catalog/${book.id}`} className="hover:underline decoration-[#C84200] decoration-2 underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-[#C84200] rounded-sm">
+          <Link 
+            href={`/catalog/${book.id}`} 
+            className="hover:underline decoration-[#C84200] decoration-2 underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-[#C84200] rounded-sm after:absolute after:inset-0 after:z-10"
+          >
             {book.title}
           </Link>
         </h3>

@@ -95,7 +95,7 @@ export function Navbar() {
 
                 {/* Center: Links */}
                 <nav className="hidden md:flex flex-1 items-center justify-center gap-8 text-[#C84200] z-50 h-full">
-                  {navData.map((item) => (
+                  {navData.filter((item) => !item.authOnly || session).map((item) => (
                     <div
                       key={item.label}
                       className="h-full flex items-center"
@@ -297,6 +297,18 @@ const navData = [
         }
       ]
     }
+  },
+  {
+    label: "My Library",
+    href: "/library",
+    dropdown: null,
+    authOnly: true
+  },
+  {
+    label: "Messages",
+    href: "/messages",
+    dropdown: null,
+    authOnly: true
   },
   {
     label: "About Us",

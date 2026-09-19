@@ -59,6 +59,16 @@ export default async function UserProfilePage({
             <p className="text-[#1D1D1F]/70 text-lg font-medium max-w-2xl leading-relaxed">
               {user.bio || "This user hasn't written a bio yet."}
             </p>
+
+            {user.isShantiModeActive && user.liveStatus && (
+              <div className="mt-6 inline-flex items-center gap-3 bg-[#1D1D1F] text-white px-5 py-3 rounded-2xl shadow-lg border border-white/10 animate-pulse">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00ffcc] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-[#00ffcc]"></span>
+                </span>
+                <p className="font-bold text-sm tracking-wide">{user.liveStatus}</p>
+              </div>
+            )}
           </div>
         </div>
 

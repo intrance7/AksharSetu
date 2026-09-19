@@ -21,6 +21,10 @@ model User {
   bio           String?   @db.Text
   location      String?
   
+  // Shanti Mode / Live Status
+  liveStatus          String?
+  isShantiModeActive  Boolean   @default(false)
+
   // Relations
   books         Book[]    @relation("OwnerToBook")
   requests      BookRequest[] @relation("RequesterToRequest")
@@ -30,6 +34,8 @@ model User {
   accounts      Account[]
   sessions      Session[]
   badges        UserBadge[]
+  libraryBooks  LibraryBook[]
+  readingSessions ReadingSession[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -179,3 +185,34 @@ model UserBadge {
 
   @@unique([userId, badgeId])
 }
+
+model LibraryBook {
+  id          String   @id @default(uuid())
+  title       String
+  author      String
+  coverImage  String?
+  platformBookId String? // If linked to an existing book on AksharSetu
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions    ReadingSession[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ReadingSession {
+  id              String   @id @default(uuid())
+  durationMinutes Int
+  
+  // Relations
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  libraryBookId   String
+  libraryBook     LibraryBook @relation(fields: [libraryBookId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+}
+

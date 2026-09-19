@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import { RequestBookButton } from "@/components/catalog/RequestBookButton"
 import Link from "next/link"
-import { ArrowLeft, BookOpen, Tag, User } from "lucide-react"
+import { ArrowLeft, BookOpen, Tag, User, MessageCircle } from "lucide-react"
 
 export default async function ListingDetailPage({
   params,
@@ -107,10 +107,19 @@ export default async function ListingDetailPage({
                     <User className="w-6 h-6 text-[#1D1D1F]/40" />
                   </div>
                 )}
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold uppercase tracking-widest text-[#1D1D1F]/40">Listed by</p>
                   <p className="font-bold text-[#1D1D1F]">{book.owner.name || "Anonymous User"}</p>
                 </div>
+                {!isOwner && session && (
+                  <Link
+                    href={`/messages/${book.owner.id}`}
+                    className="flex items-center gap-2 bg-[#1D1D1F] hover:bg-[#2d2d2f] text-white text-xs font-bold px-4 py-2.5 rounded-full transition-colors shrink-0"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    Message
+                  </Link>
+                )}
               </div>
             </div>
 
