@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useTransition, useState } from "react"
 import { Search } from "lucide-react"
 import { motion } from "framer-motion"
+import { BookChaseAnimation } from "./BookChaseAnimation"
 
 const POPULAR_SEARCHES = ["Algorithms", "Anatomy", "Atomic Habits", "Kalam"]
 
@@ -105,7 +106,7 @@ export function CatalogHero() {
             <circle cx="486" cy="236" r="6" fill="#FBF6E8"/>
           </svg>
           
-          <div className="absolute inset-0">
+          <div className="absolute inset-0" style={{ perspective: 1200 }}>
             {FAN_BOOKS.map((book, i) => {
               return (
                 <motion.div 
@@ -113,45 +114,80 @@ export function CatalogHero() {
                   initial={{ 
                     opacity: 0, 
                     x: "-50%", 
-                    y: 46, 
-                    rotate: 0 
+                    y: 200, 
+                    rotateZ: -40, 
+                    rotateY: 90,
+                    scale: 0.8
                   }}
                   animate={{ 
                     opacity: 1, 
                     x: `calc(-50% + clamp(118px, 14.5vw, 172px) * ${book.k})`, 
                     y: book.y, 
-                    rotate: book.r 
+                    rotateZ: book.r,
+                    rotateY: book.k * -18,
+                    scale: 1
                   }}
                   transition={{ 
-                    duration: 0.8, 
-                    ease: [0.2, 0.8, 0.2, 1], 
-                    delay: (i * 0.09) + 0.12 
+                    type: "spring",
+                    stiffness: 200,
+                    damping: 20,
+                    mass: 0.8,
+                    delay: (i * 0.1) + 0.1
                   }}
-                  className="absolute bottom-4 left-1/2 origin-[50%_90%] shadow-[0_1.2em_3em_-0.6em_rgba(0,0,0,0.55),0_0.2em_0.6em_rgba(0,0,0,0.3)] rounded-md overflow-hidden flex flex-col justify-end p-4 pb-5 text-white"
-                  style={{
-                    width: 'clamp(118px, 14.5vw, 172px)',
-                    aspectRatio: '5/7',
-                    backgroundColor: book.color,
-                    zIndex: i + 1,
-                  }}
+                  className="absolute bottom-4 left-1/2 origin-[50%_90%]"
+                  style={{ zIndex: i + 1, transformStyle: "preserve-3d" }}
                 >
-                  
-                  {/* Decorative faint grid / lines behind text */}
-                  <div className="absolute inset-0 opacity-20 pointer-events-none" 
-                       style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-                  
-                  <h3 className="font-black text-[clamp(1rem,1.8vw,1.5rem)] leading-[1.05] tracking-tight mb-1 relative z-10 shadow-sm" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
-                    {book.title}
-                  </h3>
-                  <p className="text-[clamp(0.7rem,0.9vw,0.875rem)] font-semibold opacity-90 relative z-10">
-                    {book.author}
-                  </p>
+                  <motion.div
+                    animate={{ y: [0, -8, 0], rotateZ: [0, i % 2 === 0 ? 1 : -1, 0] }}
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: i * 0.3 // Stagger the levitation
+                    }}
+                    className="relative shadow-[20px_20px_40px_rgba(0,0,0,0.6),_5px_5px_15px_rgba(0,0,0,0.4)] rounded-r-lg rounded-l-sm overflow-hidden flex flex-col justify-end p-4 pb-5 text-white border-l-[8px] border-black/20"
+                    style={{
+                      width: 'clamp(118px, 14.5vw, 172px)',
+                      aspectRatio: '5/7',
+                      backgroundColor: book.color,
+                      transformStyle: "preserve-3d"
+                    }}
+                  >
+                    {/* Spine Highlight */}
+                    <div className="absolute top-0 bottom-0 left-0 w-2 bg-gradient-to-r from-white/30 to-transparent z-10 pointer-events-none" />
+                    
+                    {/* Lighting Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-white/10 pointer-events-none mix-blend-overlay z-10" />
+
+                    {/* Decorative faint grid / lines behind text */}
+                    <div className="absolute inset-0 opacity-20 pointer-events-none" 
+                         style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+                    
+                    <h3 className="font-black text-[clamp(1rem,1.8vw,1.5rem)] leading-[1.05] tracking-tight mb-1 relative z-20 shadow-sm" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
+                      {book.title}
+                    </h3>
+                    <p className="text-[clamp(0.7rem,0.9vw,0.875rem)] font-semibold opacity-90 relative z-20">
+                      {book.author}
+                    </p>
+                  </motion.div>
                 </motion.div>
               )
             })}
           </div>
         </div>
+      </div>
 
+      {/* Easter Egg: Book Chase Platformer Animation */}
+      <div className="absolute left-0 right-0 bottom-[10px] z-10 opacity-90 mix-blend-screen overflow-hidden">
+        <BookChaseAnimation 
+          sneakPoints={[
+            { position: 0.25, pauseDuration: 1200, direction: "right" },
+            { position: 0.65, pauseDuration: 1800, direction: "left" },
+            { position: 0.85, pauseDuration: 1000, direction: "right" }
+          ]}
+          chaseDistance={160}
+          speed={1.5}
+        />
       </div>
 
       {/* Bottom Arch cutouts */}

@@ -92,7 +92,7 @@ export function BookCard({ book }: BookCardProps) {
           {book.category}
         </div>
         
-        <h3 className="font-bold text-lg leading-tight tracking-tight text-[#1D1D1F] line-clamp-2 mt-1 mb-1">
+        <h3 title={book.title} className="font-bold text-lg leading-tight tracking-tight text-[#1D1D1F] line-clamp-2 mt-1 mb-1">
           <Link href={`/catalog/${book.id}`} className="hover:underline decoration-[#C84200] decoration-2 underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-[#C84200] rounded-sm">
             {book.title}
           </Link>
