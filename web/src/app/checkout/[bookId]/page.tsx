@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import Link from "next/link"
 import { ArrowLeft, BookOpen, ShieldCheck } from "lucide-react"
-import { CheckoutButton } from "@/components/checkout/CheckoutButton"
+import { RazorpayButton } from "@/components/checkout/RazorpayButton"
 
 export default async function CheckoutPage({
   params,
@@ -120,7 +120,7 @@ export default async function CheckoutPage({
                 <span className="font-black text-2xl text-[#1D1D1F]">₹{total}</span>
               </div>
 
-              <CheckoutButton bookId={book.id} />
+              <RazorpayButton book={book} user={session.user} amount={total} />
               
               <p className="text-center text-xs text-[#1D1D1F]/40 font-medium mt-4">
                 By confirming, you agree to our Terms of Service.

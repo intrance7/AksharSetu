@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
+import Razorpay from "razorpay"
+
+// Initialize Razorpay instance
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID || "placeholder",
+  key_secret: process.env.RAZORPAY_KEY_SECRET || "placeholder",
+})
 
 export async function POST(req: Request) {
   try {
@@ -46,17 +53,34 @@ export async function POST(req: Request) {
         data: { status: "RESERVED" },
       })
 
-      // 3. Create a PENDING Order
+      const platformFee = 25
+      const shippingFee = 40
+      const totalAmount = updatedBook.price + platformFee + shippingFee
+
+      // 3. Create a Razorpay Order
+      const rzpOrder = await razorpay.orders.create({
+        amount: Math.round(totalAmount * 100), // amount in smallest currency unit (paise)
+        currency: "INR",
+        receipt: `receipt_book_${updatedBook.id.substring(0, 8)}`,
+      })
+
+      // 4. Create a PENDING Order in our DB, storing the razorpay_order_id in paymentId
       const order = await tx.order.create({
         data: {
-          amount: updatedBook.price,
+          amount: totalAmount,
           status: "PENDING",
+          paymentId: rzpOrder.id,
           bookId: updatedBook.id,
           buyerId: session.user.id,
         },
       })
 
-      return order
+      return {
+        orderId: order.id,
+        razorpayOrderId: rzpOrder.id,
+        amount: rzpOrder.amount,
+        currency: rzpOrder.currency,
+      }
     })
 
     return NextResponse.json(result, { status: 201 })
