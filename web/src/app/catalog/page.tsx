@@ -36,33 +36,44 @@ export default async function CatalogPage({
   })
 
   return (
-    <div className="min-h-screen bg-[#F5F5DC] pt-24 pb-32">
-      <div className="container mx-auto px-4 md:px-8">
-
-        <div className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-[#1D1D1F] mb-6">
-            Discover Your Next <span className="text-[#0066cc]">Great Read</span>
-          </h1>
-          <p className="text-[#86868b] text-lg font-medium max-w-2xl mx-auto">
-            Browse our collection of donated and resale books. Search by category, title, or author to find exactly what you need.
-          </p>
+    <div className="min-h-screen bg-[#F5F5DC]">
+      {/* Hero Section */}
+      <div className="bg-[#1D1D1F] pt-28 pb-16 px-4 md:px-8">
+        <div className="container mx-auto max-w-6xl">
+          <div className="flex flex-col items-center text-center gap-6">
+            <span className="text-[#C84200] text-xs font-black uppercase tracking-[0.3em]">
+              Book Catalog
+            </span>
+            <h1
+              className="text-5xl md:text-7xl font-black tracking-tighter text-white leading-[0.9]"
+              style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+            >
+              Discover Your Next<br />
+              <span className="text-[#C84200]">Great Read</span>
+            </h1>
+            <p className="text-white/60 text-lg font-medium max-w-xl">
+              Browse donated and resale books. Search by category, title, or author.
+            </p>
+          </div>
         </div>
+      </div>
 
+      {/* Content */}
+      <div className="container mx-auto max-w-6xl px-4 md:px-8 -mt-8">
         <CatalogFilters />
 
         {books.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10 pb-24">
             {books.map((book) => (
               <BookCard key={book.id} book={book} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-32 bg-white rounded-3xl shadow-sm border border-gray-100">
+          <div className="text-center py-32 bg-white rounded-2xl shadow-sm border border-[#1D1D1F]/5 mt-10">
             <h3 className="text-2xl font-black text-[#1D1D1F] mb-2">No books found</h3>
-            <p className="text-[#86868b] font-medium">Try adjusting your filters or searching for something else.</p>
+            <p className="text-[#1D1D1F]/50 font-medium">Try adjusting your filters or searching for something else.</p>
           </div>
         )}
-
       </div>
     </div>
   )

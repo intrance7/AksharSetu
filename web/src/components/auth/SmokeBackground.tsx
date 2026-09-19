@@ -32,7 +32,7 @@ export function SmokeBackground() {
         }}
       >
         <Image
-          src="/images/smoke-bg.jpg"
+          src="/beige_smoke_4k.png"
           alt="Abstract Smoke Background"
           fill
           className="object-cover opacity-80"

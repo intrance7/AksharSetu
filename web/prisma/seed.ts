@@ -71,17 +71,24 @@ const DUMMY_BOOKS = [
   }
 ]
 
+const bcrypt = require('bcryptjs')
+
 async function main() {
   console.log('Start seeding ...')
+
+  // Hash the password
+  const hashedPassword = await bcrypt.hash('password123', 12)
 
   // Create a dummy user
   const user = await prisma.user.upsert({
     where: { email: 'test@aksharsetu.com' },
-    update: {},
+    update: {
+      password: hashedPassword
+    },
     create: {
       email: 'test@aksharsetu.com',
       name: 'Alice Donor',
-      password: 'hashed_password_placeholder', // Usually we'd bcrypt it
+      password: hashedPassword,
       role: 'USER',
     },
   })
