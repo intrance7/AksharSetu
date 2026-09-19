@@ -71,6 +71,44 @@ const DUMMY_BOOKS = [
   }
 ]
 
+const DUMMY_BADGES = [
+  {
+    name: "Seed Planter",
+    description: "Donated 1 Book",
+    category: "DONATION",
+    iconUrl: "🌱",
+    requirementThreshold: 1,
+  },
+  {
+    name: "Knowledge Giver",
+    description: "Donated 5 Books",
+    category: "DONATION",
+    iconUrl: "🌿",
+    requirementThreshold: 5,
+  },
+  {
+    name: "Honest Lister",
+    description: "Accurate descriptions",
+    category: "TRUST",
+    iconUrl: "✅",
+    requirementThreshold: 5,
+  },
+  {
+    name: "Speedy Shipper",
+    description: "Fast dispatches",
+    category: "TRUST",
+    iconUrl: "⚡",
+    requirementThreshold: 1,
+  },
+  {
+    name: "Early Adopter",
+    description: "Joined in first 6 months",
+    category: "COMMUNITY",
+    iconUrl: "🚀",
+    requirementThreshold: 0,
+  }
+]
+
 const bcrypt = require('bcryptjs')
 
 async function main() {
@@ -90,26 +128,38 @@ async function main() {
       name: 'Alice Donor',
       password: hashedPassword,
       role: 'USER',
+      bio: 'Lifelong learner and book lover. Happy to share my collection with students in need!',
+      location: 'Mumbai, India'
     },
   })
 
   console.log(`Created dummy user with id: ${user.id}`)
 
-  // Clear existing books for idempotency (optional, but good for local dev)
-  await prisma.book.deleteMany({
-    where: { ownerId: user.id }
-  })
+  // Skipping book reset to prevent foreign key errors during development
+  // We already have books from previous seeding/testing.
 
-  // Insert dummy books
-  for (const book of DUMMY_BOOKS) {
-    const createdBook = await prisma.book.create({
-      data: {
-        ...book,
-        ownerId: user.id,
-      }
+  // Seed Badges
+  await prisma.userBadge.deleteMany()
+  await prisma.badge.deleteMany()
+  
+  const badgeMap = new Map()
+  for (const badge of DUMMY_BADGES) {
+    const createdBadge = await prisma.badge.create({
+      data: badge
     })
-    console.log(`Created book: ${createdBook.title}`)
+    badgeMap.set(createdBadge.name, createdBadge.id)
+    console.log(`Created badge: ${createdBadge.name}`)
   }
+
+  // Assign Badges to Alice
+  await prisma.userBadge.createMany({
+    data: [
+      { userId: user.id, badgeId: badgeMap.get("Seed Planter"), isPinned: true },
+      { userId: user.id, badgeId: badgeMap.get("Honest Lister"), isPinned: true },
+      { userId: user.id, badgeId: badgeMap.get("Early Adopter"), isPinned: false },
+    ]
+  })
+  console.log(`Assigned badges to user: Alice Donor`)
 
   console.log('Seeding finished.')
 }

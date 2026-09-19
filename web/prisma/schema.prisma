@@ -18,12 +18,18 @@ model User {
   image         String?
   password      String?
   role          String    @default("USER") // USER, ADMIN
+  bio           String?   @db.Text
+  location      String?
   
   // Relations
   books         Book[]    @relation("OwnerToBook")
   requests      BookRequest[] @relation("RequesterToRequest")
+  orders        Order[]   @relation("BuyerToOrder")
+  sentMessages  Message[] @relation("SenderToMessage")
+  receivedMessages Message[] @relation("ReceiverToMessage")
   accounts      Account[]
   sessions      Session[]
+  badges        UserBadge[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -46,6 +52,7 @@ model Book {
   ownerId       String
   owner         User      @relation("OwnerToBook", fields: [ownerId], references: [id])
   requests      BookRequest[]
+  orders        Order[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -62,6 +69,8 @@ model BookRequest {
   
   requesterId   String
   requester     User      @relation("RequesterToRequest", fields: [requesterId], references: [id])
+
+  messages      Message[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -100,4 +109,73 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Order {
+  id            String    @id @default(uuid())
+  amount        Float
+  status        String    @default("PENDING") // PENDING, PAID, FAILED
+  paymentId     String?
+
+  // Relations
+  bookId        String
+  book          Book      @relation(fields: [bookId], references: [id])
+  
+  buyerId       String
+  buyer         User      @relation("BuyerToOrder", fields: [buyerId], references: [id])
+
+  messages      Message[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  content     String   @db.Text
+  
+  // Relations
+  senderId    String
+  sender      User     @relation("SenderToMessage", fields: [senderId], references: [id])
+  
+  receiverId  String
+  receiver    User     @relation("ReceiverToMessage", fields: [receiverId], references: [id])
+  
+  requestId   String?
+  request     BookRequest? @relation(fields: [requestId], references: [id])
+  
+  orderId     String?
+  order       Order?   @relation(fields: [orderId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Badge {
+  id                    String      @id @default(uuid())
+  name                  String
+  description           String
+  category              String      // DONATION, TRUST, COMMUNITY
+  iconUrl               String
+  requirementThreshold  Int
+
+  users                 UserBadge[]
+
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+}
+
+model UserBadge {
+  id          String   @id @default(uuid())
+  earnedAt    DateTime @default(now())
+  isPinned    Boolean  @default(false)
+  
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  badgeId     String
+  badge       Badge    @relation(fields: [badgeId], references: [id])
+
+  @@unique([userId, badgeId])
 }

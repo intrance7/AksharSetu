@@ -131,14 +131,14 @@ export function Navbar() {
                     </Link>
 
                     {session && (
-                      <div className="flex items-center gap-2 ml-2">
+                      <Link href="/profile" className="flex items-center gap-2 ml-2 hover:opacity-80 transition-opacity">
                         <span className="text-sm font-bold text-[#C84200]">
                           {session.user?.name || session.user?.email?.split('@')[0] || "User"}
                         </span>
                         <div className="h-8 w-8 bg-[#C84200]/10 rounded-full flex items-center justify-center">
                            <User className="h-4 w-4 text-[#C84200]" />
                         </div>
-                      </div>
+                      </Link>
                     )}
                   </div>
                   <button className="md:hidden text-[#C84200] hover:text-[#A33500]">

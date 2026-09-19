@@ -1,12 +1,28 @@
 "use client"
 
 import { Book } from "@prisma/client"
-import { motion } from "framer-motion"
 import Link from "next/link"
-import { Heart } from "lucide-react"
+import { Heart, MapPin, Clock } from "lucide-react"
+import { formatDistanceToNow } from "date-fns"
+import { GeneratedCover } from "./GeneratedCover"
 
 interface BookCardProps {
   book: Book
+}
+
+const CATEGORY_COLORS: Record<string, string> = {
+  engineering: "#3B4CCA",
+  medical: "#0B8577",
+  fiction: "#C93A64",
+  "non-fiction": "#D99A0B",
+  default: "#1D1B26"
+}
+
+const CONDITION_COLORS: Record<string, string> = {
+  LIKE_NEW: "#0A7D4F", // Leaf Green
+  GOOD: "#3B82F6",
+  FAIR: "#F4B22B", // Marigold
+  POOR: "#C4420C", // Brand Orange
 }
 
 export function BookCard({ book }: BookCardProps) {
@@ -15,66 +31,87 @@ export function BookCard({ book }: BookCardProps) {
     : "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=800"
 
   const isDonation = book.price === 0
+  const catColor = CATEGORY_COLORS[book.category?.toLowerCase()] || CATEGORY_COLORS.default
+  const condColor = CONDITION_COLORS[book.condition] || CONDITION_COLORS.GOOD
 
   return (
-    <Link href={`/catalog/${book.id}`}>
-      <motion.div 
-        whileHover={{ y: -6 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="group cursor-pointer h-full"
-      >
-        {/* Cover Image Container */}
-        <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-[#E8E4DF] mb-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img 
-            src={coverImage} 
-            alt={book.title} 
-            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
-          />
-          
-          {/* Gradient overlay on hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
-          {/* Top row: Condition + Wishlist */}
-          <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-            <span className="bg-[#1D1D1F]/90 text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg">
-              {book.condition.replace('_', ' ')}
-            </span>
-            <button 
-              onClick={(e) => { e.preventDefault(); }}
-              className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-white hover:scale-110"
-            >
-              <Heart className="w-4 h-4 text-[#1D1D1F]" />
-            </button>
-          </div>
-
-          {/* Price tag */}
-          <div className="absolute bottom-3 right-3">
-            <span className={`text-sm font-black px-3 py-1.5 rounded-lg ${
-              isDonation 
-                ? "bg-emerald-500 text-white" 
-                : "bg-white text-[#1D1D1F]"
-            }`}>
-              {isDonation ? "Free" : `₹${book.price}`}
-            </span>
-          </div>
+    <article className="flex flex-col min-w-0 group relative">
+      {/* Tile Container */}
+      <div className="relative grid place-items-center aspect-[1/1.08] rounded-3xl overflow-hidden isolate" style={{ backgroundColor: `${catColor}15` }}>
+        
+        {/* Background gradient shadow */}
+        <div className="absolute left-1/2 bottom-[9%] w-[56%] h-4 -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(29,29,31,0.3),transparent)] z-0" />
+        
+        {/* Condition Badge (Top Left) */}
+        <div className="absolute top-3 left-3 z-30 inline-flex items-center gap-1.5 bg-white text-[#1D1D1F] text-xs font-bold px-2.5 py-1.5 rounded-full shadow-sm pointer-events-none">
+          <i className="w-2 h-2 rounded-full" style={{ backgroundColor: condColor }}></i>
+          {book.condition.replace('_', ' ')}
         </div>
 
-        {/* Info below image */}
-        <div className="flex flex-col gap-1 px-1">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#C84200]">
-              {book.category}
-            </span>
-          </div>
-          <h3 className="font-bold text-[15px] leading-snug text-[#1D1D1F] line-clamp-2 group-hover:text-[#C84200] transition-colors duration-200">
+        {/* Wishlist Heart (Top Right) */}
+        <button 
+          onClick={(e) => { e.preventDefault() }}
+          className="absolute top-3 right-3 z-40 grid place-items-center w-10 h-10 rounded-full bg-white text-[#1D1D1F] shadow-sm hover:scale-110 hover:text-[#D6335F] transition-all"
+          aria-label="Save to wishlist"
+        >
+          <Heart className="w-5 h-5" />
+        </button>
+
+        {/* The Cover Image */}
+        <div className="relative z-10 w-[54%] aspect-[5/7] rounded-md overflow-hidden shadow-xl transform transition-transform duration-300 group-hover:-translate-y-2 group-hover:scale-[1.03]">
+          {book.images && book.images.length > 0 ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img 
+              src={book.images[0]} 
+              alt={book.title} 
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <GeneratedCover 
+              title={book.title} 
+              author={book.author} 
+              category={book.category} 
+            />
+          )}
+        </div>
+
+        {/* Price Tag (Bottom Right) */}
+        <div className={`absolute right-3 bottom-3 z-30 font-black text-base leading-none px-3 py-2 rounded-xl shadow-md pointer-events-none ${
+          isDonation 
+            ? "bg-[#0A7D4F] text-white -rotate-3" 
+            : "bg-white text-[#1D1D1F] rotate-3"
+        }`}>
+          {isDonation ? "Free" : `₹${book.price}`}
+        </div>
+      </div>
+
+      {/* Meta Data */}
+      <div className="flex-1 flex flex-col pt-4 px-1">
+        <div className="inline-flex items-center gap-2 text-sm font-bold text-[#1D1D1F]/70 mb-1">
+          <i className="w-2 h-2 rounded-[2px] rotate-45" style={{ backgroundColor: catColor }}></i>
+          {book.category}
+        </div>
+        
+        <h3 className="font-bold text-lg leading-tight tracking-tight text-[#1D1D1F] line-clamp-2 mt-1 mb-1">
+          <Link href={`/catalog/${book.id}`} className="hover:underline decoration-[#C84200] decoration-2 underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-[#C84200] rounded-sm">
             {book.title}
-          </h3>
-          <p className="text-[13px] text-[#1D1D1F]/40 line-clamp-1">
-            {book.author}
-          </p>
+          </Link>
+        </h3>
+        
+        <p className="text-[#1D1D1F]/60 text-sm font-medium">
+          {book.author}
+        </p>
+
+        {/* Bottom Row */}
+        <div className="flex items-center gap-4 mt-auto pt-4 text-xs font-semibold text-[#1D1D1F]/50">
+          <span className="inline-flex items-center gap-1.5">
+            <MapPin className="w-3.5 h-3.5" /> Mumbai
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5" /> {formatDistanceToNow(new Date(book.createdAt), { addSuffix: true })}
+          </span>
         </div>
-      </motion.div>
-    </Link>
+      </div>
+    </article>
   )
 }
