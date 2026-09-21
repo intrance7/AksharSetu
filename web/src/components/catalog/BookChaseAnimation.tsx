@@ -675,14 +675,16 @@ export function BookChaseAnimation({ chaseDistance = 120, speed = 2.5 }: BookCha
           break;
           
         case 'TRIP_C':
-          rTargetX = runner.x + 100; // Runner keeps going a bit
+          const tripDir = runner.isFacingLeft ? -1 : 1;
+          rTargetX = runner.x + tripDir * 100; // Runner keeps going a bit
           cTargetX = chaser.x;
           chaser.animState = 'TRIP';
-          if (Math.abs(rTargetX - runner.x) < 2) {
-             runner.animState = 'SNEAK';
-             runner.isFacingLeft = true;
-          }
+          
           seqTimer += dt;
+          if (seqTimer > 0.8) {
+             runner.animState = 'SNEAK';
+             runner.isFacingLeft = tripDir > 0; // Look back at the chaser
+          }
           if (seqTimer > 2.0) {
              activeSeq = 'NONE';
              nextRandomEventTimer = 5 + Math.random() * 5;
@@ -691,12 +693,14 @@ export function BookChaseAnimation({ chaseDistance = 120, speed = 2.5 }: BookCha
 
         case 'SPRINT':
           // Runner runs extremely fast forward. Chaser tries to catch up.
-          rTargetX = runner.x + 300;
-          cTargetX = runner.x - chaseDistance;
+          const sprintDir = runner.isFacingLeft ? -1 : 1;
+          rTargetX = runner.x + sprintDir * 300;
+          cTargetX = runner.x - sprintDir * chaseDistance;
           rSpeedMultiplier = 3.0; // zoom!
           cSpeedMultiplier = 1.5; // chaser struggles to keep up
           runner.animState = 'PANIC'; // look funny while sprinting
-          if (Math.abs(rTargetX - runner.x) < 5) {
+          seqTimer += dt;
+          if (seqTimer > 1.5) {
              activeSeq = 'NONE';
              nextRandomEventTimer = 5 + Math.random() * 5;
           }
@@ -708,32 +712,39 @@ export function BookChaseAnimation({ chaseDistance = 120, speed = 2.5 }: BookCha
              // Runner trips
              rTargetX = runner.x;
              runner.animState = 'TRIP';
-             cTargetX = runner.x - chaseDistance; // Chaser stays back
+             cTargetX = runner.x - (runner.isFacingLeft ? -chaseDistance : chaseDistance); // Chaser stays back
              chaser.animState = 'IDLE';
              seqTimer += dt;
-             if (seqTimer > 1.0) seqPhase = 1;
+             if (seqTimer > 1.0) {
+                seqPhase = 1;
+                seqTimer = 0;
+             }
           } else if (seqPhase === 1) {
              // Drag backward
-             cTargetX = chaser.x - 150; // Chaser walks backwards
-             rTargetX = chaser.x + 40; // Runner pulled towards Chaser
+             const dragDir = runner.isFacingLeft ? -1 : 1;
+             cTargetX = chaser.x - dragDir * 150; // Chaser walks backwards
+             rTargetX = chaser.x + dragDir * 40; // Runner pulled towards Chaser
              cSpeedMultiplier = 1.5; // Drag speed
              rSpeedMultiplier = 1.5;
              chaser.animState = 'RUN';
-             chaser.isFacingLeft = true; // walking backwards
+             chaser.isFacingLeft = dragDir > 0; // walking backwards
              runner.animState = 'TRIP'; // being dragged on face
-             runner.isFacingLeft = false; // face down, pulled from behind
+             runner.isFacingLeft = dragDir < 0; // face down, pulled from behind
              
-             if (Math.abs(cTargetX - chaser.x) < 5) {
+             seqTimer += dt;
+             if (seqTimer > 1.5) {
                 seqTimer = 0;
                 seqPhase = 2;
              }
           } else if (seqPhase === 2) {
              // Let go, runner gets up and sprints away
              runner.animState = 'PANIC';
-             rTargetX = runner.x + 200;
+             const runDir = chaser.isFacingLeft ? 1 : -1;
+             rTargetX = runner.x + runDir * 200;
              cTargetX = chaser.x;
              rSpeedMultiplier = 2.0;
-             if (Math.abs(rTargetX - runner.x) < 5) {
+             seqTimer += dt;
+             if (seqTimer > 1.5) {
                 activeSeq = 'NONE';
                 nextRandomEventTimer = 5 + Math.random() * 5;
              }
