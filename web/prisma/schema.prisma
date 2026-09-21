@@ -20,6 +20,8 @@ model User {
   role          String    @default("USER") // USER, ADMIN
   bio           String?   @db.Text
   location      String?
+  latitude      Float?
+  longitude     Float?
   
   // Shanti Mode / Live Status
   liveStatus          String?

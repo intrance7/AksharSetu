@@ -332,7 +332,7 @@ export function BookChaseAnimation({ chaseDistance = 120, speed = 2.5 }: BookCha
     
     type MasterState = 'OFF_SCREEN' | 'PEEKING' | 'ROAMING' | 'EXITING';
     let masterState: MasterState = 'OFF_SCREEN';
-    let masterTimer = 5; // initial 5 second wait before first spawn
+    let masterTimer = 5; // initial 2 second wait before first spawn
     let spawnFromLeft = true;
     let globalTargetX = 0;
 
@@ -455,7 +455,7 @@ export function BookChaseAnimation({ chaseDistance = 120, speed = 2.5 }: BookCha
             runner.isFacingLeft = !spawnFromLeft; 
             if (Math.abs(runner.x - globalTargetX) < 5) {
                masterState = 'OFF_SCREEN';
-               masterTimer = 3 + Math.random() * 27; // random up to 30s
+               masterTimer = 2 + Math.random() * 8; // wait 2-10s
             }
          } else if (seqPhase === 2) {
             // Runner enters fully
@@ -512,7 +512,7 @@ export function BookChaseAnimation({ chaseDistance = 120, speed = 2.5 }: BookCha
          const isOff = (x: number) => x < -100 || x > canvas.width + 100;
          if (isOff(runner.x) && isOff(chaser.x)) {
             masterState = 'OFF_SCREEN';
-            masterTimer = 3 + Math.random() * 27; // wait anywhere from 3 to 30 seconds
+            masterTimer = 2 + Math.random() * 8; // wait 2-10 seconds
          }
       }
 

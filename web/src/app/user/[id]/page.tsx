@@ -1,7 +1,9 @@
 import prisma from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import { BookCard } from "@/components/catalog/BookCard"
+import { BadgeCard } from "@/components/profile/BadgeCard"
 import { MapPin } from "lucide-react"
+import Link from "next/link"
 
 export default async function UserProfilePage({
   params
@@ -82,17 +84,16 @@ export default async function UserProfilePage({
               {user.badges.length === 0 ? (
                 <p className="text-[#1D1D1F]/40 font-medium text-sm text-center py-4">No badges earned yet.</p>
               ) : (
-                user.badges.map(({ badge }) => (
-                  <div key={badge.id} className="flex items-center gap-4 bg-[#F5F5F7] p-4 rounded-2xl">
-                    <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-2xl shrink-0 shadow-sm">
-                      {badge.iconUrl}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-[#1D1D1F] text-sm">{badge.name}</h3>
-                      <p className="text-[#1D1D1F]/60 text-xs font-medium">{badge.description}</p>
-                    </div>
+                <>
+                  {user.badges.map(({ badge, earnedAt }) => (
+                    <BadgeCard key={badge.id} badge={badge} earnedAt={earnedAt} earned={true} />
+                  ))}
+                  <div className="mt-2 text-center">
+                    <Link href="/badges" className="text-[#1D1D1F]/50 hover:text-[#1D1D1F] font-bold text-xs underline decoration-[#1D1D1F]/20 underline-offset-4">
+                      What are these badges?
+                    </Link>
                   </div>
-                ))
+                </>
               )}
             </div>
           </div>

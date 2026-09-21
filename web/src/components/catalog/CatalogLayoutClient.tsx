@@ -11,11 +11,12 @@ import Link from "next/link"
 import { CatalogGridInterlude } from "./CatalogGridInterlude"
 
 interface CatalogLayoutClientProps {
-  books: Book[];
+  books: (Book & { owner: { latitude: number | null, longitude: number | null, location: string | null } })[];
   isFiltered: boolean;
+  userLocation: { latitude: number | null, longitude: number | null } | null;
 }
 
-export function CatalogLayoutClient({ books, isFiltered }: CatalogLayoutClientProps) {
+export function CatalogLayoutClient({ books, isFiltered, userLocation }: CatalogLayoutClientProps) {
   const [showFilters, setShowFilters] = useState(true)
 
   return (
@@ -66,7 +67,7 @@ export function CatalogLayoutClient({ books, isFiltered }: CatalogLayoutClientPr
                     layout 
                     transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                   >
-                    <BookCard book={book} />
+                    <BookCard book={book} userLocation={userLocation} />
                   </motion.div>
 
                   {/* Inject Interlude banner after 8th book */}

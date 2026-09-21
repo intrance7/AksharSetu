@@ -6,8 +6,11 @@ import { Heart, MapPin, Clock } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { GeneratedCover } from "./GeneratedCover"
 
+import { calculateDistance } from "@/lib/utils"
+
 interface BookCardProps {
-  book: Book
+  book: Book & { owner?: { latitude: number | null, longitude: number | null, location: string | null } }
+  userLocation?: { latitude: number | null, longitude: number | null } | null
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -25,7 +28,7 @@ const CONDITION_COLORS: Record<string, string> = {
   POOR: "#C4420C", // Brand Orange
 }
 
-export function BookCard({ book }: BookCardProps) {
+export function BookCard({ book, userLocation }: BookCardProps) {
   const coverImage = book.images && book.images.length > 0 
     ? book.images[0] 
     : "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=800"
@@ -33,6 +36,13 @@ export function BookCard({ book }: BookCardProps) {
   const isDonation = book.price === 0
   const catColor = CATEGORY_COLORS[book.category?.toLowerCase()] || CATEGORY_COLORS.default
   const condColor = CONDITION_COLORS[book.condition] || CONDITION_COLORS.GOOD
+
+  // Distance / Location logic
+  let locationText = book.owner?.location || "Unknown Location";
+  if (userLocation?.latitude && userLocation?.longitude && book.owner?.latitude && book.owner?.longitude) {
+    const dist = calculateDistance(userLocation.latitude, userLocation.longitude, book.owner.latitude, book.owner.longitude);
+    locationText = `${dist.toFixed(1)} km away`;
+  }
 
   return (
     <article className="flex flex-col min-w-0 group relative h-full">
@@ -60,12 +70,17 @@ export function BookCard({ book }: BookCardProps) {
         {/* The Cover Image */}
         <div className="relative z-10 w-[54%] aspect-[5/7] rounded-md overflow-hidden shadow-xl transform transition-transform duration-300 group-hover:-translate-y-2 group-hover:scale-[1.03]">
           {book.images && book.images.length > 0 ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img 
-              src={book.images[0]} 
-              alt={book.title} 
-              className="w-full h-full object-cover"
-            />
+            <>
+              {/* Spine lighting effects for real images */}
+              <div className="absolute inset-y-0 left-0 w-[11%] z-20 pointer-events-none" style={{ background: "linear-gradient(90deg, rgba(0,0,0,.3), rgba(0,0,0,.06) 68%, rgba(255,255,255,.2) 88%, rgba(0,0,0,.1))" }} />
+              <div className="absolute inset-0 z-20 pointer-events-none" style={{ background: "linear-gradient(115deg, rgba(255,255,255,.22), transparent 38%)" }} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src={book.images[0]} 
+                alt={book.title} 
+                className="w-full h-full object-fill relative z-10"
+              />
+            </>
           ) : (
             <GeneratedCover 
               title={book.title} 
@@ -108,7 +123,7 @@ export function BookCard({ book }: BookCardProps) {
         {/* Bottom Row */}
         <div className="flex items-center gap-4 mt-auto pt-4 text-xs font-semibold text-[#1D1D1F]/50">
           <span className="inline-flex items-center gap-1.5">
-            <MapPin className="w-3.5 h-3.5" /> Mumbai
+            <MapPin className="w-3.5 h-3.5" /> {locationText}
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5" /> {formatDistanceToNow(new Date(book.createdAt), { addSuffix: true })}

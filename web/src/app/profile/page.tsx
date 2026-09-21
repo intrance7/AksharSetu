@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { ProfileForm } from "@/components/profile/ProfileForm"
+import { BadgeCard } from "@/components/profile/BadgeCard"
 import Link from "next/link"
 import { Settings, Eye } from "lucide-react"
 
@@ -61,21 +62,20 @@ export default async function ProfileDashboardPage() {
 
               {user.badges.length === 0 ? (
                 <div className="bg-white/5 rounded-2xl p-6 text-center border border-white/10">
-                  <p className="text-white/40 text-sm font-medium">You haven't earned any badges yet. Start donating books!</p>
+                  <p className="text-white/40 text-sm font-medium mb-4">You haven't earned any badges yet. Start donating books!</p>
+                  <Link href="/badges" className="text-white/80 hover:text-white font-bold text-sm underline decoration-white/30 underline-offset-4">View All Badges</Link>
                 </div>
               ) : (
                 <div className="flex flex-col gap-4">
                   {user.badges.map(({ badge }) => (
-                    <div key={badge.id} className="flex items-center gap-4 bg-white/10 p-4 rounded-2xl border border-white/5">
-                      <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-2xl shrink-0">
-                        {badge.iconUrl}
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-white text-sm">{badge.name}</h3>
-                        <p className="text-white/60 text-xs">{badge.description}</p>
-                      </div>
-                    </div>
+                    <BadgeCard key={badge.id} badge={badge} />
                   ))}
+                  
+                  <div className="mt-4 text-center">
+                    <Link href="/badges" className="text-white/60 hover:text-white font-bold text-sm">
+                      View all available badges &rarr;
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>

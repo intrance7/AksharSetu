@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
+import { checkAndAwardBadges } from "@/services/badgeService"
 
 export async function PATCH(
   req: Request,
@@ -11,6 +12,8 @@ export async function PATCH(
     if (!session || !session.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const userId = session.user.id
 
     const resolvedParams = await params
     const { status } = await req.json()
@@ -31,7 +34,7 @@ export async function PATCH(
       }
 
       // Only the book owner can approve/reject
-      if (bookRequest.book.ownerId !== session.user.id) {
+      if (bookRequest.book.ownerId !== userId) {
         throw new Error("Unauthorized to manage this request")
       }
 
@@ -62,6 +65,16 @@ export async function PATCH(
 
       return updatedRequest
     })
+
+    // Award badges after transaction if status was COMPLETED
+    if (status === "COMPLETED") {
+      try {
+        // Trigger for the owner of the book (who just completed a donation/sale)
+        await checkAndAwardBadges(userId)
+      } catch (badgeError) {
+        console.error("Badge awarding error:", badgeError)
+      }
+    }
 
     return NextResponse.json(result)
   } catch (error: any) {

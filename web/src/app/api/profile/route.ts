@@ -10,7 +10,7 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json()
-    const { bio, location, name } = body
+    const { bio, location, name, latitude, longitude } = body
 
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
@@ -18,6 +18,8 @@ export async function PATCH(req: Request) {
         ...(bio !== undefined && { bio }),
         ...(location !== undefined && { location }),
         ...(name !== undefined && { name }),
+        ...(latitude !== undefined && { latitude }),
+        ...(longitude !== undefined && { longitude }),
       },
       select: {
         id: true,

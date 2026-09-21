@@ -56,9 +56,10 @@ export function CatalogTopBar({ showFilters, onToggleFilters, resultCount }: Cat
               backgroundPosition: "right center"
             }}
           >
-            <option value="new">Newest First</option>
+            <option value="new">Newest Arrivals</option>
             <option value="low">Price: Low to High</option>
             <option value="az">Title: A to Z</option>
+            <option value="distance">Nearest to me</option>
           </select>
         </div>
 

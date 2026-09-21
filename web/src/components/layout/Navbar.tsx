@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
-import { BookOpen, Menu, User } from "lucide-react"
+import { BookOpen, Menu, User, MapPin } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/Button"
 import { motion, AnimatePresence, Variants } from "framer-motion"
@@ -123,6 +123,9 @@ export function Navbar() {
                         Log In
                       </Link>
                     )}
+                    <Link href="/catalog?sort=distance" className="text-[#C84200] hover:text-[#A33500] transition-colors p-2 rounded-full hover:bg-[#C84200]/10" title="Books near me">
+                      <MapPin className="h-5 w-5" />
+                    </Link>
                     
                     <Link href="/catalog/new">
                       <Button variant="default" size="sm" className="h-9 text-xs md:text-sm px-6 font-black uppercase tracking-wider bg-[#C84200] text-[#F5F5DC] hover:bg-[#A33500] rounded-full shadow-md">

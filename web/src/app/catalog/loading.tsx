@@ -1,4 +1,5 @@
-import { Search } from "lucide-react"
+import { Search, Loader2 } from "lucide-react"
+import { MascotLoadingAnimation } from "@/components/catalog/MascotLoadingAnimation"
 
 export default function Loading() {
   return (
@@ -14,7 +15,7 @@ export default function Loading() {
         </div>
       </div>
 
-      {/* Content Skeleton */}
+      {/* Content Skeleton & Animation */}
       <div className="container mx-auto max-w-6xl px-4 md:px-8 -mt-8">
         {/* Stub for filters to maintain layout during load */}
         <div className="flex flex-col gap-6 animate-pulse">
@@ -32,20 +33,19 @@ export default function Loading() {
           </div>
         </div>
 
-        {/* Grid Skeleton */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10 pb-24">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="flex flex-col gap-4 animate-pulse">
-              <div className="w-full aspect-video bg-[#E8E4DF] rounded-2xl"></div>
-              <div className="flex flex-col gap-2">
-                <div className="h-3 w-16 bg-[#1D1D1F]/10 rounded-sm"></div>
-                <div className="h-5 w-3/4 bg-[#1D1D1F]/20 rounded-md"></div>
-                <div className="h-4 w-1/2 bg-[#1D1D1F]/10 rounded-md"></div>
-              </div>
-            </div>
-          ))}
+        {/* Loading Animation Section */}
+        <div className="w-full flex flex-col items-center justify-center py-16">
+           <div className="flex items-center justify-center gap-3 mb-6 text-[#1D1D1F]/60">
+             <Loader2 className="h-6 w-6 animate-spin" />
+             <span className="font-bold tracking-tight text-lg">Fetching library...</span>
+           </div>
+           <div className="w-full max-w-md border border-[#1D1D1F]/10 rounded-3xl bg-[#E8E4DF]/50 overflow-hidden shadow-sm backdrop-blur-sm">
+             <MascotLoadingAnimation radius={100} speed={4.5} />
+           </div>
         </div>
       </div>
     </div>
   )
 }
+
+
