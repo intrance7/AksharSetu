@@ -65,7 +65,7 @@ const CATS: Record<string, { bg: string, fg: string, svg: React.ReactNode }> = {
   },
   default: {
     bg: "#1D1D1F",
-    fg: "#F5F5DC",
+    fg: "#F2EBE1",
     svg: (
       <>
         <rect width="100" height="140" fill="url(#p-grid)" />

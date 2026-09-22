@@ -73,38 +73,31 @@ const DUMMY_BOOKS = [
 
 const DUMMY_BADGES = [
   {
-    name: "Seed Planter",
-    description: "Donated 1 Book",
+    name: "First Donation",
+    description: "Donated your very first book",
     category: "DONATION",
-    iconUrl: "🌱",
+    iconUrl: "/badges/first_donation.jpg",
     requirementThreshold: 1,
   },
   {
-    name: "Knowledge Giver",
-    description: "Donated 5 Books",
+    name: "Library Builder",
+    description: "Donated 5 or more books",
     category: "DONATION",
-    iconUrl: "🌿",
+    iconUrl: "/badges/library_builder.jpg",
     requirementThreshold: 5,
   },
   {
-    name: "Honest Lister",
-    description: "Accurate descriptions",
+    name: "Trusted Reader",
+    description: "Completed 3 successful book exchanges",
     category: "TRUST",
-    iconUrl: "✅",
-    requirementThreshold: 5,
+    iconUrl: "/badges/trusted_reader.jpg",
+    requirementThreshold: 3,
   },
   {
-    name: "Speedy Shipper",
-    description: "Fast dispatches",
-    category: "TRUST",
-    iconUrl: "⚡",
-    requirementThreshold: 1,
-  },
-  {
-    name: "Early Adopter",
-    description: "Joined in first 6 months",
+    name: "Community Pioneer",
+    description: "Joined AksharSetu in the first 6 months",
     category: "COMMUNITY",
-    iconUrl: "🚀",
+    iconUrl: "/badges/community_pioneer.jpg",
     requirementThreshold: 0,
   }
 ]
@@ -154,9 +147,9 @@ async function main() {
   // Assign Badges to Alice
   await prisma.userBadge.createMany({
     data: [
-      { userId: user.id, badgeId: badgeMap.get("Seed Planter"), isPinned: true },
-      { userId: user.id, badgeId: badgeMap.get("Honest Lister"), isPinned: true },
-      { userId: user.id, badgeId: badgeMap.get("Early Adopter"), isPinned: false },
+      { userId: user.id, badgeId: badgeMap.get("First Donation"), isPinned: true },
+      { userId: user.id, badgeId: badgeMap.get("Trusted Reader"), isPinned: true },
+      { userId: user.id, badgeId: badgeMap.get("Community Pioneer"), isPinned: false },
     ]
   })
   console.log(`Assigned badges to user: Alice Donor`)

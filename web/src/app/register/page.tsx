@@ -54,7 +54,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F5DC] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#F2EBE1] flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -81,7 +81,7 @@ export default function RegisterPage() {
 
           <button
             onClick={() => signIn("google", { callbackUrl: "/catalog" })}
-            className="w-full flex items-center justify-center gap-3 bg-[#F5F5F7] hover:bg-[#E8E8ED] text-[#1D1D1F] font-bold py-3 px-4 rounded-full transition-colors"
+            className="w-full flex items-center justify-center gap-3 bg-[#F2EBE1] hover:bg-[#E8E8ED] text-[#1D1D1F] font-bold py-3 px-4 rounded-full transition-colors"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -118,7 +118,7 @@ export default function RegisterPage() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-[#F5F5F7] border-none rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0066cc] transition-all"
+                className="w-full bg-[#F2EBE1] border-none rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0066cc] transition-all"
                 placeholder="John Doe"
               />
             </div>
@@ -129,7 +129,7 @@ export default function RegisterPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#F5F5F7] border-none rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0066cc] transition-all"
+                className="w-full bg-[#F2EBE1] border-none rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0066cc] transition-all"
                 placeholder="name@example.com"
               />
             </div>
@@ -141,7 +141,7 @@ export default function RegisterPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-[#F5F5F7] border-none rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#0066cc] transition-all"
+                  className="w-full bg-[#F2EBE1] border-none rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#0066cc] transition-all"
                   placeholder="••••••••"
                 />
                 <button

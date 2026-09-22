@@ -203,7 +203,7 @@ export function PlaceholderBook() {
         }
 
         const idx = (y * size + x) * 4
-        // Deep warm charcoal: produces a rich, natural ambient shadow over #F5F5DC
+        // Deep warm charcoal: produces a rich, natural ambient shadow over #F2EBE1
         data[idx + 0] = 20 // R
         data[idx + 1] = 15 // G
         data[idx + 2] = 12 // B

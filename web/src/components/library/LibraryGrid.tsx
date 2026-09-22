@@ -113,7 +113,7 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
                     required
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full bg-[#F5F5F7] border border-transparent focus:border-[#C84200] focus:bg-white text-[#1D1D1F] rounded-xl px-4 py-3.5 text-sm outline-none transition-all placeholder:text-[#1D1D1F]/30 font-medium"
+                    className="w-full bg-[#F2EBE1] border border-transparent focus:border-[#C84200] focus:bg-white text-[#1D1D1F] rounded-xl px-4 py-3.5 text-sm outline-none transition-all placeholder:text-[#1D1D1F]/30 font-medium"
                     placeholder="e.g. Atomic Habits"
                   />
                 </div>
@@ -124,7 +124,7 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
                     required
                     value={author}
                     onChange={(e) => setAuthor(e.target.value)}
-                    className="w-full bg-[#F5F5F7] border border-transparent focus:border-[#C84200] focus:bg-white text-[#1D1D1F] rounded-xl px-4 py-3.5 text-sm outline-none transition-all placeholder:text-[#1D1D1F]/30 font-medium"
+                    className="w-full bg-[#F2EBE1] border border-transparent focus:border-[#C84200] focus:bg-white text-[#1D1D1F] rounded-xl px-4 py-3.5 text-sm outline-none transition-all placeholder:text-[#1D1D1F]/30 font-medium"
                     placeholder="e.g. James Clear"
                   />
                 </div>

@@ -11,11 +11,6 @@ export default async function CatalogPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  // Start a minimum delay timer immediately. We'll await it at the end to guarantee 
-  // the beautiful loading animation plays for at least 1.5s, preventing glitchy flashes 
-  // on ultra-fast internet connections.
-  const minDelay = new Promise((resolve) => setTimeout(resolve, 1500))
-
   const resolvedParams = await searchParams
   const category = typeof resolvedParams.category === "string" ? resolvedParams.category : undefined
   const query = typeof resolvedParams.q === "string" ? resolvedParams.q : undefined
@@ -115,13 +110,26 @@ export default async function CatalogPage({
   // Has filters?
   const isFiltered = !!(category && category !== "all" || price && price !== "all" || condition || query)
 
-  // Ensure our 1.5s minimum timer has finished before rendering the page
-  await minDelay;
-
   return (
-    <div className="min-h-screen bg-[#F5F5DC]">
-      <CatalogHero isFiltered={isFiltered} />
-      <CatalogLayoutClient books={finalBooks as any} isFiltered={isFiltered} userLocation={userLocation} />
+    <div className="min-h-screen bg-[#F2EBE1] relative overflow-hidden">
+      {/* Background Decorations - Left */}
+      <div className="hidden xl:block absolute -left-8 top-64 w-[320px] pointer-events-none z-0">
+        <div className="relative">
+           <img src="/doodle-plant-books.png" alt="Decorative sketch" className="w-full h-auto drop-shadow-2xl mix-blend-multiply transition-transform duration-500 hover:scale-105 hover:rotate-2 pointer-events-auto" />
+        </div>
+      </div>
+
+      {/* Background Decorations - Right */}
+      <div className="hidden xl:block absolute -right-8 bottom-64 w-[320px] pointer-events-none z-0">
+        <div className="relative transform rotate-6">
+           <img src="/doodle-glasses-books.png" alt="Decorative sketch" className="w-full h-auto drop-shadow-2xl mix-blend-multiply transition-transform duration-500 hover:scale-105 hover:-rotate-2 pointer-events-auto" />
+        </div>
+      </div>
+
+      <div className="relative z-10 w-full">
+        <CatalogHero isFiltered={isFiltered} />
+        <CatalogLayoutClient books={finalBooks as any} isFiltered={isFiltered} userLocation={userLocation} />
+      </div>
     </div>
   )
 }

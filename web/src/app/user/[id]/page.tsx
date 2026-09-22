@@ -30,7 +30,7 @@ export default async function UserProfilePage({
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] pt-28 pb-16">
+    <div className="min-h-screen bg-[#F2EBE1] pt-28 pb-16">
       <div className="container mx-auto max-w-5xl px-4">
         
         {/* Header Profile Card */}

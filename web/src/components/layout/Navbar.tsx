@@ -77,8 +77,8 @@ export function Navbar() {
       </AnimatePresence>
       <div className="sticky top-0 z-50 w-full h-16" onMouseLeave={handleMouseLeave} style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
         <motion.div
-          className={`absolute top-0 left-0 w-full overflow-hidden text-[#C84200] border-b border-[#C84200]/20 transition-colors duration-200 ease-in-out ${activeMenu && activeNavData?.dropdown ? 'bg-[#F5F5DC]/80 backdrop-blur-xl shadow-2xl'
-            : 'bg-[#F5F5DC]/50 backdrop-blur-md'}`}
+          className={`absolute top-0 left-0 w-full overflow-hidden text-[#C84200] border-b border-[#C84200]/20 transition-colors duration-200 ease-in-out ${activeMenu && activeNavData?.dropdown ? 'bg-[#F2EBE1]/80 backdrop-blur-xl shadow-2xl'
+            : 'bg-[#F2EBE1]/50 backdrop-blur-md'}`}
           initial={false}
           animate={{ height: activeMenu && activeNavData?.dropdown ? menuHeight : 64 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
@@ -111,37 +111,39 @@ export function Navbar() {
                 {/* Right: Actions */}
                 <div className="flex items-center gap-6 z-50">
                   <div className="hidden md:flex items-center gap-4">
-                    {session ? (
-                      <button 
-                        onClick={() => signOut()}
-                        className="hover:text-[#A33500] font-black uppercase tracking-wider text-sm md:text-base transition-colors"
-                      >
-                        Log Out
-                      </button>
-                    ) : (
-                      <Link href="/login" className="hover:text-[#A33500] font-black uppercase tracking-wider text-sm md:text-base transition-colors">
-                        Log In
-                      </Link>
-                    )}
                     <Link href="/catalog?sort=distance" className="text-[#C84200] hover:text-[#A33500] transition-colors p-2 rounded-full hover:bg-[#C84200]/10" title="Books near me">
                       <MapPin className="h-5 w-5" />
                     </Link>
                     
+                    {!session && (
+                      <Link href="/login" className="hover:text-[#A33500] font-black uppercase tracking-wider text-sm md:text-base transition-colors">
+                        Log In
+                      </Link>
+                    )}
+
                     <Link href="/catalog/new">
-                      <Button variant="default" size="sm" className="h-9 text-xs md:text-sm px-6 font-black uppercase tracking-wider bg-[#C84200] text-[#F5F5DC] hover:bg-[#A33500] rounded-full shadow-md">
+                      <Button variant="default" size="sm" className="h-9 text-xs md:text-sm px-6 font-black uppercase tracking-wider bg-[#C84200] text-[#F2EBE1] hover:bg-[#A33500] rounded-full shadow-md">
                         List a Book
                       </Button>
                     </Link>
 
                     {session && (
-                      <Link href="/profile" className="flex items-center gap-2 ml-2 hover:opacity-80 transition-opacity">
-                        <span className="text-sm font-bold text-[#C84200]">
-                          {session.user?.name || session.user?.email?.split('@')[0] || "User"}
-                        </span>
-                        <div className="h-8 w-8 bg-[#C84200]/10 rounded-full flex items-center justify-center">
-                           <User className="h-4 w-4 text-[#C84200]" />
-                        </div>
-                      </Link>
+                      <div className="flex items-center gap-4 ml-2 pl-4 border-l border-[#C84200]/20">
+                        <Link href={`/profile/${session.user.id || 'me'}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                          <span className="text-sm font-bold text-[#C84200]">
+                            {session.user?.name || session.user?.email?.split('@')[0] || "User"}
+                          </span>
+                          <div className="h-8 w-8 bg-[#C84200]/10 rounded-full flex items-center justify-center">
+                             <User className="h-4 w-4 text-[#C84200]" />
+                          </div>
+                        </Link>
+                        <button 
+                          onClick={() => signOut()}
+                          className="cursor-pointer hover:text-[#A33500] font-black uppercase tracking-wider text-xs md:text-sm transition-colors opacity-60"
+                        >
+                          Log Out
+                        </button>
+                      </div>
                     )}
                   </div>
                   <button className="md:hidden text-[#C84200] hover:text-[#A33500]">
@@ -191,6 +193,7 @@ export function Navbar() {
                                   <Link
                                     key={lIdx}
                                     href={link.href}
+                                    onClick={() => setActiveMenu(null)}
                                     className={`text-[#C84200] hover:text-[#A33500] transition-colors ${idx === 0
                                       ? "text-xl md:text-2xl font-black uppercase tracking-tight mb-2"
                                       : "text-[14px] md:text-base font-bold uppercase tracking-wider"
@@ -308,10 +311,20 @@ const navData = [
     authOnly: true
   },
   {
-    label: "Messages",
-    href: "/messages",
-    dropdown: null,
-    authOnly: true
+    label: "Charts",
+    href: "/charts",
+    dropdown: {
+      columns: [
+        {
+          title: "Community",
+          links: [
+            { label: "Reader Profiles", href: "/charts/profiles" },
+            { label: "Leaderboards", href: "/charts/leaderboard" },
+            { label: "Book Showcases", href: "/charts/showcases" },
+          ]
+        }
+      ]
+    }
   },
   {
     label: "About Us",

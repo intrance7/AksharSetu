@@ -112,7 +112,7 @@ export function ProfileForm({ user }: { user: any }) {
             type="button" 
             onClick={handleDetectLocation}
             disabled={detectingLocation}
-            className="h-12 px-4 rounded-xl border border-gray-200 bg-[#F5F5F7] hover:bg-[#E8E8ED] text-[#1D1D1F] font-bold flex items-center gap-2 transition-colors shrink-0 disabled:opacity-50"
+            className="h-12 px-4 rounded-xl border border-gray-200 bg-[#F2EBE1] hover:bg-[#E8E8ED] text-[#1D1D1F] font-bold flex items-center gap-2 transition-colors shrink-0 disabled:opacity-50"
           >
             {detectingLocation ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
             <span className="hidden sm:inline">Detect Location</span>

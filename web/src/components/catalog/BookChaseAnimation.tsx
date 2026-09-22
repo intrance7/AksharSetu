@@ -455,7 +455,7 @@ export function BookChaseAnimation({ chaseDistance = 120, speed = 2.5 }: BookCha
             runner.isFacingLeft = !spawnFromLeft; 
             if (Math.abs(runner.x - globalTargetX) < 5) {
                masterState = 'OFF_SCREEN';
-               masterTimer = 2 + Math.random() * 8; // wait 2-10s
+               masterTimer = 2 + Math.random() * 18; // wait 2-20s
             }
          } else if (seqPhase === 2) {
             // Runner enters fully
@@ -512,7 +512,7 @@ export function BookChaseAnimation({ chaseDistance = 120, speed = 2.5 }: BookCha
          const isOff = (x: number) => x < -100 || x > canvas.width + 100;
          if (isOff(runner.x) && isOff(chaser.x)) {
             masterState = 'OFF_SCREEN';
-            masterTimer = 2 + Math.random() * 8; // wait 2-10 seconds
+            masterTimer = 2 + Math.random() * 18; // wait 2-20 seconds
          }
       }
 
@@ -802,8 +802,8 @@ export function BookChaseAnimation({ chaseDistance = 120, speed = 2.5 }: BookCha
       else canvas.style.cursor = 'default';
 
       // Hover overrides (visual only)
-      if (rHover && runner.animState === 'IDLE') runner.animState = 'PANIC';
-      if (cHover && chaser.animState === 'IDLE') chaser.animState = 'CONFUSED';
+      if (rHover) runner.animState = 'PANIC';
+      if (cHover) chaser.animState = 'SURPRISE';
 
       // Click Jump
       if (mouseState.clickR && runner.y >= 78) {

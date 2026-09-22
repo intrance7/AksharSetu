@@ -318,8 +318,8 @@ function PostProcessingEffects() {
 
 export function WordUniverse() {
   return (
-    <div className="absolute inset-0 z-0 w-full h-full bg-[#F5F5DC] pointer-events-none">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-200/40 via-[#F5F5DC] to-[#F5F5DC]" />
+    <div className="absolute inset-0 z-0 w-full h-full bg-[#F2EBE1] pointer-events-none">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-200/40 via-[#F2EBE1] to-[#F2EBE1]" />
 
       <ErrorBoundary>
         <Canvas
@@ -327,7 +327,7 @@ export function WordUniverse() {
           eventSource={typeof document !== 'undefined' ? document.body : undefined}
           eventPrefix="client"
         >
-          <color attach="background" args={["#F5F5DC"]} />
+          <color attach="background" args={["#F2EBE1"]} />
           <ambientLight intensity={0.5} />
 
           <Suspense fallback={null}>

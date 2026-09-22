@@ -27,7 +27,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         variantStyles = "border border-[#0066cc] bg-transparent text-[#0066cc] hover:bg-[#0066cc] hover:text-white"
         break
       case "ghost":
-        variantStyles = "hover:bg-[#f5f5f7] text-[#1d1d1f]"
+        variantStyles = "hover:bg-[#F2EBE1] text-[#1d1d1f]"
         break
       case "link":
         variantStyles = "text-[#0066cc] hover:underline"

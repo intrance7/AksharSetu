@@ -52,7 +52,7 @@ export default async function InboxPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] pt-28 pb-16">
+    <div className="min-h-screen bg-[#F2EBE1] pt-28 pb-16">
       <div className="container mx-auto max-w-5xl px-4">
         
         <h1 className="text-3xl md:text-4xl font-black text-[#1D1D1F] tracking-tight mb-12">

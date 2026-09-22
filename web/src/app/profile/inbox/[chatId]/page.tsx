@@ -47,7 +47,7 @@ export default async function ChatPage({
   const chatPartner = isOwner ? request.requester : request.book.owner
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] pt-28 pb-16 flex flex-col h-screen">
+    <div className="min-h-screen bg-[#F2EBE1] pt-28 pb-16 flex flex-col h-screen">
       <div className="container mx-auto max-w-5xl px-4 flex-1 flex flex-col">
         
         <Link 

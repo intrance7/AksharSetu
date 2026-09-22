@@ -89,7 +89,7 @@ export function ChatWindow({ requestId, currentUserId, receiverId }: { requestId
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-[#F5F5F7] overflow-hidden">
+    <div className="flex-1 flex flex-col bg-[#F2EBE1] overflow-hidden">
       
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -131,7 +131,7 @@ export function ChatWindow({ requestId, currentUserId, receiverId }: { requestId
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 bg-[#F5F5F7] border border-[#1D1D1F]/10 rounded-full px-6 py-3 text-sm font-medium text-[#1D1D1F] outline-none focus:border-[#0066cc] transition-colors placeholder:text-[#1D1D1F]/30"
+            className="flex-1 bg-[#F2EBE1] border border-[#1D1D1F]/10 rounded-full px-6 py-3 text-sm font-medium text-[#1D1D1F] outline-none focus:border-[#0066cc] transition-colors placeholder:text-[#1D1D1F]/30"
           />
           <button 
             type="submit"

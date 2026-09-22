@@ -38,7 +38,7 @@ export default async function ListingDetailPage({
   const isDonation = book.price === 0
 
   return (
-    <div className="min-h-screen bg-[#F5F5DC] pt-24 pb-16">
+    <div className="min-h-screen bg-[#F2EBE1] pt-24 pb-16">
       <div className="container mx-auto max-w-5xl px-4 md:px-8">
         
         <Link 
@@ -98,7 +98,7 @@ export default async function ListingDetailPage({
                 </p>
               </div>
 
-              <div className="mb-8 p-4 rounded-2xl bg-[#F5F5F7] border border-[#1D1D1F]/5 flex items-center gap-4">
+              <div className="mb-8 p-4 rounded-2xl bg-[#F2EBE1] border border-[#1D1D1F]/5 flex items-center gap-4">
                 {book.owner.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={book.owner.image} alt={book.owner.name || "Owner"} className="w-12 h-12 rounded-full object-cover" />

@@ -50,12 +50,12 @@ export function CatalogSidebarFilters() {
 
   return (
     // Fixed inner width prevents squishing during parent width animation
-    <div className="w-[260px] pr-8 pb-12 flex flex-col gap-8 text-[#1D1D1F]">
+    <div className="w-[260px] pb-12 flex flex-col gap-5 text-[#1D1D1F]">
       
-      {/* Category Section */}
-      <div className="flex flex-col gap-3">
-        <h3 className="font-bold text-[15px] border-b border-[#1D1D1F]/10 pb-2 mb-1">Categories</h3>
-        <div className="flex flex-col gap-2">
+      {/* Category Bento */}
+      <div className="bg-white rounded-2xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-[#1D1D1F]/5">
+        <h3 className="font-black text-[15px] mb-3 tracking-wide uppercase text-[#1D1D1F]/80">Categories</h3>
+        <div className="flex flex-col gap-1.5">
           {CATEGORIES.map((cat) => {
             const isActive = currentCategory === cat.id
             return (
@@ -63,8 +63,10 @@ export function CatalogSidebarFilters() {
                 key={cat.id}
                 type="button"
                 onClick={() => updateFilters("category", cat.id)}
-                className={`text-left text-[14.5px] font-medium transition-colors hover:text-[#1D1D1F] ${
-                  isActive ? "text-[#1D1D1F] font-bold" : "text-[#1D1D1F]/60"
+                className={`text-left px-3 py-2 rounded-xl text-[14.5px] font-bold transition-all hover:-translate-y-[1px] ${
+                  isActive 
+                    ? "bg-[#C84200] text-white shadow-sm" 
+                    : "text-[#1D1D1F]/70 hover:bg-[#F2EBE1] hover:text-[#1D1D1F]"
                 }`}
               >
                 {cat.label}
@@ -74,84 +76,60 @@ export function CatalogSidebarFilters() {
         </div>
       </div>
 
-      {/* Price Section */}
-      <div className="flex flex-col gap-3">
-        <h3 className="font-bold text-[15px] border-b border-[#1D1D1F]/10 pb-2 mb-1">Shop by Price</h3>
-        <div className="flex flex-col gap-3">
+      {/* Price Bento */}
+      <div className="bg-white rounded-2xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-[#1D1D1F]/5">
+        <h3 className="font-black text-[15px] mb-3 tracking-wide uppercase text-[#1D1D1F]/80">Price</h3>
+        <div className="flex flex-wrap gap-2">
           {PRICES.map((price) => {
             const isActive = currentPrice === price.id
             return (
-              <label key={price.id} className="flex items-center gap-3 cursor-pointer group">
-                <div className={`w-5 h-5 rounded flex items-center justify-center border-[1.5px] transition-colors ${
-                  isActive ? "bg-[#1D1D1F] border-[#1D1D1F] text-white" : "border-[#1D1D1F]/30 bg-transparent group-hover:border-[#1D1D1F]"
-                }`}>
-                  {isActive && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
-                </div>
-                <span className={`text-[14.5px] font-medium transition-colors group-hover:text-[#1D1D1F] ${
-                  isActive ? "text-[#1D1D1F]" : "text-[#1D1D1F]/70"
-                }`}>
-                  {price.label}
-                </span>
-                <input
-                  type="radio"
-                  name="price"
-                  className="hidden"
-                  checked={isActive}
-                  onChange={() => updateFilters("price", price.id)}
-                />
-              </label>
+              <button
+                key={price.id}
+                type="button"
+                onClick={() => updateFilters("price", price.id)}
+                className={`px-4 py-2 rounded-full text-[13.5px] font-bold transition-all hover:-translate-y-[1px] ${
+                  isActive 
+                    ? "bg-[#C84200] text-white shadow-sm" 
+                    : "bg-[#F2EBE1] text-[#1D1D1F]/80 hover:bg-[#e8e8ed]"
+                }`}
+              >
+                {price.label}
+              </button>
             )
           })}
         </div>
       </div>
 
-      {/* Condition Section */}
-      <div className="flex flex-col gap-3">
-        <h3 className="font-bold text-[15px] border-b border-[#1D1D1F]/10 pb-2 mb-1">Condition</h3>
-        <div className="flex flex-col gap-3">
-          
-          <label className="flex items-center gap-3 cursor-pointer group">
-            <div className={`w-5 h-5 rounded flex items-center justify-center border-[1.5px] transition-colors ${
-              currentCondition === "" ? "bg-[#1D1D1F] border-[#1D1D1F] text-white" : "border-[#1D1D1F]/30 bg-transparent group-hover:border-[#1D1D1F]"
-            }`}>
-              {currentCondition === "" && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
-            </div>
-            <span className={`text-[14.5px] font-medium transition-colors group-hover:text-[#1D1D1F] ${
-              currentCondition === "" ? "text-[#1D1D1F]" : "text-[#1D1D1F]/70"
-            }`}>
-              Any Condition
-            </span>
-            <input
-              type="radio"
-              name="condition"
-              className="hidden"
-              checked={currentCondition === ""}
-              onChange={() => updateFilters("condition", "")}
-            />
-          </label>
-
+      {/* Condition Bento */}
+      <div className="bg-white rounded-2xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-[#1D1D1F]/5">
+        <h3 className="font-black text-[15px] mb-3 tracking-wide uppercase text-[#1D1D1F]/80">Condition</h3>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => updateFilters("condition", "")}
+            className={`px-4 py-2 rounded-full text-[13.5px] font-bold transition-all hover:-translate-y-[1px] ${
+              currentCondition === "" 
+                ? "bg-[#C84200] text-white shadow-sm" 
+                : "bg-[#F2EBE1] text-[#1D1D1F]/80 hover:bg-[#e8e8ed]"
+            }`}
+          >
+            Any
+          </button>
           {CONDITIONS.map((cond) => {
             const isActive = currentCondition === cond.id
             return (
-              <label key={cond.id} className="flex items-center gap-3 cursor-pointer group">
-                <div className={`w-5 h-5 rounded flex items-center justify-center border-[1.5px] transition-colors ${
-                  isActive ? "bg-[#1D1D1F] border-[#1D1D1F] text-white" : "border-[#1D1D1F]/30 bg-transparent group-hover:border-[#1D1D1F]"
-                }`}>
-                  {isActive && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
-                </div>
-                <span className={`text-[14.5px] font-medium transition-colors group-hover:text-[#1D1D1F] ${
-                  isActive ? "text-[#1D1D1F]" : "text-[#1D1D1F]/70"
-                }`}>
-                  {cond.label}
-                </span>
-                <input
-                  type="radio"
-                  name="condition"
-                  className="hidden"
-                  checked={isActive}
-                  onChange={() => updateFilters("condition", cond.id)}
-                />
-              </label>
+              <button
+                key={cond.id}
+                type="button"
+                onClick={() => updateFilters("condition", cond.id)}
+                className={`px-4 py-2 rounded-full text-[13.5px] font-bold transition-all hover:-translate-y-[1px] ${
+                  isActive 
+                    ? "bg-[#C84200] text-white shadow-sm" 
+                    : "bg-[#F2EBE1] text-[#1D1D1F]/80 hover:bg-[#e8e8ed]"
+                }`}
+              >
+                {cond.label}
+              </button>
             )
           })}
         </div>

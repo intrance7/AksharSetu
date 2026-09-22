@@ -17,7 +17,7 @@ export default async function LibraryPage() {
   })
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] pt-28 pb-16">
+    <div className="min-h-screen bg-[#F2EBE1] pt-28 pb-16">
       <div className="container mx-auto max-w-6xl px-4">
         
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-12 gap-4">

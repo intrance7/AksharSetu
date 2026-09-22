@@ -39,7 +39,7 @@ export default async function CheckoutPage({
     : "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=800"
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] pt-28 pb-16">
+    <div className="min-h-screen bg-[#F2EBE1] pt-28 pb-16">
       <div className="container mx-auto max-w-4xl px-4">
         
         <Link 

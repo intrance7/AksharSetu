@@ -3,7 +3,7 @@ import { MascotLoadingAnimation } from "@/components/catalog/MascotLoadingAnimat
 
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-[#F5F5DC]">
+    <div className="min-h-screen bg-[#F2EBE1]">
       {/* Hero Section Skeleton */}
       <div className="bg-[#1D1D1F] pt-28 pb-16 px-4 md:px-8">
         <div className="container mx-auto max-w-6xl">

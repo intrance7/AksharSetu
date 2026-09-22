@@ -39,13 +39,13 @@ export function CatalogHero({ isFiltered = false }: { isFiltered?: boolean }) {
   }
 
   return (
-    <div className={`bg-[#1D1D1F] text-[#F5F5DC] ${isFiltered ? 'pt-8 pb-16' : 'pt-24 pb-32'} px-4 md:px-8 relative overflow-hidden transition-all duration-300`}>
+    <div className={`bg-[#1D1D1F] text-[#F2EBE1] ${isFiltered ? 'pt-8 pb-16' : 'pt-24 pb-32'} px-4 md:px-8 relative overflow-hidden transition-all duration-300`}>
       
       {/* Background Dots Pattern */}
       <div 
         className="absolute inset-0 z-0 opacity-[0.08]" 
         style={{
-          backgroundImage: "radial-gradient(#F5F5DC 1.5px, transparent 1.5px)",
+          backgroundImage: "radial-gradient(#F2EBE1 1.5px, transparent 1.5px)",
           backgroundSize: "24px 24px"
         }}
       />
@@ -56,25 +56,25 @@ export function CatalogHero({ isFiltered = false }: { isFiltered?: boolean }) {
         <div className={`w-full ${isFiltered ? '' : 'max-w-[600px]'}`}>
           {!isFiltered && (
             <>
-              <h1 className="text-[clamp(3.2rem,7.6vw,6.4rem)] font-black leading-[0.92] tracking-[-0.035em] text-[#F5F5DC]">
+              <h1 className="text-[clamp(3.2rem,7.6vw,6.4rem)] font-black leading-[0.92] tracking-[-0.035em] text-[#F2EBE1]">
                 <span className="block">Read it.</span>
                 <span className="block pl-[0.75em]">Pass it on.</span>
               </h1>
               
-              <p className="text-[#F5F5DC]/70 text-lg max-w-[44ch] mt-6 mb-7 font-medium">
+              <p className="text-[#F2EBE1]/70 text-lg max-w-[44ch] mt-6 mb-7 font-medium">
                 Donated and resale books from readers across India. Search by title, author or ISBN, or pick a subject below.
               </p>
             </>
           )}
 
           <form onSubmit={handleSearchSubmit} className="flex items-center gap-2.5 w-full bg-[#2A2837] border-2 border-[#2A2837] text-white rounded-2xl p-2 pl-4 shadow-xl focus-within:border-[#F4B22B] transition-colors relative z-20">
-            <Search className="w-5 h-5 text-[#F5F5DC]/50 shrink-0" />
+            <Search className="w-5 h-5 text-[#F2EBE1]/50 shrink-0" />
             <input
               type="search"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               placeholder="Search by title, author or ISBN"
-              className="flex-1 bg-transparent border-none outline-none py-2 px-1 text-[1.02rem] placeholder:text-[#F5F5DC]/40"
+              className="flex-1 bg-transparent border-none outline-none py-2 px-1 text-[1.02rem] placeholder:text-[#F2EBE1]/40"
             />
             <button 
               type="submit"
@@ -85,7 +85,7 @@ export function CatalogHero({ isFiltered = false }: { isFiltered?: boolean }) {
           </form>
 
           {!isFiltered && (
-            <div className="flex flex-wrap items-center gap-2 mt-5 text-[0.92rem] text-[#F5F5DC]/70">
+            <div className="flex flex-wrap items-center gap-2 mt-5 text-[0.92rem] text-[#F2EBE1]/70">
               <span className="font-semibold mr-1">Popular searches</span>
               {POPULAR_SEARCHES.map(term => (
                 <button
@@ -95,7 +95,7 @@ export function CatalogHero({ isFiltered = false }: { isFiltered?: boolean }) {
                     setSearchValue(term)
                     submitSearch(term)
                   }}
-                  className="border-[1.5px] border-[#F5F5DC]/30 rounded-full px-3 py-1 font-semibold hover:bg-[#F4B22B] hover:border-[#F4B22B] hover:text-[#1D1D1F] transition-colors"
+                  className="border-[1.5px] border-[#F2EBE1]/30 rounded-full px-3 py-1 font-semibold hover:bg-[#F4B22B] hover:border-[#F4B22B] hover:text-[#1D1D1F] transition-colors"
                 >
                   {term}
                 </button>
@@ -187,13 +187,8 @@ export function CatalogHero({ isFiltered = false }: { isFiltered?: boolean }) {
 
       {/* Easter Egg: Book Chase Platformer Animation */}
       {!isFiltered && (
-        <div className="absolute left-0 right-0 bottom-[10px] z-10 opacity-90 mix-blend-screen overflow-hidden pointer-events-none">
+        <div className="absolute left-0 right-0 bottom-[10px] z-10 opacity-90 mix-blend-screen overflow-hidden pointer-events-auto">
           <BookChaseAnimation 
-            sneakPoints={[
-              { position: 0.25, pauseDuration: 1200, direction: "right" },
-              { position: 0.65, pauseDuration: 1800, direction: "left" },
-              { position: 0.85, pauseDuration: 1000, direction: "right" }
-            ]}
             chaseDistance={160}
             speed={1.5}
           />
@@ -204,7 +199,7 @@ export function CatalogHero({ isFiltered = false }: { isFiltered?: boolean }) {
       <div 
         className="absolute left-0 right-0 bottom-[-1px] h-[28px] pointer-events-none z-20"
         style={{
-          background: "radial-gradient(ellipse 22px 26px at 50% 100%, #F5F5DC 96%, transparent 100%) 50% 0 / 56px 100% repeat-x"
+          background: "radial-gradient(ellipse 22px 26px at 50% 100%, #F2EBE1 96%, transparent 100%) 50% 0 / 56px 100% repeat-x"
         }}
       />
     </div>

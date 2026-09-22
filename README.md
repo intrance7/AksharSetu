@@ -14,15 +14,21 @@
 
 AksharSetu is a modern web application built to connect readers, enabling seamless book resale and donations. With a focus on trust, safety, and community, it offers a gamified experience, transparent donation tracking, and a highly interactive user interface powered by 3D elements and smooth animations.
 
-## 🛠️ Technology Stack
+## 🛠️ Technology Stack & Libraries
 
-- **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
-- **UI/Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
-- **Animations & 3D**: [Framer Motion](https://www.framer.com/motion/), [GSAP](https://gsap.com/), [Three.js](https://threejs.org/) & [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/getting-started/introduction)
-- **Database ORM**: [Prisma](https://www.prisma.io/)
-- **Database**: PostgreSQL
-- **Authentication**: [NextAuth.js (v5)](https://authjs.dev/)
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router), React 19
+- **UI & Styling**: [Tailwind CSS 4](https://tailwindcss.com/), `clsx`, `tailwind-merge`
+- **Animations & 3D Graphics**:
+  - [Framer Motion](https://www.framer.com/motion/) (Smooth layout animations)
+  - [GSAP](https://gsap.com/) (Complex timeline animations)
+  - [Three.js](https://threejs.org/) & [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/getting-started/introduction) (WebGL 3D elements)
+  - [Drei](https://github.com/pmndrs/drei) & [Postprocessing](https://github.com/pmndrs/postprocessing) (3D helpers and effects)
+- **Database & ORM**: [Prisma](https://www.prisma.io/) & PostgreSQL
+- **Authentication & Security**: [NextAuth.js (v5)](https://authjs.dev/), `bcryptjs`
 - **State Management**: [Zustand](https://zustand-demo.pmnd.rs/)
+- **Interactive Maps**: [Leaflet](https://leafletjs.com/) & `react-leaflet`
+- **Payments**: [Razorpay](https://razorpay.com/)
+- **Utilities**: `date-fns` (time formatting), `html5-qrcode` (scanning), `lenis` (smooth scrolling), `lucide-react` (icons)
 
 ## 🚀 Getting Started
 

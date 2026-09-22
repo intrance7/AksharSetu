@@ -6,7 +6,7 @@ import { CheckCircle, Home, ShoppingBag } from "lucide-react"
 
 export default function CheckoutSuccessPage() {
   return (
-    <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#F2EBE1] flex items-center justify-center p-4">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

@@ -167,7 +167,7 @@ export function ChatThread({ userId }: { userId: string }) {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type your message..."
-            className="flex-1 bg-[#F5F5F7] border border-transparent focus:border-[#0066cc] focus:bg-white text-[#1D1D1F] rounded-full px-6 py-4 text-sm outline-none transition-all placeholder:text-[#1D1D1F]/30 font-medium"
+            className="flex-1 bg-[#F2EBE1] border border-transparent focus:border-[#0066cc] focus:bg-white text-[#1D1D1F] rounded-full px-6 py-4 text-sm outline-none transition-all placeholder:text-[#1D1D1F]/30 font-medium"
           />
           <button
             type="submit"

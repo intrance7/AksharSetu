@@ -11,7 +11,7 @@ export default async function MessagesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] pt-28 pb-16">
+    <div className="min-h-screen bg-[#F2EBE1] pt-28 pb-16">
       <div className="container mx-auto max-w-2xl px-4">
         
         <div className="flex items-center gap-3 mb-10">

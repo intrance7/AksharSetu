@@ -2,15 +2,17 @@
 
 import { useRouter, useSearchParams } from "next/navigation"
 import { useTransition } from "react"
-import { SlidersHorizontal } from "lucide-react"
+import { SlidersHorizontal, Map as MapIcon, LayoutGrid } from "lucide-react"
 
 interface CatalogTopBarProps {
   showFilters: boolean;
   onToggleFilters: () => void;
   resultCount: number;
+  viewMode: "grid" | "map";
+  onToggleViewMode: () => void;
 }
 
-export function CatalogTopBar({ showFilters, onToggleFilters, resultCount }: CatalogTopBarProps) {
+export function CatalogTopBar({ showFilters, onToggleFilters, resultCount, viewMode, onToggleViewMode }: CatalogTopBarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
@@ -24,16 +26,49 @@ export function CatalogTopBar({ showFilters, onToggleFilters, resultCount }: Cat
   }
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 mb-4 border-b border-[#1D1D1F]/10 sticky top-[68px] bg-[#F5F5DC] z-30">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 mb-4 border-b border-[#1D1D1F]/10 sticky top-[68px] bg-[#F2EBE1] z-30">
       
       {/* Title / Stats */}
-      <h2 className="text-xl sm:text-2xl font-black text-[#1D1D1F] tracking-tight">
-        Books <span className="text-[#1D1D1F]/40 text-lg font-bold ml-1">({resultCount})</span>
+      <h2 className="text-xl sm:text-2xl font-black text-[#1D1D1F] tracking-tight flex items-center gap-4">
+        Books <span className="text-[#1D1D1F]/40 text-lg font-bold">({resultCount})</span>
+        
+        {/* Map / List Toggle */}
+        <div className="hidden sm:flex bg-[#1D1D1F]/5 rounded-full p-1 border border-black/5 ml-4">
+          <button
+            onClick={() => viewMode !== "grid" && onToggleViewMode()}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black tracking-wider uppercase transition-all duration-300 ${
+              viewMode === "grid" 
+                ? "bg-white text-[#1D1D1F] shadow-sm" 
+                : "text-[#1D1D1F]/50 hover:text-[#1D1D1F]"
+            }`}
+          >
+            <LayoutGrid className="w-3.5 h-3.5" /> List
+          </button>
+          <button
+            onClick={() => viewMode !== "map" && onToggleViewMode()}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black tracking-wider uppercase transition-all duration-300 ${
+              viewMode === "map" 
+                ? "bg-[#C84200] text-white shadow-sm" 
+                : "text-[#1D1D1F]/50 hover:text-[#1D1D1F]"
+            }`}
+          >
+            <MapIcon className="w-3.5 h-3.5" /> Map
+          </button>
+        </div>
       </h2>
 
       {/* Controls */}
-      <div className="flex items-center gap-6 self-end sm:self-auto">
+      <div className="flex items-center gap-4 sm:gap-6 self-end sm:self-auto">
         
+        {/* Mobile View Toggle */}
+        <button
+          onClick={onToggleViewMode}
+          className="sm:hidden flex items-center justify-center p-2 rounded-full bg-[#1D1D1F]/5 text-[#1D1D1F]"
+          title="Toggle View"
+        >
+          {viewMode === "grid" ? <MapIcon className="w-4 h-4" /> : <LayoutGrid className="w-4 h-4" />}
+        </button>
+
         {/* Toggle Filters Button */}
         <button 
           onClick={onToggleFilters}
@@ -45,7 +80,7 @@ export function CatalogTopBar({ showFilters, onToggleFilters, resultCount }: Cat
 
         {/* Sort Dropdown */}
         <div className="flex items-center gap-2">
-          <span className="text-[14.5px] font-bold text-[#1D1D1F]/60">Sort By</span>
+          <span className="hidden md:inline text-[14.5px] font-bold text-[#1D1D1F]/60">Sort By</span>
           <select 
             value={currentSort}
             onChange={handleSortChange}

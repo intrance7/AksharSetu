@@ -93,7 +93,7 @@ export function LoginHero3D() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.2 }}
-            className="text-6xl md:text-7xl lg:text-8xl font-black text-[#F5F5DC] tracking-tighter drop-shadow-2xl mb-4"
+            className="text-6xl md:text-7xl lg:text-8xl font-black text-[#F2EBE1] tracking-tighter drop-shadow-2xl mb-4"
             style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
           >
             Unlimited <span className="text-[#FFD700]">ज्ञान.</span>
@@ -102,7 +102,7 @@ export function LoginHero3D() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.4 }}
-            className="text-5xl md:text-6xl lg:text-7xl font-bold text-[#F5F5DC] tracking-tight drop-shadow-xl"
+            className="text-5xl md:text-6xl lg:text-7xl font-bold text-[#F2EBE1] tracking-tight drop-shadow-xl"
             style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
           >
             Zero distance.

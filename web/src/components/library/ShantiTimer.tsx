@@ -20,12 +20,11 @@ export function ShantiTimer({ bookId, title, author }: { bookId: string, title: 
     }
   }, [durationMinutes, isActive])
 
-  // Timer logic
   useEffect(() => {
     let interval: NodeJS.Timeout
     if (isActive && timeLeft > 0) {
       interval = setInterval(() => {
-        setTimeLeft((prev) => prev - 1)
+        setTimeLeft(prev => prev - 1)
       }, 1000)
     } else if (isActive && timeLeft === 0) {
       handleComplete()

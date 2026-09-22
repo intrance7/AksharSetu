@@ -9,6 +9,16 @@ import { Book } from "@prisma/client"
 import Link from "next/link"
 
 import { CatalogGridInterlude } from "./CatalogGridInterlude"
+import dynamic from 'next/dynamic'
+
+const InteractiveMap = dynamic(() => import('./Map'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[600px] md:h-[750px] rounded-3xl bg-black/5 animate-pulse flex items-center justify-center font-bold text-[#1D1D1F]/40">
+      Loading Map...
+    </div>
+  )
+})
 
 interface CatalogLayoutClientProps {
   books: (Book & { owner: { latitude: number | null, longitude: number | null, location: string | null } })[];
@@ -18,6 +28,7 @@ interface CatalogLayoutClientProps {
 
 export function CatalogLayoutClient({ books, isFiltered, userLocation }: CatalogLayoutClientProps) {
   const [showFilters, setShowFilters] = useState(true)
+  const [viewMode, setViewMode] = useState<"grid" | "map">("grid")
 
   return (
     <div className="container mx-auto max-w-[1400px] px-4 md:px-8 pb-24">
@@ -27,6 +38,8 @@ export function CatalogLayoutClient({ books, isFiltered, userLocation }: Catalog
         showFilters={showFilters} 
         onToggleFilters={() => setShowFilters(!showFilters)}
         resultCount={books.length}
+        viewMode={viewMode}
+        onToggleViewMode={() => setViewMode(viewMode === "grid" ? "map" : "grid")}
       />
 
       <div className="flex items-start mt-6">
@@ -39,7 +52,7 @@ export function CatalogLayoutClient({ books, isFiltered, userLocation }: Catalog
             opacity: showFilters ? 1 : 0,
             marginRight: showFilters ? 32 : 0
           }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           className="hidden md:block shrink-0 overflow-y-auto overflow-x-hidden sticky top-[140px] self-start max-h-[calc(100vh-140px)] scrollbar-hide"
         >
           <CatalogSidebarFilters />
@@ -48,37 +61,47 @@ export function CatalogLayoutClient({ books, isFiltered, userLocation }: Catalog
         {/* Main Grid Area */}
         <motion.div 
           layout
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           className="flex-1 min-w-0"
         >
           {books.length > 0 ? (
-            <motion.div 
-              layout
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className={`grid gap-x-6 gap-y-10 ${
-                showFilters 
-                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" 
-                  : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-              }`}
-            >
-              {books.map((book, index) => (
-                <React.Fragment key={book.id}>
-                  <motion.div 
-                    layout 
-                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                  >
-                    <BookCard book={book} userLocation={userLocation} />
-                  </motion.div>
-
-                  {/* Inject Interlude banner after 8th book */}
-                  {index === 7 && (
-                    <motion.div layout transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="col-span-full">
-                      <CatalogGridInterlude />
+            viewMode === "grid" ? (
+              <motion.div 
+                layout
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                className={`grid gap-x-6 gap-y-10 ${
+                  showFilters 
+                    ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" 
+                    : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                }`}
+              >
+                {books.map((book, index) => (
+                  <React.Fragment key={book.id}>
+                    <motion.div 
+                      layout 
+                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                    >
+                      <BookCard book={book} userLocation={userLocation} />
                     </motion.div>
-                  )}
-                </React.Fragment>
-              ))}
-            </motion.div>
+
+                    {/* Inject Interlude banner after 8th book */}
+                    {index === 7 && (
+                      <motion.div layout transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }} className="col-span-full">
+                        <CatalogGridInterlude />
+                      </motion.div>
+                    )}
+                  </React.Fragment>
+                ))}
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <InteractiveMap books={books} userLocation={userLocation} />
+              </motion.div>
+            )
           ) : (
             <div className="text-center py-16 px-4 border-2 border-dashed border-[#1D1D1F]/10 rounded-3xl mt-4 max-w-2xl mx-auto">
               <h3 className="text-2xl font-black text-[#1D1D1F] mb-2 tracking-[-0.02em]">No books match those filters</h3>

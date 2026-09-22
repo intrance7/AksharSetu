@@ -64,7 +64,7 @@ export function ConversationList() {
         >
           <Link
             href={`/messages/${conv.otherUser.id}`}
-            className="flex items-center gap-4 bg-white hover:bg-[#F5F5F7] rounded-2xl p-5 border border-[#1D1D1F]/5 shadow-sm transition-all hover:shadow-md group"
+            className="flex items-center gap-4 bg-white hover:bg-[#F2EBE1] rounded-2xl p-5 border border-[#1D1D1F]/5 shadow-sm transition-all hover:shadow-md group"
           >
             {/* Avatar */}
             <div className="w-14 h-14 rounded-full bg-[#1D1D1F]/5 flex items-center justify-center shrink-0 overflow-hidden">

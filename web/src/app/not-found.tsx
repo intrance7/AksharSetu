@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react"
 
 export default function NotFound() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] bg-[#f5f5f7] px-4 text-center">
+    <div className="flex flex-col items-center justify-center min-h-[80vh] bg-[#F2EBE1] px-4 text-center">
       
       {/* Lottie Animation Embed */}
       <div className="w-full max-w-[400px] h-[300px] md:h-[400px] relative mb-6">

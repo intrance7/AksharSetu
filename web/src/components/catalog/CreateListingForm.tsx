@@ -176,7 +176,7 @@ export function CreateListingForm() {
       )}
 
       {/* Auto-fill Section */}
-      <div className="bg-[#F5F5F7] p-6 rounded-2xl flex flex-col gap-4 border border-[#1D1D1F]/5">
+      <div className="bg-[#F2EBE1] p-6 rounded-2xl flex flex-col gap-4 border border-[#1D1D1F]/5">
         <div className="flex flex-col md:flex-row gap-4 items-end">
           <div className="flex flex-col gap-2 flex-1 min-w-[200px] w-full">
             <label className="text-sm font-semibold text-[#1D1D1F] whitespace-nowrap">ISBN Auto-Fill</label>

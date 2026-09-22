@@ -108,7 +108,7 @@ export default function Home() {
   });
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F5F5DC] text-black">
+    <div className="flex flex-col min-h-screen bg-[#F2EBE1] text-black">
       {/* Scroll-Driven Hero Section */}
       <section id="hero-scroll-container" className="relative w-full h-[550vh]">
         <div className="sticky top-0 w-full h-screen min-h-[600px] flex flex-col items-center justify-center overflow-hidden">
@@ -137,7 +137,7 @@ export default function Home() {
               <div className="flex flex-row items-center gap-6">
                 <Link
                   href="/catalog"
-                  className="bg-[#FF5C00] text-[#F5F5DC] px-8 py-3 rounded-full font-bold text-lg hover:bg-[#E85D04] transition-colors shadow-lg shadow-[#FF5C00]/20 pointer-events-auto"
+                  className="bg-[#FF5C00] text-[#F2EBE1] px-8 py-3 rounded-full font-bold text-lg hover:bg-[#E85D04] transition-colors shadow-lg shadow-[#FF5C00]/20 pointer-events-auto"
                 >
                   Browse Books
                 </Link>
@@ -168,7 +168,7 @@ export default function Home() {
             <div className="flex flex-row items-center gap-6">
               <Link
                 href="/catalog"
-                className="bg-[#8B4513] text-[#F5F5DC] px-8 py-3 rounded-full font-bold text-lg hover:bg-[#6b3410] transition-colors shadow-lg shadow-[#8B4513]/20"
+                className="bg-[#8B4513] text-[#F2EBE1] px-8 py-3 rounded-full font-bold text-lg hover:bg-[#6b3410] transition-colors shadow-lg shadow-[#8B4513]/20"
               >
                 Browse Books
               </Link>
@@ -185,13 +185,13 @@ export default function Home() {
           <div
             id="ambient-glow"
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1400px] h-[800px] rounded-[100%] pointer-events-none z-0"
-            style={{ background: 'radial-gradient(ellipse, rgba(245,245,220,0.9) 0%, rgba(245,245,220,0.6) 35%, rgba(245,245,220,0) 70%)' }}
+            style={{ background: 'radial-gradient(ellipse, rgba(253,251,247,0.9) 0%, rgba(253,251,247,0.6) 35%, rgba(253,251,247,0) 70%)' }}
           />
         </div>
       </section>
 
       {/* Scroll Synced Animated Divider */}
-      <div className="w-full bg-[#F5F5DC] flex items-center justify-center relative z-20">
+      <div className="w-full bg-[#F2EBE1] flex items-center justify-center relative z-20">
         <motion.div
           className="h-3 bg-black w-full origin-center"
           style={{ scaleX }}
@@ -199,8 +199,23 @@ export default function Home() {
       </div>
 
       {/* Features Section - Playing Card Style */}
-      <section className="relative z-10 w-full bg-[#F5F5DC] py-24 md:py-32">
-        <div className="container mx-auto px-4 md:px-8 lg:px-12 w-full max-w-[1600px] 2xl:max-w-[1800px]">
+      <section className="relative z-10 w-full bg-[#F2EBE1] py-24 md:py-32 overflow-hidden">
+        
+        {/* Background Decorations - Left */}
+        <div className="hidden xl:block absolute -left-12 top-32 w-[340px] pointer-events-none z-0 opacity-80">
+          <div className="relative transform -rotate-3">
+            <img src="/doodle-bulb-books.png" alt="Decorative sketch" className="w-full h-auto drop-shadow-2xl mix-blend-multiply transition-transform duration-500 hover:scale-105 hover:rotate-2 pointer-events-auto" />
+          </div>
+        </div>
+
+        {/* Background Decorations - Right */}
+        <div className="hidden xl:block absolute -right-12 bottom-24 w-[340px] pointer-events-none z-0 opacity-80">
+          <div className="relative transform rotate-6">
+            <img src="/doodle-airplane-books.png" alt="Decorative sketch" className="w-full h-auto drop-shadow-2xl mix-blend-multiply transition-transform duration-500 hover:scale-105 hover:-rotate-2 pointer-events-auto" />
+          </div>
+        </div>
+
+        <div className="container mx-auto px-4 md:px-8 lg:px-12 w-full max-w-[1600px] 2xl:max-w-[1800px] relative z-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 xl:gap-12">
             {cards.map((card, i) => (
               <motion.div

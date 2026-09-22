@@ -17,7 +17,7 @@ export default async function ChatPage({ params }: { params: Promise<{ userId: s
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] pt-24 pb-8">
+    <div className="min-h-screen bg-[#F2EBE1] pt-24 pb-8">
       <div className="container mx-auto max-w-2xl px-4">
         <ChatThread userId={userId} />
       </div>
