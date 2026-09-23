@@ -80,7 +80,7 @@ export function BookCard({ book, userLocation }: BookCardProps) {
       {/* Playful Textures (Absolute) */}
       <img 
         src={`/${doodle1}`} 
-        className="absolute opacity-40 pointer-events-none mix-blend-multiply z-0" 
+        className="absolute opacity-50 pointer-events-none mix-blend-multiply z-0" 
         style={{ 
           top: `${top1}%`, 
           left: `${left1}%`, 
@@ -91,7 +91,7 @@ export function BookCard({ book, userLocation }: BookCardProps) {
       />
       <img 
         src={`/${doodle2}`} 
-        className="absolute opacity-30 pointer-events-none mix-blend-multiply z-0" 
+        className="absolute opacity-45 pointer-events-none mix-blend-multiply z-0" 
         style={{ 
           top: `${top2}%`, 
           right: `${right2}%`, 
@@ -125,7 +125,7 @@ export function BookCard({ book, userLocation }: BookCardProps) {
 
         <button 
           onClick={(e) => { e.preventDefault() }}
-          className="grid place-items-center w-10 h-10 rounded-full bg-white text-[#1D1D1F] shadow-sm hover:scale-110 hover:text-[#D6335F] transition-all cursor-pointer z-40"
+          className="grid place-items-center w-10 h-10 rounded-full bg-white text-[#1D1D1F] shadow-sm hover:scale-110 hover:text-[#D6335F] transition-all cursor-pointer z-40 focus-visible:ring-2 focus-visible:ring-[#C84200] outline-none"
           aria-label="Save to wishlist"
         >
           <Heart className="w-[18px] h-[18px]" strokeWidth={2.5} />
@@ -213,12 +213,7 @@ export function BookCard({ book, userLocation }: BookCardProps) {
         </div>
 
         {/* Bottom Row: Tags (Optional) and Price */}
-        <div className="flex items-center justify-between mt-auto">
-          <div className="flex flex-wrap gap-2">
-            <span className="bg-[#FDECE8] text-[#C84200] px-3.5 py-1.5 rounded-full text-[13px] font-semibold">
-              {book.category}
-            </span>
-          </div>
+        <div className="flex items-center justify-end mt-auto">
           
           <div className="relative z-30">
             {/* Sparkles around price */}

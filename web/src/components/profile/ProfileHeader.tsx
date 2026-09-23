@@ -97,7 +97,7 @@ export function ProfileHeader({ user, stats }: ProfileHeaderProps) {
             <Pencil className="w-3.5 h-3.5" /> Edit Profile
           </button>
 
-          <div className="relative mt-8 md:mt-0 w-full pl-6 transform rotate-2">
+          <div className="relative mt-8 md:mt-0 w-full pl-6">
             <Quote className="absolute left-0 -top-2 w-10 h-10 text-[#C84200]/20 transform -translate-x-4 -rotate-12" />
             <p className="font-['Caveat'] text-3xl md:text-4xl text-[#1D1D1F] leading-tight font-bold">
               "A reader lives a thousand lives before they die."

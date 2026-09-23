@@ -280,16 +280,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 3D Sync Test Section */}
-      <section className="relative z-10 w-full py-48 bg-transparent flex flex-col items-center justify-center">
-        <h2 className="text-3xl font-bold text-[#FF5C00] mb-8">WebGL Scroll Sync Test</h2>
-        <div id="test-anchor" className="w-64 h-64 border-2 border-dashed border-[#FF5C00]/50 rounded-2xl flex items-center justify-center backdrop-blur-sm bg-[#FF5C00]/5">
-          <p className="text-[#FF5C00]/80 font-medium">DOM Anchor</p>
-        </div>
-        <p className="text-[#FF5C00]/80 mt-8 max-w-md text-center">
-          The 3D wireframe box is rendered in the fixed WebGL Canvas but perfectly tracks this DOM element's position on screen.
-        </p>
-      </section>
     </div>
   )
 }
@@ -297,47 +287,48 @@ export default function Home() {
 // Data
 const cards = [
   {
-    title: "STRATEGY",
+    title: "DISCOVER",
+    letter: "D",
+    items: [
+      "Search by title, author or ISBN",
+      "Browse by subject & category",
+      "Find books near you on the map",
+      "Get wishlist alerts",
+      "See real seller ratings"
+    ]
+  },
+  {
+    title: "SELL",
     letter: "S",
     items: [
-      "Digital Experience Strategy",
-      "Technology Strategy",
-      "Creative Direction",
-      "Discovery",
-      "Research"
+      "Set your own price",
+      "Auto-fill from ISBN",
+      "Upload photos instantly",
+      "Reach local buyers",
+      "Track your listings"
     ]
   },
   {
-    title: "CREATIVE",
+    title: "DONATE",
+    letter: "V",
+    items: [
+      "Vidya Daan: gift of knowledge",
+      "Direct NGO partnerships",
+      "Earn community badges",
+      "Donation leaderboard",
+      "Track your impact"
+    ]
+  },
+  {
+    title: "CONNECT",
     letter: "C",
     items: [
-      "Art Direction",
-      "UX/UI Design",
-      "Motion Design",
-      "Interactive Design",
-      "Illustration"
-    ]
-  },
-  {
-    title: "TECH",
-    letter: "T",
-    items: [
-      "WebGL Development",
-      "Front End Development",
-      "Unity/Unreal",
-      "Interactive Installations",
-      "AR and VR Experiences"
-    ]
-  },
-  {
-    title: "PRODUCTION",
-    letter: "P",
-    items: [
-      "Procedural Modeling",
-      "3D Asset Creation",
-      "3D Optimization",
-      "Animation",
-      "3D Pipeline Development"
+      "Chat with sellers directly",
+      "Reader profiles & showcases",
+      "Reading session tracking",
+      "Community leaderboards",
+      "Gamified XP & levels"
     ]
   }
 ]
+
