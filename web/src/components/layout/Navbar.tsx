@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import { BookOpen, Menu, User, MapPin } from "lucide-react"
+import { NotificationBell } from "./NotificationBell"
 import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/Button"
 import { motion, AnimatePresence, Variants } from "framer-motion"
@@ -129,7 +130,8 @@ export function Navbar() {
 
                     {session && (
                       <div className="flex items-center gap-4 ml-2 pl-4 border-l border-[#C84200]/20">
-                        <Link href={`/profile/${session.user.id || 'me'}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                        <NotificationBell userId={session.user.id!} />
+                        <Link href={`/profile/${session.user?.id || 'me'}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                           <span className="text-sm font-bold text-[#C84200]">
                             {session.user?.name || session.user?.email?.split('@')[0] || "User"}
                           </span>
@@ -274,8 +276,8 @@ const navData = [
         {
           title: "More from Aksharसेतु",
           links: [
-            { label: "Request a Book", href: "/request" },
-            { label: "Book Bundles", href: "/bundles" },
+            { label: "Request a Book", href: "/coming-soon?feature=Request-a-Book" },
+            { label: "Book Bundles", href: "/coming-soon?feature=Book-Bundles" },
           ]
         }
       ]
@@ -283,21 +285,21 @@ const navData = [
   },
   {
     label: "Donate",
-    href: "/donate",
+    href: "/coming-soon?feature=Donate",
     dropdown: {
       columns: [
         {
           title: "Vidya Daan",
           links: [
-            { label: "How to Donate", href: "/donate/guide" },
-            { label: "NGO Partners", href: "/donate/ngos" },
-            { label: "Donation Leaderboard", href: "/leaderboard" },
+            { label: "How to Donate", href: "/coming-soon?feature=How-to-Donate" },
+            { label: "NGO Partners", href: "/coming-soon?feature=NGO-Partners" },
+            { label: "Donation Leaderboard", href: "/coming-soon?feature=Donation-Leaderboard" },
           ]
         },
         {
           title: "Impact",
           links: [
-            { label: "Success Stories", href: "/stories" },
+            { label: "Success Stories", href: "/coming-soon?feature=Success-Stories" },
             { label: "Community Badges", href: "/badges" },
           ]
         }
@@ -312,15 +314,15 @@ const navData = [
   },
   {
     label: "Charts",
-    href: "/charts",
+    href: "/coming-soon?feature=Charts",
     dropdown: {
       columns: [
         {
           title: "Community",
           links: [
-            { label: "Reader Profiles", href: "/charts/profiles" },
-            { label: "Leaderboards", href: "/charts/leaderboard" },
-            { label: "Book Showcases", href: "/charts/showcases" },
+            { label: "Reader Profiles", href: "/coming-soon?feature=Reader-Profiles" },
+            { label: "Leaderboards", href: "/coming-soon?feature=Leaderboards" },
+            { label: "Book Showcases", href: "/coming-soon?feature=Book-Showcases" },
           ]
         }
       ]
@@ -328,7 +330,7 @@ const navData = [
   },
   {
     label: "About Us",
-    href: "/about",
+    href: "/coming-soon?feature=About-Us",
     dropdown: null
   }
 ]

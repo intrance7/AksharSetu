@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
+import { pusherServer } from "@/lib/pusher"
 
 // GET /api/conversations/[userId] — fetch all messages between the logged-in user and [userId]
 export async function GET(
@@ -82,6 +83,10 @@ export async function POST(
         sender: { select: { id: true, name: true, image: true } },
       },
     })
+
+    // Create a unique channel name for these two users
+    const channelId = `chat-dm-${[session.user.id, otherUserId].sort().join('-')}`
+    await pusherServer.trigger(channelId, 'new-message', message)
 
     return NextResponse.json(message, { status: 201 })
   } catch (error: any) {

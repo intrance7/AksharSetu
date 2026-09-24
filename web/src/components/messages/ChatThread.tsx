@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { useSession } from "next-auth/react"
 import { Send, Loader2, ArrowLeft, User } from "lucide-react"
 import Link from "next/link"
+import { getPusherClient } from "@/lib/pusher"
 import { formatDistanceToNow } from "date-fns"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -45,10 +46,25 @@ export function ChatThread({ userId }: { userId: string }) {
 
   useEffect(() => {
     fetchMessages()
-    // Poll every 5 seconds for new messages
-    const interval = setInterval(fetchMessages, 5000)
-    return () => clearInterval(interval)
-  }, [userId])
+    
+    if (!session?.user?.id) return;
+
+    const pusher = getPusherClient()
+    const channelId = `chat-dm-${[session.user.id, userId].sort().join('-')}`
+    const channel = pusher.subscribe(channelId)
+
+    channel.bind('new-message', (message: MessageData) => {
+      setMessages(prev => {
+        if (prev.some(m => m.id === message.id)) return prev
+        // Filter out the optimistic message matching this content
+        return [...prev.filter(m => !(m.id.startsWith("temp-") && m.content === message.content)), message]
+      })
+    })
+
+    return () => {
+      pusher.unsubscribe(channelId)
+    }
+  }, [userId, session?.user?.id])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -56,23 +72,33 @@ export function ChatThread({ userId }: { userId: string }) {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMessage.trim() || sending) return
+    if (!newMessage.trim() || sending || !session?.user?.id) return
 
     setSending(true)
+    
+    const optimisticMessage = {
+      id: "temp-" + Date.now(),
+      content: newMessage.trim(),
+      createdAt: new Date().toISOString(),
+      sender: { id: session.user.id, name: session.user.name || "You", image: session.user.image || null }
+    }
+    
+    setMessages((prev) => [...prev, optimisticMessage])
+    setNewMessage("")
+
     try {
       const res = await fetch(`/api/conversations/${userId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: newMessage.trim() }),
+        body: JSON.stringify({ content: optimisticMessage.content }),
       })
 
-      if (res.ok) {
-        const msg = await res.json()
-        setMessages((prev) => [...prev, msg])
-        setNewMessage("")
+      if (!res.ok) {
+        throw new Error("Failed to send message")
       }
     } catch (error) {
       console.error(error)
+      setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
     } finally {
       setSending(false)
     }

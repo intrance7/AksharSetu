@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
+import { pusherServer } from "@/lib/pusher"
 
 export async function GET(req: Request) {
   try {
@@ -109,6 +110,12 @@ export async function POST(req: Request) {
         }
       }
     })
+
+    // Determine the channel to broadcast on
+    const channelId = requestId ? `chat-request-${requestId}` : `chat-order-${orderId}`
+    
+    // Trigger pusher event
+    await pusherServer.trigger(channelId, 'new-message', message)
 
     return NextResponse.json(message, { status: 201 })
   } catch (error: any) {

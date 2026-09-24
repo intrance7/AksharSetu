@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import Razorpay from "razorpay"
+import { createShiprocketOrder } from "@/lib/shiprocket"
 
 // Initialize Razorpay instance
 const razorpay = new Razorpay({
@@ -16,6 +17,7 @@ export async function POST(req: Request) {
     if (!session || !session.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+    const userId = session.user.id;
 
     const body = await req.json()
     const { bookId } = body
@@ -39,7 +41,7 @@ export async function POST(req: Request) {
         throw new Error("Book is no longer available")
       }
 
-      if (book.ownerId === session.user.id) {
+      if (book.ownerId === userId) {
         throw new Error("You cannot purchase your own book")
       }
 
@@ -71,8 +73,46 @@ export async function POST(req: Request) {
           status: "PENDING",
           paymentId: rzpOrder.id,
           bookId: updatedBook.id,
-          buyerId: session.user.id,
+          buyerId: userId,
         },
+      })
+
+      // 5. Trigger Shiprocket logistics
+      const shiprocketData = await createShiprocketOrder({
+        order_id: order.id,
+        billing_customer_name: "Buyer", // In a real app, fetch from user profile
+        billing_last_name: "",
+        billing_address: "123 Main St",
+        billing_city: "Mumbai",
+        billing_pincode: "400001",
+        billing_state: "Maharashtra",
+        billing_country: "India",
+        billing_email: session.user.email || "buyer@example.com",
+        billing_phone: "9876543210",
+        shipping_is_billing: true,
+        order_items: [{
+          name: updatedBook.title,
+          sku: updatedBook.isbn || `SKU_${updatedBook.id}`,
+          units: 1,
+          selling_price: updatedBook.price,
+        }],
+        payment_method: "Prepaid",
+        sub_total: totalAmount,
+        length: 20,
+        breadth: 15,
+        height: 5,
+        weight: updatedBook.weight || 0.5,
+      })
+
+      // 6. Create Shipment Record
+      await tx.shipment.create({
+        data: {
+          orderId: order.id,
+          awbCode: shiprocketData.awb_code,
+          courierName: shiprocketData.courier_name,
+          shiprocketOrderId: shiprocketData.order_id,
+          status: "PENDING",
+        }
       })
 
       return {

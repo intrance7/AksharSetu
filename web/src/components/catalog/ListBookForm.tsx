@@ -18,6 +18,7 @@ export function ListBookForm() {
   const [showScanner, setShowScanner] = useState(false)
   const [invertCamera, setInvertCamera] = useState(true)
   const [showUrlInput, setShowUrlInput] = useState(false)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
   
   const [formData, setFormData] = useState({
     title: "",
@@ -141,6 +142,48 @@ export function ListBookForm() {
       setError("Failed to fetch book data. Please fill details manually.")
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingImage(true)
+    try {
+      // 1. Get presigned URL
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename: file.name, contentType: file.type })
+      })
+      const data = await res.json()
+      
+      if (!res.ok) throw new Error(data.error)
+
+      if (data.uploadUrl === "mock") {
+        // Fallback mock logic if AWS isn't configured
+        setTimeout(() => {
+          setFormData(prev => ({ ...prev, imageUrl: data.publicUrl }))
+          setIsUploadingImage(false)
+        }, 1000)
+        return
+      }
+
+      // 2. Upload file directly to S3
+      await fetch(data.uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      })
+
+      // 3. Update form data
+      setFormData(prev => ({ ...prev, imageUrl: data.publicUrl }))
+    } catch (e) {
+      console.error("Upload failed", e)
+      setError("Failed to upload image")
+    } finally {
+      setIsUploadingImage(false)
     }
   }
 
@@ -587,13 +630,30 @@ export function ListBookForm() {
             
             {/* Custom Cover Tool */}
             <div className="mt-6 pt-5 border-t border-[#1d1d1f]/5 relative z-20">
-              <button 
-                type="button" 
-                onClick={() => setShowUrlInput(!showUrlInput)}
-                className="w-full bg-white/50 hover:bg-white py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-[#1d1d1f] transition-colors border border-white"
-              >
-                <LinkIcon className="w-4 h-4" /> {formData.imageUrl ? "Change Cover URL" : "Use Custom Image URL"}
-              </button>
+              <label className="w-full bg-white/50 hover:bg-white py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-[#1d1d1f] transition-colors border border-white cursor-pointer relative overflow-hidden">
+                {isUploadingImage ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</>
+                ) : (
+                  <><ImageIcon className="w-4 h-4" /> {formData.imageUrl ? "Change Cover Image" : "Upload Custom Cover"}</>
+                )}
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  disabled={isUploadingImage}
+                />
+              </label>
+              
+              <div className="text-center mt-3">
+                <button 
+                  type="button" 
+                  onClick={() => setShowUrlInput(!showUrlInput)}
+                  className="text-xs text-[#86868b] hover:text-[#C84200] font-medium"
+                >
+                  Or enter image URL manually
+                </button>
+              </div>
 
               <AnimatePresence>
                 {showUrlInput && (

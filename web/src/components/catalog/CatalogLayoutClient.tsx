@@ -7,6 +7,8 @@ import { CatalogSidebarFilters } from "./CatalogSidebarFilters"
 import { BookCard } from "./BookCard"
 import { Book } from "@prisma/client"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
+import { toast } from "sonner"
 
 import { CatalogGridInterlude } from "./CatalogGridInterlude"
 import dynamic from 'next/dynamic'
@@ -29,6 +31,31 @@ interface CatalogLayoutClientProps {
 export function CatalogLayoutClient({ books, isFiltered, userLocation }: CatalogLayoutClientProps) {
   const [showFilters, setShowFilters] = useState(true)
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid")
+  const [addingWishlist, setAddingWishlist] = useState(false)
+  const searchParams = useSearchParams()
+  const searchQuery = searchParams.get("query") || ""
+
+  const handleAddToWishlist = async () => {
+    if (!searchQuery) return;
+    setAddingWishlist(true)
+    try {
+      const res = await fetch("/api/wishlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: searchQuery })
+      })
+      if (res.ok) {
+        toast.success("Added to your wishlist!")
+      } else {
+        const error = await res.json()
+        toast.error(error.error || "Failed to add to wishlist")
+      }
+    } catch (e) {
+      toast.error("An error occurred")
+    } finally {
+      setAddingWishlist(false)
+    }
+  }
 
   return (
     <div className="container mx-auto max-w-[1400px] px-4 md:px-8 pb-24">
@@ -109,7 +136,16 @@ export function CatalogLayoutClient({ books, isFiltered, userLocation }: Catalog
                 Try removing a filter or searching by author. Or be the first to list it.
               </p>
               <div className="flex justify-center gap-3">
-                {isFiltered && (
+                {searchQuery && (
+                  <button 
+                    onClick={handleAddToWishlist}
+                    disabled={addingWishlist}
+                    className="bg-[#C84200] text-white px-5 py-2.5 rounded-full font-bold"
+                  >
+                    {addingWishlist ? "Adding..." : "Add to Wishlist"}
+                  </button>
+                )}
+                {isFiltered && !searchQuery && (
                   <Link href="/catalog" className="bg-[#C84200] text-white px-5 py-2.5 rounded-full font-bold">
                     Clear filters
                   </Link>

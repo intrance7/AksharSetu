@@ -304,7 +304,7 @@ function PostProcessingEffects() {
   })
 
   return (
-    <EffectComposer disableNormalPass>
+    <EffectComposer>
       <DepthOfField
         ref={dofRef}
         target={[0, 0, 0]}

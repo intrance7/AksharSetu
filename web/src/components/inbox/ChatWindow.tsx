@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { Send, Loader2 } from "lucide-react"
+import { getPusherClient } from "@/lib/pusher"
 
 interface Message {
   id: string
@@ -35,11 +36,26 @@ export function ChatWindow({ requestId, currentUserId, receiverId }: { requestId
     }
   }
 
-  // Initial fetch and polling
+  // Initial fetch and Pusher subscription
   useEffect(() => {
     fetchMessages()
-    const interval = setInterval(fetchMessages, 5000) // Poll every 5 seconds
-    return () => clearInterval(interval)
+    
+    const pusher = getPusherClient()
+    const channelId = `chat-request-${requestId}`
+    const channel = pusher.subscribe(channelId)
+
+    channel.bind('new-message', (message: Message) => {
+      setMessages(prev => {
+        // Prevent duplicate messages if already optimistic
+        if (prev.some(m => m.id === message.id)) return prev
+        // Remove optimistic temp message from same sender
+        return [...prev.filter(m => !(m.id.startsWith("temp-") && m.content === message.content)), message]
+      })
+    })
+
+    return () => {
+      pusher.unsubscribe(channelId)
+    }
   }, [requestId])
 
   // Scroll to bottom when messages change
@@ -76,9 +92,7 @@ export function ChatWindow({ requestId, currentUserId, receiverId }: { requestId
 
       if (!res.ok) throw new Error("Failed to send message")
       
-      // We will rely on the next polling cycle to sync the real message ID, 
-      // or we can replace it immediately here. Let polling handle it for simplicity.
-      fetchMessages() 
+      // We rely on Pusher for the real message, but the optimistic one will be replaced
     } catch (err) {
       console.error(err)
       // Revert optimistic update on failure
