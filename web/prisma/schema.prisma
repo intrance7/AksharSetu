@@ -27,6 +27,14 @@ model User {
   liveStatus          String?
   isShantiModeActive  Boolean   @default(false)
 
+  // Seller Reputation
+  sellerRating        Float     @default(5.0)
+  booksSold           Int       @default(0)
+  successfulExchanges Int       @default(0)
+  responseTime        String    @default("Fast") // Fast, Average, Slow
+  conditionAccuracy   Boolean   @default(true) // Accurate
+  meetupReliability   Boolean   @default(true) // Reliable
+
   // Relations
   books         Book[]    @relation("OwnerToBook")
   requests      BookRequest[] @relation("RequesterToRequest")
@@ -60,6 +68,26 @@ model Book {
   images        String[]  // Array of image URLs
   weight        Float?    // Weight in kg (for shipping)
   dimensions    String?   // L x W x H in cm
+  
+  // Delivery Options
+  deliveryType  String    @default("SHIPPING") // SHIPPING, MEETUP, BOTH
+
+  // Academic Tags
+  university    String?
+  course        String?
+  semester      Int?
+  subject       String?
+
+  // Exchange
+  acceptsExchange     Boolean   @default(false)
+  exchangePreferences String?
+
+  // Structured Condition (1-5 scale)
+  condCover           Int?      @default(5)
+  condPages           Int?      @default(5)
+  condHighlighting    Int?      @default(5)
+  condNotes           Int?      @default(5)
+  condBinding         Int?      @default(5)
 
   // Relations
   ownerId       String

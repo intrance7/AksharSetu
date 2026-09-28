@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import Razorpay from "razorpay"
-import { createShiprocketOrder } from "@/lib/shiprocket"
+
 
 // Initialize Razorpay instance
 const razorpay = new Razorpay({
@@ -77,43 +77,9 @@ export async function POST(req: Request) {
         },
       })
 
-      // 5. Trigger Shiprocket logistics
-      const shiprocketData = await createShiprocketOrder({
-        order_id: order.id,
-        billing_customer_name: "Buyer", // In a real app, fetch from user profile
-        billing_last_name: "",
-        billing_address: "123 Main St",
-        billing_city: "Mumbai",
-        billing_pincode: "400001",
-        billing_state: "Maharashtra",
-        billing_country: "India",
-        billing_email: session.user.email || "buyer@example.com",
-        billing_phone: "9876543210",
-        shipping_is_billing: true,
-        order_items: [{
-          name: updatedBook.title,
-          sku: updatedBook.isbn || `SKU_${updatedBook.id}`,
-          units: 1,
-          selling_price: updatedBook.price,
-        }],
-        payment_method: "Prepaid",
-        sub_total: totalAmount,
-        length: 20,
-        breadth: 15,
-        height: 5,
-        weight: updatedBook.weight || 0.5,
-      })
-
-      // 6. Create Shipment Record
-      await tx.shipment.create({
-        data: {
-          orderId: order.id,
-          awbCode: shiprocketData.awb_code,
-          courierName: shiprocketData.courier_name,
-          shiprocketOrderId: shiprocketData.order_id,
-          status: "PENDING",
-        }
-      })
+      // 5. Trigger Shiprocket logistics (DEFERRED)
+      // We will add Shiprocket integration here later for shipping logic.
+      // For now, the Order is created without a Shipment record.
 
       return {
         orderId: order.id,

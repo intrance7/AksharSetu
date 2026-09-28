@@ -31,3 +31,6 @@ Building **AksharSetu**, a platform bridging people through knowledge via book r
 - **Local Pickup**: Preferred method. Safe meetup spots recommended by the app.
 - **Third-Party Logistics (3PL)**: Integration with local courier services (e.g., Delhivery, Dunzo, Shiprocket) where the buyer bears shipping costs at checkout.
 - **Monetization**: Featured listings (small fee to boost a book), optional "Premium" badges for sellers, ads (if needed later).
+
+4. 🧠 AI Book Assistant
+- **Book Description Generator**: Create compelling descriptions for listings.

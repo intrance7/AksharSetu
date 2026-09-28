@@ -27,8 +27,19 @@ export function ListBookForm() {
     imageUrl: "",
     category: "fiction",
     condition: "LIKE_NEW",
-    isDonation: true,
+    listingType: "DONATE", // DONATE, SELL, EXCHANGE
     price: "0",
+    university: "",
+    course: "",
+    semester: "",
+    subject: "",
+    exchangePreferences: "",
+    condCover: 5,
+    condPages: 5,
+    condHighlighting: 5,
+    condNotes: 5,
+    condBinding: 5,
+    deliveryType: "SHIPPING",
   })
 
   // Scanner Hook
@@ -317,9 +328,17 @@ export function ListBookForm() {
         transition={{ delay: 0.1 }}
         action={async (form) => {
            setIsSubmitting(true)
-           form.set("isDonation", formData.isDonation.toString())
+           form.set("isDonation", (formData.listingType === "DONATE").toString())
+           form.set("acceptsExchange", (formData.listingType === "EXCHANGE").toString())
            form.set("imageUrl", formData.imageUrl)
            
+           form.set("condCover", formData.condCover.toString())
+           form.set("condPages", formData.condPages.toString())
+           form.set("condHighlighting", formData.condHighlighting.toString())
+           form.set("condNotes", formData.condNotes.toString())
+           form.set("condBinding", formData.condBinding.toString())
+           form.set("deliveryType", formData.deliveryType)
+
            try {
              await createBook(form)
            } catch(e) {
@@ -387,6 +406,57 @@ export function ListBookForm() {
              </div>
            </div>
 
+           <div className="mt-8 mb-5">
+             <h3 className="text-sm font-black text-[#1d1d1f] mb-4 uppercase tracking-wider">Academic Details (Optional)</h3>
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+               <div>
+                 <label className="block text-xs font-bold text-[#1d1d1f] mb-2">University / College</label>
+                 <input 
+                    type="text" 
+                    name="university"
+                    value={formData.university}
+                    onChange={(e) => setFormData(prev => ({...prev, university: e.target.value}))}
+                    placeholder="e.g. KR Mangalam University"
+                    className="w-full bg-[#F2EBE1] border-transparent focus:border-[#C84200]/30 focus:bg-white focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-3 font-medium text-[#1d1d1f] outline-none transition-all placeholder:text-[#86868b]/60"
+                 />
+               </div>
+               <div>
+                 <label className="block text-xs font-bold text-[#1d1d1f] mb-2">Course / Degree</label>
+                 <input 
+                    type="text" 
+                    name="course"
+                    value={formData.course}
+                    onChange={(e) => setFormData(prev => ({...prev, course: e.target.value}))}
+                    placeholder="e.g. B.Tech CSE"
+                    className="w-full bg-[#F2EBE1] border-transparent focus:border-[#C84200]/30 focus:bg-white focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-3 font-medium text-[#1d1d1f] outline-none transition-all placeholder:text-[#86868b]/60"
+                 />
+               </div>
+               <div>
+                 <label className="block text-xs font-bold text-[#1d1d1f] mb-2">Semester / Year</label>
+                 <input 
+                    type="number" 
+                    name="semester"
+                    min="1"
+                    value={formData.semester}
+                    onChange={(e) => setFormData(prev => ({...prev, semester: e.target.value}))}
+                    placeholder="e.g. 3"
+                    className="w-full bg-[#F2EBE1] border-transparent focus:border-[#C84200]/30 focus:bg-white focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-3 font-medium text-[#1d1d1f] outline-none transition-all placeholder:text-[#86868b]/60"
+                 />
+               </div>
+               <div>
+                 <label className="block text-xs font-bold text-[#1d1d1f] mb-2">Subject</label>
+                 <input 
+                    type="text" 
+                    name="subject"
+                    value={formData.subject}
+                    onChange={(e) => setFormData(prev => ({...prev, subject: e.target.value}))}
+                    placeholder="e.g. DSA"
+                    className="w-full bg-[#F2EBE1] border-transparent focus:border-[#C84200]/30 focus:bg-white focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-3 font-medium text-[#1d1d1f] outline-none transition-all placeholder:text-[#86868b]/60"
+                 />
+               </div>
+             </div>
+           </div>
+
            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8 mt-6">
              <div>
                <label className="block text-xs font-bold text-[#1d1d1f] mb-2">Category <span className="text-red-500">*</span></label>
@@ -423,40 +493,52 @@ export function ListBookForm() {
 
            <div className="mb-8">
              <label className="block text-xs font-bold text-[#1d1d1f] mb-3">Listing Type <span className="text-red-500">*</span></label>
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                <div 
-                 onClick={() => setFormData(prev => ({...prev, isDonation: true, price: "0"}))}
-                 className={`cursor-pointer rounded-xl p-4 border-2 flex items-start gap-3 transition-colors ${formData.isDonation ? 'bg-[#FFF8F0] border-[#C84200] shadow-sm' : 'bg-white border-[#1d1d1f]/10 hover:border-[#C84200]/30'}`}
+                 onClick={() => setFormData(prev => ({...prev, listingType: "DONATE", price: "0"}))}
+                 className={`cursor-pointer rounded-xl p-3 border-2 flex items-start gap-2 transition-colors ${formData.listingType === "DONATE" ? 'bg-[#FFF8F0] border-[#C84200] shadow-sm' : 'bg-white border-[#1d1d1f]/10 hover:border-[#C84200]/30'}`}
                >
-                 <div className={`mt-0.5 rounded-full w-4 h-4 flex items-center justify-center border ${formData.isDonation ? 'border-[#C84200]' : 'border-[#1d1d1f]/20'}`}>
-                   {formData.isDonation && <div className="w-2 h-2 rounded-full bg-[#C84200]" />}
+                 <div className={`mt-0.5 rounded-full w-4 h-4 flex items-center justify-center border shrink-0 ${formData.listingType === "DONATE" ? 'border-[#C84200]' : 'border-[#1d1d1f]/20'}`}>
+                   {formData.listingType === "DONATE" && <div className="w-2 h-2 rounded-full bg-[#C84200]" />}
                  </div>
                  <div>
-                   <h4 className={`font-bold text-sm flex items-center gap-1.5 ${formData.isDonation ? 'text-[#C84200]' : 'text-[#1d1d1f]'}`}>
-                     <Heart className="w-4 h-4" /> Donate for Free
+                   <h4 className={`font-bold text-sm flex items-center gap-1.5 ${formData.listingType === "DONATE" ? 'text-[#C84200]' : 'text-[#1d1d1f]'}`}>
+                     Donate
                    </h4>
-                   <p className="text-xs text-[#86868b] mt-1 font-medium">Give this book to someone in need.</p>
                  </div>
                </div>
 
                <div 
-                 onClick={() => setFormData(prev => ({...prev, isDonation: false}))}
-                 className={`cursor-pointer rounded-xl p-4 border-2 flex items-start gap-3 transition-colors ${!formData.isDonation ? 'bg-[#FFF8F0] border-[#C84200] shadow-sm' : 'bg-white border-[#1d1d1f]/10 hover:border-[#C84200]/30'}`}
+                 onClick={() => setFormData(prev => ({...prev, listingType: "SELL"}))}
+                 className={`cursor-pointer rounded-xl p-3 border-2 flex items-start gap-2 transition-colors ${formData.listingType === "SELL" ? 'bg-[#FFF8F0] border-[#C84200] shadow-sm' : 'bg-white border-[#1d1d1f]/10 hover:border-[#C84200]/30'}`}
                >
-                 <div className={`mt-0.5 rounded-full w-4 h-4 flex items-center justify-center border ${!formData.isDonation ? 'border-[#C84200]' : 'border-[#1d1d1f]/20'}`}>
-                   {!formData.isDonation && <div className="w-2 h-2 rounded-full bg-[#C84200]" />}
+                 <div className={`mt-0.5 rounded-full w-4 h-4 flex items-center justify-center border shrink-0 ${formData.listingType === "SELL" ? 'border-[#C84200]' : 'border-[#1d1d1f]/20'}`}>
+                   {formData.listingType === "SELL" && <div className="w-2 h-2 rounded-full bg-[#C84200]" />}
                  </div>
                  <div>
-                   <h4 className={`font-bold text-sm flex items-center gap-1.5 ${!formData.isDonation ? 'text-[#C84200]' : 'text-[#1d1d1f]'}`}>
-                     <Tag className="w-4 h-4" /> Sell for Price
+                   <h4 className={`font-bold text-sm flex items-center gap-1.5 ${formData.listingType === "SELL" ? 'text-[#C84200]' : 'text-[#1d1d1f]'}`}>
+                     Sell
                    </h4>
-                   <p className="text-xs text-[#86868b] mt-1 font-medium">Set a price and earn credit.</p>
+                 </div>
+               </div>
+
+               <div 
+                 onClick={() => setFormData(prev => ({...prev, listingType: "EXCHANGE", price: "0"}))}
+                 className={`cursor-pointer rounded-xl p-3 border-2 flex items-start gap-2 transition-colors ${formData.listingType === "EXCHANGE" ? 'bg-[#FFF8F0] border-[#C84200] shadow-sm' : 'bg-white border-[#1d1d1f]/10 hover:border-[#C84200]/30'}`}
+               >
+                 <div className={`mt-0.5 rounded-full w-4 h-4 flex items-center justify-center border shrink-0 ${formData.listingType === "EXCHANGE" ? 'border-[#C84200]' : 'border-[#1d1d1f]/20'}`}>
+                   {formData.listingType === "EXCHANGE" && <div className="w-2 h-2 rounded-full bg-[#C84200]" />}
+                 </div>
+                 <div>
+                   <h4 className={`font-bold text-sm flex items-center gap-1.5 ${formData.listingType === "EXCHANGE" ? 'text-[#C84200]' : 'text-[#1d1d1f]'}`}>
+                     Exchange
+                   </h4>
                  </div>
                </div>
              </div>
            </div>
            
-           {!formData.isDonation && (
+           {formData.listingType === "SELL" && (
              <motion.div 
                initial={{ opacity: 0, height: 0 }}
                animate={{ opacity: 1, height: 'auto' }}
@@ -467,10 +549,29 @@ export function ListBookForm() {
                   type="number" 
                   name="price"
                   min="1"
-                  required={!formData.isDonation}
+                  required={formData.listingType === "SELL"}
                   value={formData.price}
                   onChange={(e) => setFormData(prev => ({...prev, price: e.target.value}))}
                   className="w-full bg-[#F2EBE1] border-transparent focus:border-[#C84200]/30 focus:bg-white focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-3 font-bold text-[#1d1d1f] outline-none transition-all"
+               />
+             </motion.div>
+           )}
+
+           {formData.listingType === "EXCHANGE" && (
+             <motion.div 
+               initial={{ opacity: 0, height: 0 }}
+               animate={{ opacity: 1, height: 'auto' }}
+               className="mb-8"
+             >
+               <label className="block text-xs font-bold text-[#1d1d1f] mb-2">What are you looking for? <span className="text-red-500">*</span></label>
+               <input 
+                  type="text" 
+                  name="exchangePreferences"
+                  required={formData.listingType === "EXCHANGE"}
+                  value={formData.exchangePreferences}
+                  onChange={(e) => setFormData(prev => ({...prev, exchangePreferences: e.target.value}))}
+                  placeholder="e.g. Computer Networks by Tanenbaum"
+                  className="w-full bg-[#F2EBE1] border-transparent focus:border-[#C84200]/30 focus:bg-white focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-3 font-medium text-[#1d1d1f] outline-none transition-all"
                />
              </motion.div>
            )}
@@ -617,12 +718,14 @@ export function ListBookForm() {
                   </svg>
                   
                   <div className={`font-black text-[22px] leading-none px-6 py-2.5 shadow-md pointer-events-none transform transition-transform duration-300 group-hover:scale-110 ${
-                    formData.isDonation 
+                    formData.listingType === "DONATE" 
                       ? "bg-[#287F56] text-white -rotate-3" 
-                      : "bg-[#C84200] text-white rotate-3"
+                      : formData.listingType === "EXCHANGE" 
+                        ? "bg-[#0066cc] text-white -rotate-3" 
+                        : "bg-[#C84200] text-white rotate-3"
                   }`}
                   style={{ borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px' }}>
-                    {formData.isDonation ? "Free" : `₹${formData.price || 0}`}
+                    {formData.listingType === "DONATE" ? "Free" : formData.listingType === "EXCHANGE" ? "Exchange" : `₹${formData.price || 0}`}
                   </div>
                 </div>
               </div>

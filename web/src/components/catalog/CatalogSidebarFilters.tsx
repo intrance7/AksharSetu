@@ -23,6 +23,7 @@ const PRICES = [
   { id: "all", label: "Any Price" },
   { id: "free", label: "Free (Donations)" },
   { id: "paid", label: "Paid" },
+  { id: "exchange", label: "Exchange" },
 ]
 
 export function CatalogSidebarFilters() {
@@ -132,6 +133,29 @@ export function CatalogSidebarFilters() {
               </button>
             )
           })}
+        </div>
+      </div>
+
+      {/* Academic Filters Bento */}
+      <div className="bg-white rounded-2xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-[#1D1D1F]/5">
+        <h3 className="font-black text-[15px] mb-3 tracking-wide uppercase text-[#1D1D1F]/80">Academic</h3>
+        <div className="flex flex-col gap-3">
+          <input 
+            type="text" 
+            placeholder="Search University..."
+            defaultValue={searchParams.get("university") || ""}
+            onBlur={(e) => updateFilters("university", e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") updateFilters("university", e.currentTarget.value) }}
+            className="w-full bg-[#F2EBE1] border-transparent focus:border-[#C84200]/30 focus:bg-white focus:ring-2 focus:ring-[#C84200]/10 rounded-xl px-3 py-2 text-sm font-medium text-[#1d1d1f] outline-none transition-all placeholder:text-[#86868b]/60"
+          />
+          <input 
+            type="text" 
+            placeholder="Search Course (e.g. B.Tech)"
+            defaultValue={searchParams.get("course") || ""}
+            onBlur={(e) => updateFilters("course", e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") updateFilters("course", e.currentTarget.value) }}
+            className="w-full bg-[#F2EBE1] border-transparent focus:border-[#C84200]/30 focus:bg-white focus:ring-2 focus:ring-[#C84200]/10 rounded-xl px-3 py-2 text-sm font-medium text-[#1d1d1f] outline-none transition-all placeholder:text-[#86868b]/60"
+          />
         </div>
       </div>
 

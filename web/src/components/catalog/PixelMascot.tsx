@@ -7,27 +7,56 @@ const PIXEL_PALETTE: Record<string, string> = {
   'k': '#1D1B26', // Black
   's': '#FFB899', // Skin
   'w': '#FFFFFF',
-  'r': '#C4420C', // Runner Shirt
+  'r': '#C4420C', // Setu (Red/Orange)
+  'g': '#0A7D4F', // Akshar (Green)
   'b': '#3B4CCA', // Pants
   'y': '#F4B22B', // Book Cover
+  'o': '#0B8577', // Book Cover 2
 }
 
-const M_ARRANGE_1 = [
+// Akshar - Book Collector (Standing calmly, holding books)
+const AKSHAR_SPRITE = [
   "....kkkk....",
-  "...kksssk...",
-  "...kssksk...",
-  "...kkssk....",
-  "....krrkk...",
-  "...krrrrk...",
-  "...krrrkrss.",
-  "...kbbbk.yy.",
-  "...kbbbk.yy.",
+  "...kssssk...",
+  "...kswwsk...",
+  "...kksskk...",
+  "....kggk....",
+  "...kggggk...",
+  "..ksggggrk..",
+  "...kbbbk.y..",
+  "...kbbbk.o..",
   "...kb..bk...",
   "..kk....kk..",
   "............"
 ]
 
-export function PixelMascot({ size = 4, className = "" }: { size?: number, className?: string }) {
+// Setu - The Book Stealer (Running/reaching pose)
+const SETU_SPRITE = [
+  ".....kkkk...",
+  "....kksssk..",
+  "....kssksk..",
+  "....kkssk...",
+  ".....krrkk..",
+  "....krrrrk..",
+  "...krrrkrss.",
+  "...kbbbk....",
+  "..kbbbk.....",
+  "..kb..bk....",
+  ".kk....kk...",
+  "............"
+]
+
+export function PixelMascot({ 
+  size = 4, 
+  className = "", 
+  type = "setu" 
+}: { 
+  size?: number, 
+  className?: string,
+  type?: "akshar" | "setu"
+}) {
+  const sprite = type === "akshar" ? AKSHAR_SPRITE : SETU_SPRITE
+
   return (
     <div 
       className={className}
@@ -38,7 +67,7 @@ export function PixelMascot({ size = 4, className = "" }: { size?: number, class
         height: 12 * size 
       }}
     >
-      {M_ARRANGE_1.map((row, r) => 
+      {sprite.map((row, r) => 
         row.split('').map((char, c) => (
           <div key={`${r}-${c}`} style={{ backgroundColor: PIXEL_PALETTE[char] || 'transparent' }} />
         ))

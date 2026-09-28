@@ -17,6 +17,8 @@ export default async function CatalogPage({
   const condition = typeof resolvedParams.condition === "string" ? resolvedParams.condition : undefined
   const price = typeof resolvedParams.price === "string" ? resolvedParams.price : undefined
   const sort = typeof resolvedParams.sort === "string" ? resolvedParams.sort : "new"
+  const university = typeof resolvedParams.university === "string" ? resolvedParams.university : undefined
+  const course = typeof resolvedParams.course === "string" ? resolvedParams.course : undefined
 
   // Construct the Prisma query
   const whereClause: Prisma.BookWhereInput = {
@@ -36,8 +38,19 @@ export default async function CatalogPage({
 
   if (price === "free") {
     whereClause.price = 0
+    whereClause.acceptsExchange = false
   } else if (price === "paid") {
     whereClause.price = { gt: 0 }
+  } else if (price === "exchange") {
+    whereClause.acceptsExchange = true
+  }
+
+  if (university) {
+    whereClause.university = { contains: university, mode: "insensitive" }
+  }
+
+  if (course) {
+    whereClause.course = { contains: course, mode: "insensitive" }
   }
 
   if (query) {
@@ -45,6 +58,7 @@ export default async function CatalogPage({
       { title: { contains: query, mode: "insensitive" } },
       { author: { contains: query, mode: "insensitive" } },
       { isbn: { contains: query, mode: "insensitive" } },
+      { subject: { contains: query, mode: "insensitive" } }
     ]
   }
 

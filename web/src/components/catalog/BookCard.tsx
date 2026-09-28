@@ -37,7 +37,7 @@ export function BookCard({ book, userLocation }: BookCardProps) {
     ? book.images[0] 
     : "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=800"
 
-  const isDonation = book.price === 0
+  const isDonation = book.price === 0 && !book.acceptsExchange
   const catColor = CATEGORY_COLORS[book.category?.toLowerCase()] || CATEGORY_COLORS.default
   const condColor = CONDITION_COLORS[book.condition] || CONDITION_COLORS.GOOD
 
@@ -202,7 +202,7 @@ export function BookCard({ book, userLocation }: BookCardProps) {
         </p>
 
         {/* Location & Time Row */}
-        <div className="flex items-center gap-3 text-[14px] font-medium text-[#86868B] mb-6">
+        <div className="flex items-center gap-3 text-[14px] font-medium text-[#86868B] mb-3">
           <span className="inline-flex items-center gap-1.5">
             <MapPin className="w-[18px] h-[18px] text-[#C84200]" /> {locationText}
           </span>
@@ -210,6 +210,20 @@ export function BookCard({ book, userLocation }: BookCardProps) {
           <span className="inline-flex items-center gap-1.5">
             <Clock className="w-[18px] h-[18px] text-[#C84200]" /> {formatDistanceToNow(new Date(book.createdAt), { addSuffix: true })}
           </span>
+        </div>
+
+        {/* Delivery Badges */}
+        <div className="flex items-center gap-2 mb-6">
+          {(book as any).deliveryType === "MEETUP" || (book as any).deliveryType === "BOTH" ? (
+            <span className="bg-[#287F56]/10 text-[#287F56] text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md border border-[#287F56]/20">
+              🤝 Meetup
+            </span>
+          ) : null}
+          {(book as any).deliveryType === "SHIPPING" || (book as any).deliveryType === "BOTH" ? (
+            <span className="bg-[#0066cc]/10 text-[#0066cc] text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md border border-[#0066cc]/20">
+              📦 Shipping
+            </span>
+          ) : null}
         </div>
 
         {/* Bottom Row: Tags (Optional) and Price */}
@@ -224,10 +238,12 @@ export function BookCard({ book, userLocation }: BookCardProps) {
             <div className={`font-black text-lg leading-none px-5 py-2.5 shadow-md pointer-events-none transform transition-transform duration-300 group-hover:scale-110 ${
               isDonation 
                 ? "bg-[#287F56] text-white -rotate-2" 
-                : "bg-[#C84200] text-white rotate-2"
+                : book.acceptsExchange 
+                  ? "bg-[#0066cc] text-white -rotate-2"
+                  : "bg-[#C84200] text-white rotate-2"
             }`}
             style={{ borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px' }}>
-              {isDonation ? "Free" : `₹${book.price}`}
+              {isDonation ? "Free" : book.acceptsExchange ? "Exchange" : `₹${book.price}`}
             </div>
           </div>
         </div>
