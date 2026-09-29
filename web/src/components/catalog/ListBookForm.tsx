@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Search, Loader2, BookOpen, AlertCircle, Image as ImageIcon, ScanBarcode, Check, Heart, Tag, Link as LinkIcon, Lock } from "lucide-react"
+import { Search, Loader2, BookOpen, AlertCircle, Image as ImageIcon, ScanBarcode, Check, Heart, Tag, Link as LinkIcon, Lock, Sparkles } from "lucide-react"
 import Image from "next/image"
 import { createBook } from "@/app/actions/book"
 import { Html5QrcodeScanner } from "html5-qrcode"
@@ -14,6 +14,7 @@ export function ListBookForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isGeneratingDesc, setIsGeneratingDesc] = useState(false)
   
   const [showScanner, setShowScanner] = useState(false)
   const [invertCamera, setInvertCamera] = useState(true)
@@ -40,6 +41,9 @@ export function ListBookForm() {
     condNotes: 5,
     condBinding: 5,
     deliveryType: "SHIPPING",
+    isBundle: false,
+    booksInBundle: 1,
+    bundleDescription: "",
   })
 
   // Scanner Hook
@@ -198,6 +202,37 @@ export function ListBookForm() {
     }
   }
 
+  const generateDescription = async () => {
+    if (!formData.title) {
+      setError("Please enter a title first to generate a description.")
+      return
+    }
+    setIsGeneratingDesc(true)
+    setError("")
+    try {
+      const res = await fetch("/api/ai/description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: formData.title,
+          author: formData.author,
+          category: formData.category,
+          condition: formData.condition
+        })
+      })
+      const data = await res.json()
+      if (data.description) {
+        setFormData(prev => ({...prev, description: data.description}))
+      } else if (data.error) {
+        setError(data.error)
+      }
+    } catch (e) {
+      setError("Failed to generate description.")
+    } finally {
+      setIsGeneratingDesc(false)
+    }
+  }
+
   // Consistent Randomization for Doodles based on title or isbn
   const seedString = formData.title || isbn || "new-book";
   const hash = seedString.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -338,6 +373,9 @@ export function ListBookForm() {
            form.set("condNotes", formData.condNotes.toString())
            form.set("condBinding", formData.condBinding.toString())
            form.set("deliveryType", formData.deliveryType)
+           form.set("isBundle", formData.isBundle.toString())
+           form.set("booksInBundle", formData.booksInBundle.toString())
+           form.set("bundleDescription", formData.bundleDescription)
 
            try {
              await createBook(form)
@@ -391,7 +429,18 @@ export function ListBookForm() {
            </div>
 
            <div className="mb-5 relative">
-             <label className="block text-xs font-bold text-[#1d1d1f] mb-2">Description</label>
+             <div className="flex justify-between items-center mb-2">
+               <label className="block text-xs font-bold text-[#1d1d1f]">Description</label>
+               <button 
+                 type="button" 
+                 onClick={generateDescription}
+                 disabled={isGeneratingDesc || !formData.title}
+                 className="text-xs font-bold text-[#0066cc] hover:text-[#0071e3] flex items-center gap-1.5 disabled:opacity-50 transition-colors"
+               >
+                 {isGeneratingDesc ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                 AI Generate
+               </button>
+             </div>
              <textarea 
                 name="description"
                 rows={3}
@@ -404,6 +453,61 @@ export function ListBookForm() {
              <div className="absolute right-2 -bottom-5 text-[10px] font-bold text-[#86868b]">
                {formData.description.length}/500
              </div>
+           </div>
+
+           {/* Bundles Option */}
+           <div className="mb-8 p-5 bg-[#F2EBE1] rounded-2xl border border-[#1d1d1f]/5">
+             <div className="flex items-center justify-between">
+               <div>
+                 <h3 className="text-sm font-black text-[#1d1d1f] flex items-center gap-2">
+                   <BookOpen className="w-4 h-4 text-[#C84200]" /> Sell as a Bundle?
+                 </h3>
+                 <p className="text-xs text-[#86868b] mt-1 font-medium">Group multiple books (like an entire semester) into one listing.</p>
+               </div>
+               <label className="relative inline-flex items-center cursor-pointer">
+                 <input 
+                   type="checkbox" 
+                   className="sr-only peer" 
+                   checked={formData.isBundle}
+                   onChange={(e) => setFormData(prev => ({...prev, isBundle: e.target.checked}))}
+                 />
+                 <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#C84200]"></div>
+               </label>
+             </div>
+             
+             <AnimatePresence>
+               {formData.isBundle && (
+                 <motion.div 
+                   initial={{ opacity: 0, height: 0 }}
+                   animate={{ opacity: 1, height: 'auto' }}
+                   exit={{ opacity: 0, height: 0 }}
+                   className="mt-4 pt-4 border-t border-[#1d1d1f]/10 overflow-hidden"
+                 >
+                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                     <div className="sm:col-span-1">
+                       <label className="block text-xs font-bold text-[#1d1d1f] mb-2">Number of Books</label>
+                       <input 
+                         type="number"
+                         min="2"
+                         value={formData.booksInBundle}
+                         onChange={(e) => setFormData(prev => ({...prev, booksInBundle: parseInt(e.target.value)}))}
+                         className="w-full bg-white border border-transparent focus:border-[#C84200]/30 focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-2.5 font-medium text-[#1d1d1f] outline-none transition-all"
+                       />
+                     </div>
+                     <div className="sm:col-span-2">
+                       <label className="block text-xs font-bold text-[#1d1d1f] mb-2">What books are included?</label>
+                       <textarea 
+                         rows={2}
+                         value={formData.bundleDescription}
+                         onChange={(e) => setFormData(prev => ({...prev, bundleDescription: e.target.value}))}
+                         placeholder="List the books included in this bundle..."
+                         className="w-full bg-white border border-transparent focus:border-[#C84200]/30 focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-2.5 font-medium text-[#1d1d1f] outline-none transition-all resize-none"
+                       />
+                     </div>
+                   </div>
+                 </motion.div>
+               )}
+             </AnimatePresence>
            </div>
 
            <div className="mt-8 mb-5">

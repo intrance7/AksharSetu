@@ -40,6 +40,12 @@ export async function createBook(formData: FormData) {
   const condNotes = parseCond("condNotes")
   const condBinding = parseCond("condBinding")
 
+  // Bundle Fields
+  const isBundle = formData.get("isBundle") === "true"
+  const booksInBundleStr = formData.get("booksInBundle") as string
+  const booksInBundle = booksInBundleStr ? parseInt(booksInBundleStr, 10) : 1
+  const bundleDescription = formData.get("bundleDescription") as string
+
   // Simple validation
   if (!title || !author || !condition || !category) {
     throw new Error("Missing required fields")
@@ -72,6 +78,10 @@ export async function createBook(formData: FormData) {
       condHighlighting,
       condNotes,
       condBinding,
+
+      isBundle,
+      booksInBundle,
+      bundleDescription: bundleDescription || null,
 
       deliveryType: (formData.get("deliveryType") as string) || "SHIPPING",
     }

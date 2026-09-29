@@ -139,6 +139,9 @@ export function Navbar() {
                              <User className="h-4 w-4 text-[#C84200]" />
                           </div>
                         </Link>
+                        <Link href="/admin" className="cursor-pointer hover:text-[#A33500] font-black uppercase tracking-wider text-xs md:text-sm transition-colors opacity-60">
+                          Admin
+                        </Link>
                         <button 
                           onClick={() => signOut()}
                           className="cursor-pointer hover:text-[#A33500] font-black uppercase tracking-wider text-xs md:text-sm transition-colors opacity-60"
@@ -285,15 +288,15 @@ const navData = [
   },
   {
     label: "Donate",
-    href: "/coming-soon?feature=Donate",
+    href: "/donations",
     dropdown: {
       columns: [
         {
           title: "Vidya Daan",
           links: [
-            { label: "How to Donate", href: "/coming-soon?feature=How-to-Donate" },
-            { label: "NGO Partners", href: "/coming-soon?feature=NGO-Partners" },
-            { label: "Donation Leaderboard", href: "/coming-soon?feature=Donation-Leaderboard" },
+            { label: "Track Impact", href: "/donations" },
+            { label: "NGO Partners", href: "/donations#campaigns" },
+            { label: "Donation Leaderboard", href: "/leaderboard" },
           ]
         },
         {

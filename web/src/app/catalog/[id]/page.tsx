@@ -80,6 +80,12 @@ export default async function ListingDetailPage({
                 <span className="bg-[#1D1D1F]/5 text-[#1D1D1F] text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border border-[#1D1D1F]/10">
                   {book.condition.replace('_', ' ')}
                 </span>
+
+                {book.isBundle && (
+                  <span className="bg-[#8E24AA]/10 text-[#8E24AA] text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border border-[#8E24AA]/20">
+                    📚 Bundle: {book.booksInBundle} Books
+                  </span>
+                )}
                 
                 {/* Delivery Badges */}
                 {(book as any).deliveryType === "MEETUP" || (book as any).deliveryType === "BOTH" ? (
@@ -127,6 +133,12 @@ export default async function ListingDetailPage({
                 <p className="text-[#1D1D1F]/70 leading-relaxed text-sm font-medium whitespace-pre-wrap">
                   {book.description || "No description provided by the seller."}
                 </p>
+                {book.isBundle && book.bundleDescription && (
+                  <div className="mt-4 p-4 bg-[#F9F9FB] rounded-xl border border-[#1D1D1F]/5">
+                    <p className="text-xs font-bold uppercase tracking-widest text-[#8E24AA] mb-2">Books Included in Bundle:</p>
+                    <p className="text-[#1D1D1F] text-sm font-medium whitespace-pre-wrap">{book.bundleDescription}</p>
+                  </div>
+                )}
               </div>
 
               <div className="mb-8 p-5 bg-[#F9F9FB] rounded-2xl border border-[#1D1D1F]/5">

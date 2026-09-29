@@ -49,6 +49,8 @@ model User {
 
   wishlists     Wishlist[]
   notifications Notification[]
+  donations     Donation[] @relation("DonorToDonation")
+  communityRequests CommunityRequest[] @relation("CommunityRequestToUser")
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -82,6 +84,11 @@ model Book {
   acceptsExchange     Boolean   @default(false)
   exchangePreferences String?
 
+  // Bundles
+  isBundle            Boolean   @default(false)
+  booksInBundle       Int?      @default(1)
+  bundleDescription   String?   @db.Text
+
   // Structured Condition (1-5 scale)
   condCover           Int?      @default(5)
   condPages           Int?      @default(5)
@@ -94,6 +101,7 @@ model Book {
   owner         User      @relation("OwnerToBook", fields: [ownerId], references: [id])
   requests      BookRequest[]
   orders        Order[]
+  donation      Donation?
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -292,4 +300,55 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   createdAt DateTime @default(now())
+}
+
+model Campaign {
+  id            String     @id @default(uuid())
+  title         String
+  description   String     @db.Text
+  ngoName       String
+  targetBooks   Int
+  currentBooks  Int        @default(0)
+  startDate     DateTime   @default(now())
+  endDate       DateTime?
+  status        String     @default("ACTIVE") // ACTIVE, COMPLETED, CANCELLED
+  imageUrl      String?
+
+  donations     Donation[]
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Donation {
+  id            String    @id @default(uuid())
+  trackingId    String    @unique @default(cuid()) // For public tracking
+  status        String    @default("DONATED") // DONATED, COLLECTED, VERIFIED, SENT_TO_NGO, RECEIVED, DISTRIBUTED
+  
+  // Relations
+  donorId       String
+  donor         User      @relation("DonorToDonation", fields: [donorId], references: [id])
+  
+  bookId        String?   @unique
+  book          Book?     @relation(fields: [bookId], references: [id])
+  
+  campaignId    String?
+  campaign      Campaign? @relation(fields: [campaignId], references: [id])
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model CommunityRequest {
+  id          String   @id @default(uuid())
+  title       String
+  author      String?
+  description String?  @db.Text
+  status      String   @default("OPEN") // OPEN, FULFILLED
+
+  requesterId String
+  requester   User     @relation("CommunityRequestToUser", fields: [requesterId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

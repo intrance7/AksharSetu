@@ -227,8 +227,15 @@ export function BookCard({ book, userLocation }: BookCardProps) {
         </div>
 
         {/* Bottom Row: Tags (Optional) and Price */}
-        <div className="flex items-center justify-end mt-auto">
+        <div className="flex items-center justify-between mt-auto">
           
+          <div className="flex flex-wrap gap-2 relative z-30">
+            {(book as any).isBundle && (
+              <span className="bg-[#8E24AA]/10 text-[#8E24AA] px-3 py-1.5 rounded-full text-[12px] font-black tracking-wide border border-[#8E24AA]/20">
+                📚 Bundle: {(book as any).booksInBundle} Books
+              </span>
+            )}
+          </div>
           <div className="relative z-30">
             {/* Sparkles around price */}
             <svg className="absolute -top-3 -right-2 w-6 h-6 rotate-[15deg] opacity-70" viewBox="0 0 24 24" fill="none" stroke="#F4B22B" strokeWidth="2.5" strokeLinecap="round">
