@@ -279,7 +279,7 @@ const navData = [
         {
           title: "More from Aksharसेतु",
           links: [
-            { label: "Request a Book", href: "/coming-soon?feature=Request-a-Book" },
+            { label: "Request a Book", href: "/requests" },
             { label: "Book Bundles", href: "/coming-soon?feature=Book-Bundles" },
           ]
         }

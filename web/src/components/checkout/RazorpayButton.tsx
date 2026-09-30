@@ -9,9 +9,10 @@ interface RazorpayButtonProps {
   book: Book;
   user: any;
   amount: number;
+  deliveryPincode?: string;
 }
 
-export function RazorpayButton({ book, user, amount }: RazorpayButtonProps) {
+export function RazorpayButton({ book, user, amount, deliveryPincode }: RazorpayButtonProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -25,7 +26,7 @@ export function RazorpayButton({ book, user, amount }: RazorpayButtonProps) {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookId: book.id }),
+        body: JSON.stringify({ bookId: book.id, deliveryPincode }),
       })
 
       const data = await res.json()

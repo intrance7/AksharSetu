@@ -6,6 +6,7 @@ import { Plus, X, Search, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
+import { updateLibraryBookStatus } from "@/app/actions/library"
 
 export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
   const router = useRouter()
@@ -59,22 +60,40 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
 
         {/* Existing Books */}
         {books.map((book) => (
-          <Link key={book.id} href={`/library/shanti/${book.id}`} className="group relative aspect-[1/1.4] rounded-3xl overflow-hidden bg-white shadow-sm border border-[#1D1D1F]/5 hover:shadow-xl transition-all hover:-translate-y-2">
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
-            
-            {/* Minimal Generated Cover since we don't force image upload here yet */}
-            <div className="absolute inset-0 bg-[#E8E4DF] z-0 flex items-center justify-center p-6 text-center">
-              <span className="font-black text-2xl text-[#1D1D1F]/20 uppercase tracking-tighter leading-none">{book.title.substring(0, 10)}</span>
+          <div key={book.id} className="group relative aspect-[1/1.4] rounded-3xl overflow-hidden bg-white shadow-sm border border-[#1D1D1F]/5 hover:shadow-xl transition-all hover:-translate-y-2">
+            <Link href={`/library/shanti/${book.id}`} className="absolute inset-0 z-0">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10 pointer-events-none" />
+              
+              {/* Minimal Generated Cover */}
+              <div className="absolute inset-0 bg-[#E8E4DF] flex items-center justify-center p-6 text-center">
+                <span className="font-black text-2xl text-[#1D1D1F]/20 uppercase tracking-tighter leading-none">{book.title.substring(0, 10)}</span>
+              </div>
+            </Link>
+
+            <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+              <select
+                className="bg-white/90 backdrop-blur-md border border-[#1D1D1F]/10 rounded-full px-3 py-1 text-xs font-bold text-[#1D1D1F] outline-none cursor-pointer"
+                value={book.status}
+                onChange={async (e) => {
+                  const newStatus = e.target.value
+                  setBooks(books.map(b => b.id === book.id ? { ...b, status: newStatus } : b))
+                  await updateLibraryBookStatus(book.id, newStatus)
+                }}
+              >
+                <option value="WANT_TO_READ">Want to Read</option>
+                <option value="READING">Reading</option>
+                <option value="READ">Read</option>
+              </select>
             </div>
 
-            <div className="absolute bottom-0 left-0 w-full p-5 z-20">
+            <div className="absolute bottom-0 left-0 w-full p-5 z-20 pointer-events-none">
               <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/20 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest mb-2">
                 Shanti Mode
               </div>
               <h3 className="font-black text-white text-lg leading-tight mb-1 line-clamp-2">{book.title}</h3>
               <p className="text-white/70 text-sm font-medium">{book.author}</p>
             </div>
-          </Link>
+          </div>
         ))}
       </div>
 

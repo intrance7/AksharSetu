@@ -13,7 +13,7 @@ type UserBadge = { badge: Badge, earnedAt: Date };
 interface ProfileContentProps {
   books: (Book & { owner?: { latitude: number | null, longitude: number | null, location: string | null } })[];
   badges: UserBadge[];
-  libraryBooks: { id: string, title: string, coverImage: string | null }[];
+  libraryBooks: { id: string, title: string, coverImage: string | null, status: string }[];
 }
 
 type TabType = 'listings' | 'badges' | 'library';
@@ -147,21 +147,38 @@ export function ProfileContent({ books, badges, libraryBooks }: ProfileContentPr
               libraryBooks.length === 0 ? (
                 <EmptyState icon={Library} message="Library is empty." />
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-6">
-                  {libraryBooks.map(book => (
-                    <div key={book.id} className="group flex flex-col gap-3 cursor-pointer">
-                      <div className="aspect-[2/3] rounded-xl overflow-hidden bg-[#e8e8ed] shadow-sm border border-[#1d1d1f]/5 group-hover:shadow-lg transition-all duration-300 group-hover:-translate-y-1">
-                        {book.coverImage ? (
-                          <img src={book.coverImage} alt={book.title} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center p-4 text-center font-bold text-[#1d1d1f]/40">
-                            {book.title}
-                          </div>
-                        )}
+                <div className="flex flex-col gap-8">
+                  {['READING', 'WANT_TO_READ', 'READ'].map(status => {
+                    const booksInStatus = libraryBooks.filter(b => b.status === status)
+                    if (booksInStatus.length === 0) return null
+                    
+                    const label = status === 'READING' ? 'Currently Reading' : status === 'WANT_TO_READ' ? 'Want to Read' : 'Read'
+                    
+                    return (
+                      <div key={status}>
+                        <h3 className="font-black text-xl text-[#1d1d1f] mb-4 flex items-center gap-2">
+                          <div className={`w-2.5 h-2.5 rounded-full ${status === 'READING' ? 'bg-[#C84200]' : status === 'READ' ? 'bg-[#287F56]' : 'bg-[#1d1d1f]/20'}`} />
+                          {label} <span className="text-[#86868b] text-sm font-bold">({booksInStatus.length})</span>
+                        </h3>
+                        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-6">
+                          {booksInStatus.map(book => (
+                            <div key={book.id} className="group flex flex-col gap-3 cursor-pointer">
+                              <div className="aspect-[2/3] rounded-xl overflow-hidden bg-[#e8e8ed] shadow-sm border border-[#1d1d1f]/5 group-hover:shadow-lg transition-all duration-300 group-hover:-translate-y-1">
+                                {book.coverImage ? (
+                                  <img src={book.coverImage} alt={book.title} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center p-4 text-center font-bold text-[#1d1d1f]/40">
+                                    {book.title}
+                                  </div>
+                                )}
+                              </div>
+                              <p className="font-bold text-sm text-[#1d1d1f] truncate px-1">{book.title}</p>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <p className="font-bold text-sm text-[#1d1d1f] truncate px-1">{book.title}</p>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )
             )}

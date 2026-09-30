@@ -252,6 +252,7 @@ model LibraryBook {
   author      String
   coverImage  String?
   platformBookId String? // If linked to an existing book on AksharSetu
+  status      String   @default("WANT_TO_READ") // WANT_TO_READ, READING, READ
 
   // Relations
   userId      String

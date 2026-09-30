@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     const userId = session.user.id;
 
     const body = await req.json()
-    const { bookId } = body
+    const { bookId, deliveryPincode } = body
 
     if (!bookId) {
       return NextResponse.json({ error: "Book ID is required" }, { status: 400 })
@@ -56,7 +56,22 @@ export async function POST(req: Request) {
       })
 
       const platformFee = 25
-      const shippingFee = 40
+      let shippingFee = 40 // Default base shipping
+      
+      if (deliveryPincode && deliveryPincode.length === 6) {
+         // Mock Shiprocket API logic
+         // If first digit is 1, local (40). If 2, nearby (60). Else 90.
+         // Here we assume pickup pincode starts with '1' for the sake of demo.
+         const firstDigit = deliveryPincode[0]
+         if (firstDigit === '1') {
+           shippingFee = 40
+         } else if (firstDigit === '2') {
+           shippingFee = 60
+         } else {
+           shippingFee = 90
+         }
+      }
+
       const totalAmount = updatedBook.price + platformFee + shippingFee
 
       // 3. Create a Razorpay Order
