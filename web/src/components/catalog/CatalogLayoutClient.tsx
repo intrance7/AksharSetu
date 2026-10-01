@@ -11,6 +11,7 @@ import { useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 
 import { CatalogGridInterlude } from "./CatalogGridInterlude"
+import { AIRecommendations } from "./AIRecommendations"
 import dynamic from 'next/dynamic'
 
 const InteractiveMap = dynamic(() => import('./Map'), {
@@ -68,6 +69,10 @@ export function CatalogLayoutClient({ books, isFiltered, userLocation }: Catalog
         viewMode={viewMode}
         onToggleViewMode={() => setViewMode(viewMode === "grid" ? "map" : "grid")}
       />
+
+      <div className="mt-6">
+        <AIRecommendations />
+      </div>
 
       <div className="flex items-start mt-6">
         
