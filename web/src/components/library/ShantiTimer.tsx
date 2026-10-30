@@ -6,7 +6,7 @@ import { Play, Square, ArrowLeft, Loader2, Minus, Plus } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
-export function ShantiTimer({ bookId, title, author }: { bookId: string, title: string, author: string }) {
+export function ShantiTimer({ bookId, title, author, compact = false }: { bookId: string, title: string, author: string, compact?: boolean }) {
   const router = useRouter()
   const [durationMinutes, setDurationMinutes] = useState(25) // Default Pomodoro
   const [timeLeft, setTimeLeft] = useState(25 * 60)
@@ -100,6 +100,35 @@ export function ShantiTimer({ bookId, title, author }: { bookId: string, title: 
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Compact variant: lives in the e-reader's top bar
+  if (compact) {
+    return (
+      <div className="flex items-center gap-1.5 rounded-full bg-[#1d1d1f] p-1 pl-2">
+        {isActive && <span className="w-2 h-2 ml-1 rounded-full bg-[#0066cc] animate-pulse" />}
+        {!isActive && (
+          <button id="shanti-minus" aria-label="Less time" onClick={() => setDurationMinutes(Math.max(5, durationMinutes - 5))} className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-[#f5f5f7] flex items-center justify-center transition-colors">
+            <Minus className="w-3 h-3" />
+          </button>
+        )}
+        <span className="text-sm font-semibold tabular-nums text-[#f5f5f7] w-12 text-center">{formatTime(timeLeft)}</span>
+        {!isActive && (
+          <button id="shanti-plus" aria-label="More time" onClick={() => setDurationMinutes(Math.min(120, durationMinutes + 5))} className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-[#f5f5f7] flex items-center justify-center transition-colors">
+            <Plus className="w-3 h-3" />
+          </button>
+        )}
+        <button
+          id="shanti-toggle"
+          onClick={isActive ? handleStop : handleStart}
+          disabled={isSubmitting}
+          className={`h-8 rounded-full px-4 text-xs font-semibold flex items-center gap-1.5 transition-colors ${isActive ? "bg-white/10 hover:bg-white/20 text-[#f5f5f7]" : "bg-[#0066cc] hover:bg-[#0071e3] text-white"}`}
+        >
+          {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : isActive ? <Square className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current" />}
+          {isActive ? "End" : "Start focus"}
+        </button>
+      </div>
+    )
   }
 
   return (

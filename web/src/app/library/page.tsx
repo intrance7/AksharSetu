@@ -2,7 +2,8 @@ import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { LibraryGrid } from "@/components/library/LibraryGrid"
-import { BookOpen } from "lucide-react"
+import { BookOpen, Tablet } from "lucide-react"
+import Link from "next/link"
 
 export default async function LibraryPage() {
   const session = await auth()
@@ -29,6 +30,13 @@ export default async function LibraryPage() {
               <BookOpen className="w-4 h-4" /> Your personal collection of books.
             </p>
           </div>
+          <Link
+            id="library-browse-ebooks"
+            href="/ebooks"
+            className="inline-flex items-center gap-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white px-5 h-11 text-sm font-semibold transition-colors"
+          >
+            <Tablet className="w-4 h-4" /> Browse E-Library
+          </Link>
         </div>
 
         <LibraryGrid initialBooks={libraryBooks} />

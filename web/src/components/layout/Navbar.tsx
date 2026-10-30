@@ -310,6 +310,11 @@ const navData = [
     }
   },
   {
+    label: "E-Library",
+    href: "/ebooks",
+    dropdown: null
+  },
+  {
     label: "My Library",
     href: "/library",
     dropdown: null,

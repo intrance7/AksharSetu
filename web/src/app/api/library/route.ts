@@ -28,10 +28,17 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { title, author, coverImage, platformBookId } = body
+    const { title, author, coverImage, platformBookId, gutenbergId } = body
 
     if (!title || !author) {
       return NextResponse.json({ error: "Title and author are required" }, { status: 400 })
+    }
+
+    if (gutenbergId) {
+      const existing = await prisma.libraryBook.findFirst({
+        where: { userId: session.user.id, gutenbergId: Number(gutenbergId) },
+      })
+      if (existing) return NextResponse.json(existing)
     }
 
     const newBook = await prisma.libraryBook.create({
@@ -40,6 +47,7 @@ export async function POST(req: Request) {
         author,
         coverImage,
         platformBookId,
+        gutenbergId: gutenbergId ? Number(gutenbergId) : null,
         userId: session.user.id,
       },
     })
