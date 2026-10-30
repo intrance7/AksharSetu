@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
+import { checkAndAwardBadges } from "@/services/badgeService"
 
 export async function GET() {
   try {
@@ -80,6 +81,8 @@ export async function PATCH(req: Request) {
         liveStatus: true,
       },
     })
+
+    checkAndAwardBadges(session.user.id).catch(() => {})
 
     return NextResponse.json(updatedUser)
   } catch (error) {

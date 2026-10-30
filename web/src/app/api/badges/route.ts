@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
+import { ensureDefaultBadges } from "@/services/badgeService"
 
 export async function GET() {
   try {
-    const badges = await prisma.badge.findMany({
-      orderBy: { requirementThreshold: 'asc' }
-    })
-
+    const badges = await ensureDefaultBadges()
     return NextResponse.json(badges)
   } catch (error) {
     console.error("Error fetching badges:", error)

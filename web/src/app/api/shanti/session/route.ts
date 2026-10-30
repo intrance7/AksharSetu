@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
+import { checkAndAwardBadges } from "@/services/badgeService"
 
 export async function POST(req: Request) {
   try {
@@ -16,9 +17,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // Verify the user owns this library book
     const libraryBook = await prisma.libraryBook.findUnique({
-      where: { id: libraryBookId }
+      where: { id: libraryBookId },
     })
 
     if (!libraryBook || libraryBook.userId !== session.user.id) {
@@ -29,11 +29,20 @@ export async function POST(req: Request) {
       data: {
         userId: session.user.id,
         libraryBookId,
-        durationMinutes,
+        durationMinutes: Number(durationMinutes),
       },
     })
 
-    return NextResponse.json(newSession, { status: 201 })
+    if (libraryBook.status === "WANT_TO_READ") {
+      await prisma.libraryBook.update({
+        where: { id: libraryBookId },
+        data: { status: "READING" },
+      })
+    }
+
+    const unlockedBadges = await checkAndAwardBadges(session.user.id).catch(() => [])
+
+    return NextResponse.json({ session: newSession, unlockedBadges }, { status: 201 })
   } catch (error: any) {
     return NextResponse.json({ error: "Failed to log reading session" }, { status: 500 })
   }

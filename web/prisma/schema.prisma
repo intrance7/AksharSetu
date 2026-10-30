@@ -38,20 +38,23 @@ model User {
   meetupReliability   Boolean   @default(true) // Reliable
 
   // Relations
-  books         Book[]    @relation("OwnerToBook")
-  requests      BookRequest[] @relation("RequesterToRequest")
-  orders        Order[]   @relation("BuyerToOrder")
-  sentMessages  Message[] @relation("SenderToMessage")
-  receivedMessages Message[] @relation("ReceiverToMessage")
-  accounts      Account[]
-  sessions      Session[]
-  badges        UserBadge[]
-  libraryBooks  LibraryBook[]
-  readingSessions ReadingSession[]
+  books             Book[]             @relation("OwnerToBook")
+  requests          BookRequest[]      @relation("RequesterToRequest")
+  orders            Order[]            @relation("BuyerToOrder")
+  sentMessages      Message[]          @relation("SenderToMessage")
+  receivedMessages  Message[]          @relation("ReceiverToMessage")
+  accounts          Account[]
+  sessions          Session[]
+  badges            UserBadge[]
+  libraryBooks      LibraryBook[]
+  readingSessions   ReadingSession[]
+  bookNotes         BookNote[]
+  reviewsGiven      SellerReview[]     @relation("ReviewerToReview")
+  reviewsReceived   SellerReview[]     @relation("SellerToReview")
 
-  wishlists     Wishlist[]
-  notifications Notification[]
-  donations     Donation[] @relation("DonorToDonation")
+  wishlists         Wishlist[]
+  notifications     Notification[]
+  donations         Donation[]         @relation("DonorToDonation")
   communityRequests CommunityRequest[] @relation("CommunityRequestToUser")
 
   createdAt     DateTime  @default(now())
@@ -113,6 +116,7 @@ model BookRequest {
   id            String    @id @default(uuid())
   status        String    @default("PENDING") // PENDING, APPROVED, REJECTED, COMPLETED
   message       String?
+  offeredBookId String?   // Optional 1-for-1 swap offered book ID
 
   // Relations
   bookId        String
@@ -122,6 +126,7 @@ model BookRequest {
   requester     User      @relation("RequesterToRequest", fields: [requesterId], references: [id])
 
   messages      Message[]
+  review        SellerReview?
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -176,11 +181,11 @@ model Order {
   buyer         User      @relation("BuyerToOrder", fields: [buyerId], references: [id])
 
   messages      Message[]
+  shipment      Shipment?
+  review        SellerReview?
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
-  shipment      Shipment?
 }
 
 model Shipment {
@@ -249,21 +254,23 @@ model UserBadge {
 }
 
 model LibraryBook {
-  id          String   @id @default(uuid())
-  title       String
-  author      String
-  coverImage  String?
-  platformBookId String? // If linked to an existing book on AksharSetu
-  gutenbergId Int?       // If readable in the e-library (Project Gutenberg ID)
-  status      String   @default("WANT_TO_READ") // WANT_TO_READ, READING, READ
+  id             String   @id @default(uuid())
+  title          String
+  author         String
+  coverImage     String?
+  platformBookId String?  // If linked to an existing book or external e-book ID
+  gutenbergId    Int?     // If readable in the e-library (Project Gutenberg ID)
+  status         String   @default("WANT_TO_READ") // WANT_TO_READ, READING, READ
+  currentPage    Int      @default(1)
+  totalPages     Int      @default(250)
 
   // Relations
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sessions    ReadingSession[]
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions       ReadingSession[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model ReadingSession {
@@ -280,6 +287,45 @@ model ReadingSession {
   createdAt       DateTime @default(now())
 }
 
+model BookNote {
+  id         String   @id @default(uuid())
+  bookKey    String
+  bookTitle  String
+  bookAuthor String
+  quoteText  String   @db.Text
+  noteText   String?  @db.Text
+  color      String   @default("amber") // amber, blue, emerald, rose
+  pageNumber Int      @default(1)
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model SellerReview {
+  id                String       @id @default(uuid())
+  rating            Int
+  conditionAccurate Boolean      @default(true)
+  meetupReliable    Boolean      @default(true)
+  comment           String?      @db.Text
+
+  orderId           String?      @unique
+  order             Order?       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  requestId         String?      @unique
+  request           BookRequest? @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  reviewerId        String
+  reviewer          User         @relation("ReviewerToReview", fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  sellerId          String
+  seller            User         @relation("SellerToReview", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime     @default(now())
+}
+
 model Wishlist {
   id        String   @id @default(uuid())
   title     String?  
@@ -294,7 +340,7 @@ model Wishlist {
 
 model Notification {
   id        String   @id @default(uuid())
-  type      String   // e.g., "WISHLIST_ALERT"
+  type      String   // e.g., "WISHLIST_ALERT", "NEW_MESSAGE", "BOOK_REQUEST", "BADGE_EARNED", "ORDER_UPDATE"
   message   String
   read      Boolean  @default(false)
   link      String?  

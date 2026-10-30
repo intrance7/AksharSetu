@@ -12,6 +12,8 @@ import {
   Award,
   Quote,
   ExternalLink,
+  Sparkles,
+  X,
 } from "lucide-react"
 import Link from "next/link"
 import { getPusherClient } from "@/lib/pusher"
@@ -40,17 +42,30 @@ interface OtherUser {
   badgesCount?: number
 }
 
+export interface ChatContextBanner {
+  badge: string
+  title: string
+  prefillMessage: string
+}
+
 const ICEBREAKERS = [
   "Hi! I saw your profile on AksharSetu and wanted to connect.",
   "Are any of your listed books available for a handoff or exchange?",
   "Loved the literary quote on your profile! What are you reading currently?",
 ]
 
-export function ChatThread({ userId }: { userId: string }) {
+export function ChatThread({
+  userId,
+  contextBanner = null,
+}: {
+  userId: string
+  contextBanner?: ChatContextBanner | null
+}) {
   const { data: session } = useSession()
   const [messages, setMessages] = useState<MessageData[]>([])
   const [otherUser, setOtherUser] = useState<OtherUser | null>(null)
   const [newMessage, setNewMessage] = useState("")
+  const [activeContext, setActiveContext] = useState<ChatContextBanner | null>(contextBanner)
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -85,7 +100,6 @@ export function ChatThread({ userId }: { userId: string }) {
   useEffect(() => {
     fetchMessages()
 
-    // Background polling fallback so messages sync even without Pusher credentials
     const pollInterval = setInterval(fetchMessages, 4000)
 
     if (!session?.user?.id) {
@@ -112,9 +126,7 @@ export function ChatThread({ userId }: { userId: string }) {
           })
         })
       }
-    } catch {
-      // Pusher not configured; polling handles real-time updates
-    }
+    } catch {}
 
     return () => {
       clearInterval(pollInterval)
@@ -186,26 +198,26 @@ export function ChatThread({ userId }: { userId: string }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <Loader2 className="w-6 h-6 animate-spin text-[#1D1D1F]/30" />
+        <Loader2 className="w-6 h-6 animate-spin text-[#1d1d1f]/30" />
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-3xl border border-black/5 shadow-sm p-6 md:p-8 flex flex-col h-[calc(100vh-8rem)]">
+    <div className="bg-white rounded-2xl border border-black/5 shadow-sm p-6 md:p-8 flex flex-col h-[calc(100vh-7.5rem)]">
       {/* Header */}
       <div className="flex items-center justify-between gap-4 pb-5 border-b border-black/5">
         <div className="flex items-center gap-4 min-w-0">
           <Link
             href="/messages"
-            className="w-10 h-10 rounded-full bg-[#F5F5F7] flex items-center justify-center hover:bg-[#e8e8ed] transition-colors shrink-0"
+            className="w-10 h-10 rounded-full bg-[#f5f5f7] flex items-center justify-center hover:bg-[#e8e8ed] transition-colors shrink-0"
           >
-            <ArrowLeft className="w-5 h-5 text-[#1D1D1F]" />
+            <ArrowLeft className="w-5 h-5 text-[#1d1d1f]" />
           </Link>
 
           <Link
             href={`/profile/${userId}`}
-            className="w-12 h-12 rounded-full bg-[#1D1D1F] flex items-center justify-center shrink-0 overflow-hidden"
+            className="w-12 h-12 rounded-full bg-[#1d1d1f] flex items-center justify-center shrink-0 overflow-hidden"
           >
             {otherUser?.image ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -215,7 +227,7 @@ export function ChatThread({ userId }: { userId: string }) {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-white font-black text-lg">
+              <span className="text-white font-bold text-lg">
                 {(otherUser?.name || "R").charAt(0).toUpperCase()}
               </span>
             )}
@@ -225,33 +237,33 @@ export function ChatThread({ userId }: { userId: string }) {
             <div className="flex items-center gap-2 flex-wrap">
               <Link
                 href={`/profile/${userId}`}
-                className="font-black text-lg text-[#1D1D1F] hover:text-[#0066cc] transition-colors truncate"
+                className="font-bold text-lg text-[#1d1d1f] hover:text-[#0066cc] transition-colors truncate"
               >
                 {otherUser?.name || "Reader"}
               </Link>
               {otherUser?.location && (
-                <span className="text-xs font-bold text-[#86868b] flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-[#C84200]" />
+                <span className="text-xs font-semibold text-[#86868b] flex items-center gap-1">
+                  <MapPin className="w-3 h-3 text-[#0066cc]" />
                   {otherUser.location}
                 </span>
               )}
             </div>
 
-            <div className="flex items-center gap-3 text-xs font-semibold text-[#86868b] mt-0.5">
+            <div className="flex items-center gap-3 text-xs font-medium text-[#86868b] mt-0.5">
               {otherUser?.booksCount !== undefined && (
                 <span className="flex items-center gap-1">
-                  <BookOpen className="w-3 h-3 text-[#C84200]" />{" "}
+                  <BookOpen className="w-3 h-3 text-[#0066cc]" />{" "}
                   {otherUser.booksCount} books
                 </span>
               )}
               {otherUser?.badgesCount !== undefined && (
                 <span className="flex items-center gap-1">
-                  <Award className="w-3 h-3 text-[#C84200]" />{" "}
+                  <Award className="w-3 h-3 text-[#0066cc]" />{" "}
                   {otherUser.badgesCount} badges
                 </span>
               )}
               {(otherUser?.isShantiModeActive || otherUser?.liveStatus) && (
-                <span className="inline-flex items-center gap-1.5 text-emerald-600 font-bold truncate">
+                <span className="inline-flex items-center gap-1.5 text-emerald-600 font-semibold truncate">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   {otherUser.liveStatus || "In Shanti Mode"}
                 </span>
@@ -262,7 +274,7 @@ export function ChatThread({ userId }: { userId: string }) {
 
         <Link
           href={`/profile/${userId}`}
-          className="px-4 py-2 rounded-full bg-[#F5F5F7] hover:bg-[#e8e8ed] text-xs font-bold text-[#1D1D1F] flex items-center gap-1.5 shrink-0 transition-colors"
+          className="px-4 py-2 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-xs font-semibold text-[#1d1d1f] flex items-center gap-1.5 shrink-0 transition-colors"
         >
           View Profile <ExternalLink className="w-3.5 h-3.5" />
         </Link>
@@ -270,16 +282,60 @@ export function ChatThread({ userId }: { userId: string }) {
 
       {/* Recipient Signature Quote Context Bar */}
       {otherUser?.favoriteQuote && (
-        <div className="mt-3 px-4 py-2.5 rounded-2xl bg-[#F5F5F7] border border-black/5 flex items-center gap-2 text-xs text-[#1D1D1F]/80">
-          <Quote className="w-3.5 h-3.5 text-[#C84200] shrink-0" />
+        <div className="mt-3 px-4 py-2.5 rounded-2xl bg-[#f5f5f7] border border-black/5 flex items-center gap-2 text-xs text-[#1d1d1f]/80">
+          <Quote className="w-3.5 h-3.5 text-[#0066cc] shrink-0" />
           <span className="italic font-medium truncate">
             “{otherUser.favoriteQuote}”
           </span>
           {otherUser.quoteAuthor && (
-            <span className="font-bold text-[#86868b] shrink-0">
+            <span className="font-semibold text-[#86868b] shrink-0">
               — {otherUser.quoteAuthor}
             </span>
           )}
+        </div>
+      )}
+
+      {/* Smart Action Context Banner (Fulfill Request / Swap Proposal / Shared Quote) */}
+      {activeContext && (
+        <div className="mt-3 p-3.5 rounded-2xl bg-[#0066cc]/8 border border-[#0066cc]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="min-w-0">
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#0066cc]">
+              <Sparkles className="w-3 h-3" /> {activeContext.badge}
+            </span>
+            <p className="text-xs font-bold text-[#1d1d1f] truncate mt-0.5">
+              {activeContext.title}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                sendMessageContent(activeContext.prefillMessage)
+                setActiveContext(null)
+              }}
+              className="px-3.5 py-1.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-semibold transition cursor-pointer"
+            >
+              Send Proposal
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setNewMessage(activeContext.prefillMessage)
+                setActiveContext(null)
+              }}
+              className="px-3 py-1.5 rounded-full bg-white hover:bg-[#e8e8ed] text-[#1d1d1f] text-xs font-semibold border border-black/10 transition cursor-pointer"
+            >
+              Edit First
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveContext(null)}
+              className="p-1 text-[#86868b] hover:text-[#1d1d1f] cursor-pointer"
+              aria-label="Dismiss banner"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       )}
 
@@ -287,17 +343,17 @@ export function ChatThread({ userId }: { userId: string }) {
       <div className="flex-1 overflow-y-auto py-6 space-y-4 scrollbar-hide">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
-            <div className="w-12 h-12 rounded-full bg-[#F5F5F7] flex items-center justify-center mb-3">
+            <div className="w-12 h-12 rounded-full bg-[#f5f5f7] flex items-center justify-center mb-3">
               <User className="w-5 h-5 text-[#86868b]" />
             </div>
-            <p className="text-[#1D1D1F] font-bold text-base mb-1">
+            <p className="text-[#1d1d1f] font-bold text-base mb-1">
               Start a conversation with {otherUser?.name || "this reader"}
             </p>
             <p className="text-[#86868b] font-medium text-xs max-w-sm mb-6">
               Discuss book handoffs, exchanges, or shared reading recommendations.
             </p>
             <div className="flex flex-col gap-2 w-full max-w-md">
-              <span className="text-[11px] font-black uppercase tracking-wider text-[#86868b]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#86868b]">
                 Quick Conversation Starters
               </span>
               {ICEBREAKERS.map((icebreaker, idx) => (
@@ -305,7 +361,7 @@ export function ChatThread({ userId }: { userId: string }) {
                   key={idx}
                   type="button"
                   onClick={() => sendMessageContent(icebreaker)}
-                  className="text-left text-xs font-semibold px-4 py-2.5 rounded-2xl bg-[#F5F5F7] hover:bg-[#0066cc] hover:text-white text-[#1D1D1F] transition-colors cursor-pointer"
+                  className="text-left text-xs font-semibold px-4 py-2.5 rounded-2xl bg-[#f5f5f7] hover:bg-[#0066cc] hover:text-white text-[#1d1d1f] transition-colors cursor-pointer"
                 >
                   “{icebreaker}”
                 </button>
@@ -330,10 +386,10 @@ export function ChatThread({ userId }: { userId: string }) {
                     }`}
                   >
                     <div
-                      className={`px-5 py-3 rounded-2xl text-sm font-medium leading-relaxed ${
+                      className={`px-5 py-3 rounded-2xl text-sm font-medium leading-relaxed whitespace-pre-wrap ${
                         isMine
                           ? "bg-[#0066cc] text-white rounded-br-sm"
-                          : "bg-[#F5F5F7] text-[#1D1D1F] rounded-bl-sm"
+                          : "bg-[#f5f5f7] text-[#1d1d1f] rounded-bl-sm"
                       }`}
                     >
                       {msg.content}
@@ -360,7 +416,7 @@ export function ChatThread({ userId }: { userId: string }) {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder={`Message ${otherUser?.name || "reader"}...`}
-            className="flex-1 bg-[#F5F5F7] border border-transparent focus:border-[#0066cc] focus:bg-white text-[#1D1D1F] rounded-full px-6 py-3.5 text-sm outline-none transition-all placeholder:text-[#86868b] font-medium"
+            className="flex-1 bg-[#f5f5f7] border border-transparent focus:border-[#0066cc] focus:bg-white text-[#1d1d1f] rounded-full px-6 py-3.5 text-sm outline-none transition-all placeholder:text-[#86868b] font-medium"
           />
           <button
             type="submit"
