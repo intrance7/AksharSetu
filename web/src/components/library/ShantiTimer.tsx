@@ -105,16 +105,16 @@ export function ShantiTimer({ bookId, title, author, compact = false }: { bookId
   // Compact variant: lives in the e-reader's top bar
   if (compact) {
     return (
-      <div className="flex items-center gap-1.5 rounded-full bg-[#1d1d1f] p-1 pl-2">
-        {isActive && <span className="w-2 h-2 ml-1 rounded-full bg-[#0066cc] animate-pulse" />}
+      <div className="flex items-center gap-1.5 rounded-full bg-[#1D1D1F] p-1 pl-2 border border-white/10">
+        {isActive && <span className="w-2 h-2 ml-1 rounded-full bg-[#F4B22B] animate-pulse" />}
         {!isActive && (
-          <button id="shanti-minus" aria-label="Less time" onClick={() => setDurationMinutes(Math.max(5, durationMinutes - 5))} className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-[#f5f5f7] flex items-center justify-center transition-colors">
+          <button id="shanti-minus" aria-label="Less time" onClick={() => setDurationMinutes(Math.max(5, durationMinutes - 5))} className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-[#F2EBE1] flex items-center justify-center transition-colors">
             <Minus className="w-3 h-3" />
           </button>
         )}
-        <span className="text-sm font-semibold tabular-nums text-[#f5f5f7] w-12 text-center">{formatTime(timeLeft)}</span>
+        <span className="text-sm font-bold tabular-nums text-[#F2EBE1] w-12 text-center">{formatTime(timeLeft)}</span>
         {!isActive && (
-          <button id="shanti-plus" aria-label="More time" onClick={() => setDurationMinutes(Math.min(120, durationMinutes + 5))} className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-[#f5f5f7] flex items-center justify-center transition-colors">
+          <button id="shanti-plus" aria-label="More time" onClick={() => setDurationMinutes(Math.min(120, durationMinutes + 5))} className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-[#F2EBE1] flex items-center justify-center transition-colors">
             <Plus className="w-3 h-3" />
           </button>
         )}
@@ -122,7 +122,7 @@ export function ShantiTimer({ bookId, title, author, compact = false }: { bookId
           id="shanti-toggle"
           onClick={isActive ? handleStop : handleStart}
           disabled={isSubmitting}
-          className={`h-8 rounded-full px-4 text-xs font-semibold flex items-center gap-1.5 transition-colors ${isActive ? "bg-white/10 hover:bg-white/20 text-[#f5f5f7]" : "bg-[#0066cc] hover:bg-[#0071e3] text-white"}`}
+          className={`h-8 rounded-full px-4 text-xs font-bold flex items-center gap-1.5 transition-colors ${isActive ? "bg-white/10 hover:bg-white/20 text-[#F2EBE1]" : "bg-[#C84200] hover:bg-[#A33500] text-white"}`}
         >
           {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : isActive ? <Square className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current" />}
           {isActive ? "End" : "Start focus"}
@@ -157,24 +157,24 @@ export function ShantiTimer({ bookId, title, author, compact = false }: { bookId
         <motion.p 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-white/40 font-bold uppercase tracking-[0.3em] text-sm mb-4"
+          className="text-[#F4B22B] font-black uppercase tracking-[0.3em] text-sm mb-4"
         >
           {isActive ? "Deep Focus" : "Prepare to Focus"}
         </motion.p>
         
-        <h2 className="text-3xl md:text-4xl font-black text-white/90 mb-1">{title}</h2>
-        <p className="text-white/50 font-medium mb-12">by {author}</p>
+        <h2 className="text-3xl md:text-4xl font-black text-[#F2EBE1] mb-1">{title}</h2>
+        <p className="text-[#F2EBE1]/50 font-medium mb-12">by {author}</p>
 
         {/* The Clock */}
         <div className="relative mb-12">
           {isActive && (
             <motion.div
-              className="absolute inset-0 rounded-full border border-[#0066cc]/30"
+              className="absolute inset-0 rounded-full border border-[#C84200]/40"
               animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             />
           )}
-          <h1 className="text-8xl md:text-[9rem] font-black tracking-tighter tabular-nums leading-none drop-shadow-2xl text-white">
+          <h1 className="text-8xl md:text-[9rem] font-black tracking-tighter tabular-nums leading-none drop-shadow-2xl text-[#F2EBE1]">
             {formatTime(timeLeft)}
           </h1>
         </div>
@@ -194,9 +194,9 @@ export function ShantiTimer({ bookId, title, author, compact = false }: { bookId
               <button 
                 onClick={handleStart}
                 disabled={isSubmitting}
-                className="bg-white text-black hover:bg-white/90 rounded-full px-10 h-14 font-black tracking-wide text-lg flex items-center gap-3 transition-all transform hover:scale-105"
+                className="bg-[#C84200] text-white hover:bg-[#A33500] rounded-full px-10 h-14 font-black tracking-wide text-lg flex items-center gap-3 transition-all transform hover:scale-105 shadow-xl"
               >
-                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Play className="w-5 h-5 fill-black" />}
+                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Play className="w-5 h-5 fill-white" />}
                 START
               </button>
               
