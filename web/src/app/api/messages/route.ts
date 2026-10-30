@@ -114,8 +114,12 @@ export async function POST(req: Request) {
     // Determine the channel to broadcast on
     const channelId = requestId ? `chat-request-${requestId}` : `chat-order-${orderId}`
     
-    // Trigger pusher event
-    await pusherServer.trigger(channelId, 'new-message', message)
+    // Trigger pusher event safely
+    try {
+      await pusherServer.trigger(channelId, 'new-message', message)
+    } catch {
+      // Non-fatal if Pusher is offline/unconfigured
+    }
 
     return NextResponse.json(message, { status: 201 })
   } catch (error: any) {

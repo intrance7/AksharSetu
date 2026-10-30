@@ -19,6 +19,8 @@ model User {
   password      String?
   role          String    @default("USER") // USER, ADMIN
   bio           String?   @db.Text
+  favoriteQuote String?   @db.Text
+  quoteAuthor   String?
   location      String?
   latitude      Float?
   longitude     Float?

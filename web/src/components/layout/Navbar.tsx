@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
-import { BookOpen, Menu, User, MapPin } from "lucide-react"
+import { BookOpen, Menu, User, MapPin, MessageSquare } from "lucide-react"
 import { NotificationBell } from "./NotificationBell"
 import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/Button"
@@ -130,7 +130,7 @@ export function Navbar() {
 
                     {session && (
                       <div className="flex items-center gap-4 ml-2 pl-4 border-l border-[#C84200]/20">
-                        <NotificationBell userId={session.user.id!} />
+                        <Link href="/messages" className="text-[#C84200] hover:text-[#A33500] transition-colors p-2 rounded-full hover:bg-[#C84200]/10" title="Messages & Reader Connect"><MessageSquare className="h-5 w-5" /></Link><NotificationBell userId={session.user?.id || ""} />
                         <Link href={`/profile/${session.user?.id || 'me'}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                           <span className="text-sm font-bold text-[#C84200]">
                             {session.user?.name || session.user?.email?.split('@')[0] || "User"}
@@ -322,15 +322,15 @@ const navData = [
   },
   {
     label: "Charts",
-    href: "/coming-soon?feature=Charts",
+    href: "/leaderboard",
     dropdown: {
       columns: [
         {
           title: "Community",
           links: [
-            { label: "Reader Profiles", href: "/coming-soon?feature=Reader-Profiles" },
-            { label: "Leaderboards", href: "/coming-soon?feature=Leaderboards" },
-            { label: "Book Showcases", href: "/coming-soon?feature=Book-Showcases" },
+            { label: "Reader Profiles", href: "/leaderboard?tab=directory" },
+            { label: "Leaderboards", href: "/leaderboard" },
+            { label: "Find & Message Readers", href: "/messages" },
           ]
         }
       ]
