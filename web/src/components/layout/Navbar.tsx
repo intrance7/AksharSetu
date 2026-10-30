@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
-import { BookOpen, Menu, User, MapPin, MessageSquare } from "lucide-react"
+import { BookOpen, Menu, User, MapPin } from "lucide-react"
 import { NotificationBell } from "./NotificationBell"
 import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/Button"
@@ -33,7 +33,8 @@ export function Navbar() {
 
     const updateHeight = () => {
       if (contentRef.current) {
-        const height = contentRef.current.offsetHeight || contentRef.current.scrollHeight
+        const height =
+          contentRef.current.offsetHeight || contentRef.current.scrollHeight
         if (height > 0) setMenuHeight(height)
       }
     }
@@ -68,41 +69,60 @@ export function Navbar() {
         {activeMenu && activeNavData?.dropdown && (
           <motion.div
             initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
-            animate={{ opacity: 1, backdropFilter: "blur(4px)" }} // <-- CHANGE THIS VALUE
+            animate={{ opacity: 1, backdropFilter: "blur(4px)" }}
             exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="fixed inset-0 z-40 bg-black/20"
           />
-
         )}
       </AnimatePresence>
-      <div className="sticky top-0 z-50 w-full h-16" onMouseLeave={handleMouseLeave} style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+      <div
+        className="sticky top-0 z-50 w-full h-16"
+        onMouseLeave={handleMouseLeave}
+        style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+      >
         <motion.div
-          className={`absolute top-0 left-0 w-full overflow-hidden text-[#C84200] border-b border-[#C84200]/20 transition-colors duration-200 ease-in-out ${activeMenu && activeNavData?.dropdown ? 'bg-[#F2EBE1]/80 backdrop-blur-xl shadow-2xl'
-            : 'bg-[#F2EBE1]/50 backdrop-blur-md'}`}
+          className={`absolute top-0 left-0 w-full overflow-hidden text-[#C84200] border-b border-[#C84200]/20 transition-colors duration-200 ease-in-out ${
+            activeMenu && activeNavData?.dropdown
+              ? "bg-[#F2EBE1]/80 backdrop-blur-xl shadow-2xl"
+              : "bg-[#F2EBE1]/50 backdrop-blur-md"
+          }`}
           initial={false}
-          animate={{ height: activeMenu && activeNavData?.dropdown ? menuHeight : 64 }}
+          animate={{
+            height: activeMenu && activeNavData?.dropdown ? menuHeight : 64,
+          }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         >
           <div ref={contentRef} className="w-full flex flex-col">
             <header className="w-full h-16 shrink-0">
-              <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8 font-medium">
-
+              <div className="container mx-auto flex h-16 items-center justify-between gap-6 px-4 md:px-8 font-medium">
                 {/* Left: Logo */}
-                <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity z-50">
+                <Link
+                  href="/"
+                  className="flex items-center gap-2 hover:opacity-80 transition-opacity z-50 shrink-0"
+                >
                   <BookOpen className="h-4 w-4" />
-                  <span className="font-black tracking-tight text-lg md:text-xl">Aksharसेतु</span>
+                  <span className="font-black tracking-tight text-lg md:text-xl">
+                    Aksharसेतु
+                  </span>
                 </Link>
 
                 {/* Center: Links */}
-                <nav className="hidden md:flex flex-1 items-center justify-center gap-8 text-[#C84200] z-50 h-full">
-                  {navData.filter((item) => !item.authOnly || session).map((item) => (
+                <nav className="hidden md:flex flex-1 items-center justify-center gap-7 lg:gap-9 text-[#C84200] z-50 h-full">
+                  {navData.map((item) => (
                     <div
                       key={item.label}
                       className="h-full flex items-center"
                       onMouseEnter={() => handleMouseEnter(item.label)}
                     >
-                      <Link href={item.href} className={`transition-colors font-black uppercase tracking-wider text-sm md:text-base ${activeMenu === item.label ? "text-[#C84200] underline underline-offset-8 decoration-2" : "hover:text-[#A33500]"}`}>
+                      <Link
+                        href={item.href}
+                        className={`transition-colors font-black uppercase tracking-wider text-sm whitespace-nowrap ${
+                          activeMenu === item.label
+                            ? "text-[#C84200] underline underline-offset-8 decoration-2"
+                            : "hover:text-[#A33500]"
+                        }`}
+                      >
                         {item.label}
                       </Link>
                     </div>
@@ -110,41 +130,60 @@ export function Navbar() {
                 </nav>
 
                 {/* Right: Actions */}
-                <div className="flex items-center gap-6 z-50">
-                  <div className="hidden md:flex items-center gap-4">
-                    <Link href="/catalog?sort=distance" className="text-[#C84200] hover:text-[#A33500] transition-colors p-2 rounded-full hover:bg-[#C84200]/10" title="Books near me">
+                <div className="flex items-center gap-4 z-50 shrink-0">
+                  <div className="hidden md:flex items-center gap-3">
+                    <Link
+                      href="/catalog?sort=distance"
+                      className="text-[#C84200] hover:text-[#A33500] transition-colors p-2 rounded-full hover:bg-[#C84200]/10"
+                      title="Books near me"
+                    >
                       <MapPin className="h-5 w-5" />
                     </Link>
-                    
+
                     {!session && (
-                      <Link href="/login" className="hover:text-[#A33500] font-black uppercase tracking-wider text-sm md:text-base transition-colors">
+                      <Link
+                        href="/login"
+                        className="hover:text-[#A33500] font-black uppercase tracking-wider text-sm transition-colors"
+                      >
                         Log In
                       </Link>
                     )}
 
                     <Link href="/catalog/new">
-                      <Button variant="default" size="sm" className="h-9 text-xs md:text-sm px-6 font-black uppercase tracking-wider bg-[#C84200] text-[#F2EBE1] hover:bg-[#A33500] rounded-full shadow-md">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="h-9 text-xs px-5 font-black uppercase tracking-wider bg-[#C84200] text-[#F2EBE1] hover:bg-[#A33500] rounded-full shadow-md"
+                      >
                         List a Book
                       </Button>
                     </Link>
 
                     {session && (
-                      <div className="flex items-center gap-4 ml-2 pl-4 border-l border-[#C84200]/20">
-                        <Link href="/messages" className="text-[#C84200] hover:text-[#A33500] transition-colors p-2 rounded-full hover:bg-[#C84200]/10" title="Messages & Reader Connect"><MessageSquare className="h-5 w-5" /></Link><NotificationBell userId={session.user?.id || ""} />
-                        <Link href={`/profile/${session.user?.id || 'me'}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                          <span className="text-sm font-bold text-[#C84200]">
-                            {session.user?.name || session.user?.email?.split('@')[0] || "User"}
+                      <div className="flex items-center gap-3 ml-1 pl-3 border-l border-[#C84200]/20">
+                        <NotificationBell userId={session.user?.id || ""} />
+                        <Link
+                          href={`/profile/${session.user?.id || "me"}`}
+                          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                        >
+                          <span className="text-sm font-bold text-[#C84200] max-w-[100px] truncate">
+                            {session.user?.name?.split(" ")[0] ||
+                              session.user?.email?.split("@")[0] ||
+                              "User"}
                           </span>
-                          <div className="h-8 w-8 bg-[#C84200]/10 rounded-full flex items-center justify-center">
-                             <User className="h-4 w-4 text-[#C84200]" />
+                          <div className="h-8 w-8 bg-[#C84200]/10 rounded-full flex items-center justify-center shrink-0">
+                            <User className="h-4 w-4 text-[#C84200]" />
                           </div>
                         </Link>
-                        <Link href="/admin" className="cursor-pointer hover:text-[#A33500] font-black uppercase tracking-wider text-xs md:text-sm transition-colors opacity-60">
+                        <Link
+                          href="/admin"
+                          className="cursor-pointer hover:text-[#A33500] font-black uppercase tracking-wider text-xs transition-colors opacity-60"
+                        >
                           Admin
                         </Link>
-                        <button 
+                        <button
                           onClick={() => signOut()}
-                          className="cursor-pointer hover:text-[#A33500] font-black uppercase tracking-wider text-xs md:text-sm transition-colors opacity-60"
+                          className="cursor-pointer hover:text-[#A33500] font-black uppercase tracking-wider text-xs transition-colors opacity-60 whitespace-nowrap"
                         >
                           Log Out
                         </button>
@@ -156,13 +195,16 @@ export function Navbar() {
                     <span className="sr-only">Toggle Menu</span>
                   </button>
                 </div>
-
               </div>
             </header>
 
             {/* Mega Menu Dropdown */}
             <div
-              className={`w-full ${activeMenu && activeNavData?.dropdown ? 'pointer-events-auto' : 'pointer-events-none'}`}
+              className={`w-full ${
+                activeMenu && activeNavData?.dropdown
+                  ? "pointer-events-auto"
+                  : "pointer-events-none"
+              }`}
               onMouseEnter={() => activeMenu && handleMouseEnter(activeMenu)}
               onMouseLeave={handleMouseLeave}
             >
@@ -173,7 +215,11 @@ export function Navbar() {
                       initial={{ y: -8 }}
                       animate={{ y: 0 }}
                       exit={{ opacity: 0 }}
-                      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.17 }}
+                      transition={{
+                        duration: 0.6,
+                        ease: [0.22, 1, 0.36, 1],
+                        delay: 0.17,
+                      }}
                       className="relative w-full"
                     >
                       <AnimatePresence mode="popLayout">
@@ -190,19 +236,24 @@ export function Navbar() {
                             <motion.div
                               key={idx}
                               variants={columnVariants}
-                              className={`flex flex-col gap-3 ${idx === 0 ? "min-w-[200px]" : "min-w-[140px]"}`}
+                              className={`flex flex-col gap-3 ${
+                                idx === 0 ? "min-w-[200px]" : "min-w-[140px]"
+                              }`}
                             >
-                              <h3 className="text-[#C84200]/75 text-xs md:text-sm font-black uppercase mb-4 tracking-widest">{col.title}</h3>
+                              <h3 className="text-[#C84200]/75 text-xs md:text-sm font-black uppercase mb-4 tracking-widest">
+                                {col.title}
+                              </h3>
                               <div className="flex flex-col gap-4">
                                 {col.links.map((link, lIdx) => (
                                   <Link
                                     key={lIdx}
                                     href={link.href}
                                     onClick={() => setActiveMenu(null)}
-                                    className={`text-[#C84200] hover:text-[#A33500] transition-colors ${idx === 0
-                                      ? "text-xl md:text-2xl font-black uppercase tracking-tight mb-2"
-                                      : "text-[14px] md:text-base font-bold uppercase tracking-wider"
-                                      }`}
+                                    className={`text-[#C84200] hover:text-[#A33500] transition-colors ${
+                                      idx === 0
+                                        ? "text-xl md:text-2xl font-black uppercase tracking-tight mb-2"
+                                        : "text-[14px] md:text-base font-bold uppercase tracking-wider"
+                                    }`}
                                   >
                                     {link.label}
                                   </Link>
@@ -229,27 +280,27 @@ const containerVariants = {
   show: (isFirstOpen: boolean) => ({
     transition: {
       staggerChildren: 0.05,
-      delayChildren: isFirstOpen ? 0.17 : 0
-    }
+      delayChildren: isFirstOpen ? 0.17 : 0,
+    },
   }),
   exit: {
     transition: {
       staggerChildren: 0.02,
-      staggerDirection: -1
-    }
-  }
+      staggerDirection: -1,
+    },
+  },
 }
 
 const columnVariants: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] }
+    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
   },
   exit: {
     opacity: 0,
-    transition: { duration: 0.15, ease: "easeOut" }
-  }
+    transition: { duration: 0.15, ease: "easeOut" },
+  },
 }
 
 const navData = [
@@ -266,7 +317,7 @@ const navData = [
             { label: "Medical", href: "/catalog?category=medical" },
             { label: "Fiction", href: "/catalog?category=fiction" },
             { label: "Non-Fiction", href: "/catalog?category=non-fiction" },
-          ]
+          ],
         },
         {
           title: "Popular",
@@ -274,17 +325,17 @@ const navData = [
             { label: "Bestsellers", href: "/catalog?sort=popular" },
             { label: "Recently Added", href: "/catalog?sort=new" },
             { label: "Free Books", href: "/catalog?price=free" },
-          ]
+          ],
         },
         {
           title: "More from Aksharसेतु",
           links: [
             { label: "Request a Book", href: "/requests" },
             { label: "Book Bundles", href: "/coming-soon?feature=Book-Bundles" },
-          ]
-        }
-      ]
-    }
+          ],
+        },
+      ],
+    },
   },
   {
     label: "Donate",
@@ -297,28 +348,42 @@ const navData = [
             { label: "Track Impact", href: "/donations" },
             { label: "NGO Partners", href: "/donations#campaigns" },
             { label: "Donation Leaderboard", href: "/leaderboard" },
-          ]
+          ],
         },
         {
           title: "Impact",
           links: [
-            { label: "Success Stories", href: "/coming-soon?feature=Success-Stories" },
+            {
+              label: "Success Stories",
+              href: "/coming-soon?feature=Success-Stories",
+            },
             { label: "Community Badges", href: "/badges" },
-          ]
-        }
-      ]
-    }
+          ],
+        },
+      ],
+    },
   },
   {
-    label: "E-Library",
-    href: "/ebooks",
-    dropdown: null
-  },
-  {
-    label: "My Library",
+    label: "Library",
     href: "/library",
-    dropdown: null,
-    authOnly: true
+    dropdown: {
+      columns: [
+        {
+          title: "Reading Space",
+          links: [
+            { label: "My Library", href: "/library" },
+            { label: "E-Library", href: "/ebooks" },
+          ],
+        },
+        {
+          title: "Shelf & Activity",
+          links: [
+            { label: "My Wishlist", href: "/wishlist" },
+            { label: "Book Requests & Inbox", href: "/profile/inbox" },
+          ],
+        },
+      ],
+    },
   },
   {
     label: "Charts",
@@ -328,17 +393,24 @@ const navData = [
         {
           title: "Community",
           links: [
-            { label: "Reader Profiles", href: "/leaderboard?tab=directory" },
             { label: "Leaderboards", href: "/leaderboard" },
+            { label: "Reader Profiles", href: "/leaderboard?tab=directory" },
             { label: "Find & Message Readers", href: "/messages" },
-          ]
-        }
-      ]
-    }
+          ],
+        },
+        {
+          title: "Your Standing",
+          links: [
+            { label: "Edit Profile & Quote", href: "/profile" },
+            { label: "Community Badges", href: "/badges" },
+          ],
+        },
+      ],
+    },
   },
   {
     label: "About Us",
     href: "/coming-soon?feature=About-Us",
-    dropdown: null
-  }
+    dropdown: null,
+  },
 ]

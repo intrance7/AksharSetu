@@ -1,46 +1,40 @@
-import type { Metadata } from "next"
-import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
 import { getEbook } from "@/lib/gutenberg"
-import { EReader } from "@/components/ebooks/EReader"
-import { StartShantiButton } from "@/components/ebooks/StartShantiButton"
+import EReader, { ViewMode } from "@/components/ebooks/EReader"
+import StartShantiButton from "@/components/ebooks/StartShantiButton"
+import { coverUrl } from "@/lib/gutenberg"
 
-type Params = {
+export const revalidate = 86400
+
+export default async function EbookReadPage({
+  params,
+  searchParams,
+}: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ shanti?: string }>
-}
+  searchParams: Promise<{ view?: string }>
+}) {
+  const { id } = await params
+  const { view } = await searchParams
+  if (!id) notFound()
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const book = await getEbook(Number((await params).id))
-  return book
-    ? {
-        title: `Read ${book.title} by ${book.author} free online | AksharSetu`,
-        description: `Read ${book.title} by ${book.author} free in the AksharSetu e-library.`,
-      }
-    : { title: "Book not found | AksharSetu" }
-}
-
-export default async function EbookReaderPage({ params, searchParams }: Params) {
-  const id = Number((await params).id)
-  const { shanti } = await searchParams
-  const book = Number.isInteger(id) ? await getEbook(id) : null
+  const book = await getEbook(id)
   if (!book) notFound()
 
+  const defaultViewMode: ViewMode =
+    view === "classic" ? "classic" : view === "scan" && book.embedUrl ? "scan" : "book"
+
   return (
-    <EReader
-      {...book}
-      defaultDark={shanti === "1"}
-      leading={
-        <Link
-          id="reader-back"
-          href="/ebooks"
-          className="flex items-center gap-1.5 text-sm font-bold text-[#C84200] hover:text-[#A33500] transition-colors shrink-0"
-        >
-          <ArrowLeft className="w-4 h-4" /> E-Library
-        </Link>
-      }
-      trailing={<StartShantiButton gutenbergId={book.id} title={book.title} author={book.author} />}
-    />
+    <div className="relative">
+      <div className="fixed bottom-6 right-6 z-40">
+        <StartShantiButton
+          gutenbergId={book.id}
+          title={book.title}
+          author={book.author}
+          coverImage={book.coverImage || coverUrl(book.id)}
+          totalPages={Math.max(10, Math.ceil(book.paragraphs.length / 18))}
+        />
+      </div>
+      <EReader book={book} defaultViewMode={defaultViewMode} />
+    </div>
   )
 }

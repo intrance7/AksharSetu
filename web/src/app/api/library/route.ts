@@ -34,9 +34,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Title and author are required" }, { status: 400 })
     }
 
-    if (gutenbergId) {
+    const numericGutenberg =
+      gutenbergId !== undefined && gutenbergId !== null && /^\d+$/.test(String(gutenbergId))
+        ? Number(gutenbergId)
+        : null
+    const resolvedPlatformId =
+      platformBookId || (!numericGutenberg && gutenbergId ? String(gutenbergId) : null)
+
+    if (numericGutenberg) {
       const existing = await prisma.libraryBook.findFirst({
-        where: { userId: session.user.id, gutenbergId: Number(gutenbergId) },
+        where: { userId: session.user.id, gutenbergId: numericGutenberg },
+      })
+      if (existing) return NextResponse.json(existing)
+    } else if (resolvedPlatformId) {
+      const existing = await prisma.libraryBook.findFirst({
+        where: { userId: session.user.id, platformBookId: resolvedPlatformId },
       })
       if (existing) return NextResponse.json(existing)
     }
@@ -46,8 +58,8 @@ export async function POST(req: Request) {
         title,
         author,
         coverImage,
-        platformBookId,
-        gutenbergId: gutenbergId ? Number(gutenbergId) : null,
+        platformBookId: resolvedPlatformId,
+        gutenbergId: numericGutenberg,
         userId: session.user.id,
       },
     })

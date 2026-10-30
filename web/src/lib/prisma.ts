@@ -1,15 +1,38 @@
-import { PrismaClient } from '@prisma/client'
+import path from "path"
+import type { PrismaClient } from "@prisma/client"
 
-const prismaClientSingleton = () => {
-  return new PrismaClient()
+const createFreshPrismaClient = (): PrismaClient => {
+  try {
+    const nodeRequire = eval("require") as NodeRequire
+    for (const key of Object.keys(nodeRequire.cache || {})) {
+      if (key.includes(".prisma") || key.includes("@prisma")) {
+        delete nodeRequire.cache[key]
+      }
+    }
+    const clientPath = path.join(
+      process.cwd(),
+      "node_modules",
+      ".prisma",
+      "client",
+      "index.js"
+    )
+    const { PrismaClient: FreshPrismaClient } = nodeRequire(clientPath)
+    return new FreshPrismaClient()
+  } catch {
+    const { PrismaClient: FallbackClient } = require("@prisma/client")
+    return new FallbackClient()
+  }
 }
 
 declare const globalThis: {
-  prismaGlobal: ReturnType<typeof prismaClientSingleton>;
-} & typeof global;
+  prismaGlobalV3?: PrismaClient
+} & typeof global
 
-const prisma = globalThis.prismaGlobal ?? prismaClientSingleton()
+const prisma: PrismaClient =
+  globalThis.prismaGlobalV3 ?? createFreshPrismaClient()
 
 export default prisma
 
-if (process.env.NODE_ENV !== 'production') globalThis.prismaGlobal = prisma
+if (process.env.NODE_ENV !== "production") {
+  globalThis.prismaGlobalV3 = prisma
+}

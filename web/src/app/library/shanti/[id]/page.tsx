@@ -1,80 +1,78 @@
-import Link from "next/link"
-import { auth } from "@/auth"
+import { notFound, redirect } from "next/navigation"
 import prisma from "@/lib/prisma"
-import { redirect } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
-import { ShantiTimer } from "@/components/library/ShantiTimer"
-import { ShantiModeChooser } from "@/components/library/ShantiModeChooser"
-import { EReader } from "@/components/ebooks/EReader"
-import { getEbook, searchEbooks } from "@/lib/gutenberg"
+import { auth } from "@/auth"
+import { getEbook } from "@/lib/gutenberg"
+import ShantiSession from "@/components/library/ShantiSession"
 
-type Props = {
+export default async function ShantiModePage({
+  params,
+}: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ mode?: string }>
-}
-
-export default async function ShantiModePage({ params, searchParams }: Props) {
+}) {
   const session = await auth()
-  
   if (!session?.user?.id) {
     redirect("/login")
   }
 
   const { id } = await params
-  const { mode } = await searchParams
-  
-  const libraryBook = await prisma.libraryBook.findUnique({
-    where: { id: id },
+  const book = await prisma.libraryBook.findUnique({
+    where: { id },
   })
 
-  if (!libraryBook || libraryBook.userId !== session.user.id) {
-    redirect("/library")
+  if (!book || book.userId !== session.user.id) {
+    notFound()
   }
 
-  const timer = (compact = false) => (
-    <ShantiTimer bookId={libraryBook.id} title={libraryBook.title} author={libraryBook.author} compact={compact} />
-  )
+  let paragraphs: string[] = []
+  let resolvedGutenbergId: number | null = book.gutenbergId
 
-  if (mode === "physical") {
-    return (
-      <div className="fixed inset-0 bg-[#000000] z-50 flex items-center justify-center overflow-hidden">
-        {/* Deep Zen Gradient Background */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#0066cc]/10 via-[#000000] to-[#000000] pointer-events-none" />
-        {timer()}
-      </div>
-    )
-  }
+  const sourceId =
+    book.gutenbergId ||
+    (book.platformBookId && /^(ia-|ol-|gb-|pg-|\d+)/.test(book.platformBookId)
+      ? book.platformBookId
+      : null)
 
-  // Find a readable e-book: linked one first, otherwise try matching by title + author
-  const ebookMatch = libraryBook.gutenbergId
-    ? { id: libraryBook.gutenbergId, title: libraryBook.title, author: libraryBook.author }
-    : (await searchEbooks(`${libraryBook.title} ${libraryBook.author}`))[0] ?? null
-
-  if (mode === "read" && ebookMatch) {
-    const ebook = await getEbook(ebookMatch.id)
-    if (ebook) {
-      if (!libraryBook.gutenbergId) {
-        await prisma.libraryBook.update({ where: { id: libraryBook.id }, data: { gutenbergId: ebook.id } })
-      }
-      return (
-        <EReader
-          {...ebook}
-          defaultDark
-          leading={
-            <Link id="shanti-reader-exit" href={`/library/shanti/${libraryBook.id}`} className="flex items-center gap-1.5 text-sm font-medium text-[#86868b] hover:text-[#0066cc] transition-colors shrink-0">
-              <ArrowLeft className="w-4 h-4" /> Shanti
-            </Link>
-          }
-          trailing={timer(true)}
-        />
-      )
+  if (sourceId) {
+    const ebook = await getEbook(sourceId)
+    if (ebook && ebook.paragraphs.length > 0) {
+      paragraphs = ebook.paragraphs
     }
+  } else {
+    try {
+      const results = await (await import("@/lib/gutenberg")).searchEbooks(book.title)
+      const match = results.find(
+        (r) =>
+          r.title.toLowerCase().includes(book.title.toLowerCase().slice(0, 12)) ||
+          book.title.toLowerCase().includes(r.title.toLowerCase().slice(0, 12))
+      )
+      if (match) {
+        const ebook = await getEbook(match.id)
+        if (ebook && ebook.paragraphs.length > 0) {
+          paragraphs = ebook.paragraphs
+          if (typeof match.id === "number") {
+            resolvedGutenbergId = match.id
+            await prisma.libraryBook.update({
+              where: { id: book.id },
+              data: { gutenbergId: match.id },
+            })
+          }
+        }
+      }
+    } catch {}
   }
 
   return (
-    <div className="fixed inset-0 bg-[#000000] z-50 flex items-center justify-center overflow-y-auto">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#0066cc]/10 via-[#000000] to-[#000000] pointer-events-none" />
-      <ShantiModeChooser title={libraryBook.title} author={libraryBook.author} ebook={ebookMatch} />
-    </div>
+    <ShantiSession
+      book={{
+        id: book.id,
+        title: book.title,
+        author: book.author,
+        coverImage: book.coverImage,
+        currentPage: book.currentPage,
+        totalPages: book.totalPages,
+        gutenbergId: resolvedGutenbergId,
+      }}
+      paragraphs={paragraphs}
+    />
   )
 }
