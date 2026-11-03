@@ -56,6 +56,9 @@ model User {
   notifications     Notification[]
   donations         Donation[]         @relation("DonorToDonation")
   communityRequests CommunityRequest[] @relation("CommunityRequestToUser")
+  clubsCreated      BookClub[]         @relation("ClubCreator")
+  clubMemberships   BookClubMember[]
+  clubPosts         BookClubPost[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -206,6 +209,7 @@ model Shipment {
 model Message {
   id          String   @id @default(uuid())
   content     String   @db.Text
+  read        Boolean  @default(false)
   
   // Relations
   senderId    String
@@ -222,6 +226,48 @@ model Message {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model BookClub {
+  id           String           @id @default(uuid())
+  name         String
+  description  String           @db.Text
+  bookTitle    String
+  bookAuthor   String
+  ebookKey     String?
+  coverImage   String?
+  scheduleText String?
+
+  creatorId    String
+  creator      User             @relation("ClubCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  members      BookClubMember[]
+  posts        BookClubPost[]
+
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}
+
+model BookClubMember {
+  id       String   @id @default(uuid())
+  clubId   String
+  club     BookClub @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt DateTime @default(now())
+
+  @@unique([clubId, userId])
+}
+
+model BookClubPost {
+  id           String   @id @default(uuid())
+  clubId       String
+  club         BookClub @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  authorId     String
+  author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  chapterLabel String?
+  content      String   @db.Text
+  createdAt    DateTime @default(now())
 }
 
 model Badge {

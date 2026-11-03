@@ -5,7 +5,7 @@ import { pusherServer } from "@/lib/pusher"
 
 // GET /api/conversations/[userId] — fetch all messages between the logged-in user and [userId]
 export async function GET(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
@@ -16,6 +16,16 @@ export async function GET(
 
     const { userId: otherUserId } = await params
     const myId = session.user.id
+
+    // Mark incoming messages in this thread as read
+    await prisma.message.updateMany({
+      where: {
+        senderId: otherUserId,
+        receiverId: myId,
+        read: false,
+      },
+      data: { read: true },
+    })
 
     const [messages, rawOtherUser] = await Promise.all([
       prisma.message.findMany({
@@ -106,13 +116,13 @@ export async function POST(
         content: content.trim(),
         senderId: session.user.id,
         receiverId: otherUserId,
+        read: false,
       },
       include: {
         sender: { select: { id: true, name: true, image: true } },
       },
     })
 
-    // Create in-app notification for the recipient (non-blocking)
     const senderName = session.user.name || session.user.email?.split("@")[0] || "A reader"
     prisma.notification
       .create({
@@ -125,7 +135,6 @@ export async function POST(
       })
       .catch(() => {})
 
-    // Trigger Pusher event safely without failing the HTTP response if Pusher is unconfigured
     try {
       const channelId = `chat-dm-${[session.user.id, otherUserId].sort().join("-")}`
       await pusherServer.trigger(channelId, "new-message", message)

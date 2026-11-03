@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Bell } from "lucide-react"
+import { Bell, CheckCheck } from "lucide-react"
 import Link from "next/link"
 import { getPusherClient } from "@/lib/pusher"
 import { toast } from "sonner"
@@ -39,16 +39,20 @@ export function NotificationBell({ userId }: { userId: string }) {
     const pusher = getPusherClient()
     const channel = pusher.subscribe(`notify-${userId}`)
 
-    channel.bind("new-notification", (data: { message: string, link: string | null }) => {
-      toast.success(data.message, {
-        action: data.link ? {
-          label: "View",
-          onClick: () => router.push(data.link as string)
-        } : undefined
-      })
-      // Refresh the dropdown list
-      fetchNotifications()
-    })
+    channel.bind(
+      "new-notification",
+      (data: { message: string; link: string | null }) => {
+        toast.success(data.message, {
+          action: data.link
+            ? {
+                label: "View",
+                onClick: () => router.push(data.link as string),
+              }
+            : undefined,
+        })
+        fetchNotifications()
+      }
+    )
 
     return () => {
       channel.unbind("new-notification")
@@ -56,15 +60,30 @@ export function NotificationBell({ userId }: { userId: string }) {
     }
   }, [userId, router])
 
-  const unreadCount = notifications.filter(n => !n.read).length
+  const unreadCount = notifications.filter((n) => !n.read).length
 
   const markAsRead = async (id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    )
     try {
       await fetch("/api/notifications", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, read: true })
+        body: JSON.stringify({ id, read: true }),
+      })
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const markAllAsRead = async () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+    try {
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ markAllRead: true }),
       })
     } catch (e) {
       console.error(e)
@@ -73,39 +92,60 @@ export function NotificationBell({ userId }: { userId: string }) {
 
   return (
     <div className="relative">
-      <button 
+      <button
         onClick={() => setOpen(!open)}
         className="relative p-2 rounded-full hover:bg-[#C84200]/10 transition-colors"
+        aria-label="Notifications"
       >
         <Bell className="w-5 h-5 text-[#C84200]" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-black"></span>
+          <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 bg-[#C84200] text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-sm">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
         )}
       </button>
 
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)}></div>
-          <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl z-50 overflow-hidden border border-gray-100">
-            <div className="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="font-bold text-gray-800">Notifications</h3>
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setOpen(false)}
+          ></div>
+          <div className="absolute right-0 mt-2 w-84 bg-white rounded-2xl shadow-2xl z-50 overflow-hidden border border-black/10">
+            <div className="p-4 bg-[#FAF6F0] border-b border-black/5 flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <h3 className="font-black text-sm text-[#1D1D1F]">
+                  Notifications
+                </h3>
+                {unreadCount > 0 && (
+                  <span className="text-[11px] bg-[#C84200]/10 text-[#C84200] px-2 py-0.5 rounded-full font-bold">
+                    {unreadCount} new
+                  </span>
+                )}
+              </div>
               {unreadCount > 0 && (
-                <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full font-semibold">
-                  {unreadCount} new
-                </span>
+                <button
+                  type="button"
+                  onClick={markAllAsRead}
+                  className="text-xs font-bold text-[#0066cc] hover:text-[#0071e3] flex items-center gap-1"
+                >
+                  <CheckCheck className="w-3.5 h-3.5" /> Mark all read
+                </button>
               )}
             </div>
-            
+
             <div className="max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
-                <div className="p-6 text-center text-gray-500 text-sm">
-                  You have no notifications yet.
+                <div className="p-8 text-center text-[#86868b] text-sm font-medium">
+                  You&apos;re all caught up.
                 </div>
               ) : (
-                notifications.map(notification => (
-                  <div 
-                    key={notification.id} 
-                    className={`p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors ${!notification.read ? 'bg-blue-50/50' : ''}`}
+                notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    className={`p-4 border-b border-black/5 hover:bg-[#FAF6F0]/60 transition-colors cursor-pointer ${
+                      !notification.read ? "bg-[#FFF8F0]" : ""
+                    }`}
                     onClick={() => {
                       if (!notification.read) markAsRead(notification.id)
                       if (notification.link) {
@@ -114,15 +154,21 @@ export function NotificationBell({ userId }: { userId: string }) {
                       }
                     }}
                   >
-                    <div className="flex gap-3 cursor-pointer">
+                    <div className="flex gap-3">
                       {!notification.read && (
-                        <div className="mt-1.5 w-2 h-2 bg-blue-500 rounded-full shrink-0"></div>
+                        <div className="mt-1.5 w-2 h-2 bg-[#C84200] rounded-full shrink-0"></div>
                       )}
                       <div>
-                        <p className={`text-sm ${!notification.read ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>
+                        <p
+                          className={`text-sm leading-snug ${
+                            !notification.read
+                              ? "text-[#1D1D1F] font-semibold"
+                              : "text-[#86868b]"
+                          }`}
+                        >
                           {notification.message}
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-[11px] text-[#86868b] mt-1 font-medium">
                           {new Date(notification.createdAt).toLocaleDateString()}
                         </p>
                       </div>
@@ -131,10 +177,21 @@ export function NotificationBell({ userId }: { userId: string }) {
                 ))
               )}
             </div>
-            
-            <div className="p-3 bg-gray-50 border-t border-gray-100 text-center">
-              <Link href="/wishlist" className="text-sm text-blue-600 hover:text-blue-700 font-medium" onClick={() => setOpen(false)}>
-                Manage Wishlist
+
+            <div className="p-3 bg-[#FAF6F0] border-t border-black/5 flex items-center justify-between px-4">
+              <Link
+                href="/orders"
+                className="text-xs text-[#1D1D1F] hover:text-[#C84200] font-bold"
+                onClick={() => setOpen(false)}
+              >
+                Orders & Swaps
+              </Link>
+              <Link
+                href="/wishlist"
+                className="text-xs text-[#0066cc] hover:text-[#0071e3] font-bold"
+                onClick={() => setOpen(false)}
+              >
+                Wishlist Radar →
               </Link>
             </div>
           </div>

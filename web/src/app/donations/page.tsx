@@ -11,7 +11,7 @@ export default async function DonationsPage() {
     orderBy: { createdAt: "desc" }
   })
   
-  let userDonations = []
+  let userDonations: any[] = []
   if (session?.user?.id) {
     userDonations = await prisma.donation.findMany({
       where: { donorId: session.user.id },

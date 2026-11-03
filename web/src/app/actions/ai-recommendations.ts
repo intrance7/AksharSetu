@@ -5,118 +5,202 @@ import prisma from "@/lib/prisma"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
 export type AIRecommendation = {
-  title: string;
-  author: string;
-  reason: string;
-  availableBookId?: string | null;
+  title: string
+  author: string
+  reason: string
+  availableBookId?: string | null
+}
+
+const CURATED_CLASSICS: AIRecommendation[] = [
+  {
+    title: "Gitanjali",
+    author: "Rabindranath Tagore",
+    reason: "Nobel Prize-winning lyrical reflections—available free in our E-Library.",
+  },
+  {
+    title: "Introduction to Algorithms",
+    author: "Thomas H. Cormen",
+    reason: "The foundational computer science reference sought across engineering semesters.",
+  },
+  {
+    title: "Malgudi Days",
+    author: "R.K. Narayan",
+    reason: "Timeless Indian short stories capturing warmth, humor, and everyday humanity.",
+  },
+  {
+    title: "The Discovery of India",
+    author: "Jawaharlal Nehru",
+    reason: "A sweeping philosophical and historical journey through Indian civilization.",
+  },
+  {
+    title: "Meditations",
+    author: "Marcus Aurelius",
+    reason: "Enduring Stoic wisdom ideal for mindful Shanti Mode reading sessions.",
+  },
+]
+
+async function buildAlgorithmicRecommendations(
+  userId: string,
+  preferredCategories: string[],
+  knownTitles: Set<string>
+): Promise<AIRecommendation[]> {
+  const candidates = await prisma.book.findMany({
+    where: {
+      status: "AVAILABLE",
+      ownerId: { not: userId },
+    },
+    orderBy: [{ owner: { sellerRating: "desc" } }, { createdAt: "desc" }],
+    take: 25,
+    select: {
+      id: true,
+      title: true,
+      author: true,
+      category: true,
+      price: true,
+      acceptsExchange: true,
+    },
+  })
+
+  const scored = candidates
+    .filter((b) => !knownTitles.has(b.title.toLowerCase()))
+    .map((b) => {
+      const catMatch = preferredCategories.some(
+        (c) => c.toLowerCase() === b.category.toLowerCase()
+      )
+      return {
+        book: b,
+        score: (catMatch ? 10 : 0) + (b.price === 0 ? 3 : 0) + (b.acceptsExchange ? 2 : 0),
+        catMatch,
+      }
+    })
+    .sort((a, b) => b.score - a.score)
+
+  const results: AIRecommendation[] = []
+  const seen = new Set<string>()
+
+  for (const item of scored) {
+    const key = item.book.title.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    results.push({
+      title: item.book.title,
+      author: item.book.author,
+      reason: item.catMatch
+        ? `Matches your interest in ${item.book.category} and is available right now in the marketplace.`
+        : item.book.price === 0
+        ? `Available as a free community donation from a verified reader.`
+        : `Top-rated listing currently available in the AksharSetu catalog.`,
+      availableBookId: item.book.id,
+    })
+    if (results.length >= 5) break
+  }
+
+  for (const fallback of CURATED_CLASSICS) {
+    if (results.length >= 5) break
+    if (
+      !seen.has(fallback.title.toLowerCase()) &&
+      !knownTitles.has(fallback.title.toLowerCase())
+    ) {
+      results.push(fallback)
+    }
+  }
+
+  return results
 }
 
 export async function getAIRecommendations(): Promise<AIRecommendation[]> {
   const session = await auth()
-  
-  if (!session?.user?.id) {
-    throw new Error("You must be logged in to get personalized recommendations.")
+  const userId = session?.user?.id || "guest"
+
+  const [wishlists, libraryBooks, pastOrders] =
+    userId !== "guest"
+      ? await Promise.all([
+          prisma.wishlist.findMany({
+            where: { userId },
+            select: { title: true },
+          }),
+          prisma.libraryBook.findMany({
+            where: { userId },
+            select: { title: true, author: true },
+          }),
+          prisma.order.findMany({
+            where: { buyerId: userId },
+            include: {
+              book: { select: { title: true, author: true, category: true } },
+            },
+            take: 5,
+            orderBy: { createdAt: "desc" },
+          }),
+        ])
+      : [[], [], []]
+
+  const knownTitles = new Set<string>([
+    ...wishlists.map((w) => (w.title || "").toLowerCase()).filter(Boolean),
+    ...libraryBooks.map((b) => b.title.toLowerCase()),
+    ...pastOrders.map((o) => o.book.title.toLowerCase()),
+  ])
+
+  const preferredCategories = Array.from(
+    new Set(pastOrders.map((o) => o.book.category).filter(Boolean))
+  )
+
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) {
+    return buildAlgorithmicRecommendations(userId, preferredCategories, knownTitles)
   }
-
-  // 1. Gather Context
-  const userId = session.user.id
-  
-  const wishlists = await prisma.wishlist.findMany({
-    where: { userId },
-    select: { title: true }
-  })
-  
-  const libraryBooks = await prisma.libraryBook.findMany({
-    where: { userId },
-    select: { title: true, author: true }
-  })
-
-  const pastOrders = await prisma.order.findMany({
-    where: { buyerId: userId },
-    include: { book: { select: { title: true, author: true, category: true } } },
-    take: 5,
-    orderBy: { createdAt: 'desc' }
-  })
 
   const contextData = {
-    wishlists: wishlists.map(w => w.title),
-    library: libraryBooks.map(b => `${b.title} by ${b.author}`),
-    recentPurchases: pastOrders.map(o => `${o.book.title} by ${o.book.author} (${o.book.category})`)
+    wishlists: wishlists.map((w) => w.title).filter(Boolean),
+    library: libraryBooks.map((b) => `${b.title} by ${b.author}`),
+    recentPurchases: pastOrders.map(
+      (o) => `${o.book.title} by ${o.book.author} (${o.book.category})`
+    ),
   }
 
-  // Fallback if no data
-  const hasContext = contextData.wishlists.length > 0 || contextData.library.length > 0 || contextData.recentPurchases.length > 0
-  const prompt = hasContext 
-    ? `Based on the following user reading context, recommend 5 new books they might like.
-      Context:
-      Wishlisted: ${contextData.wishlists.join(', ')}
-      In Library: ${contextData.library.join(', ')}
-      Recently Purchased: ${contextData.recentPurchases.join(', ')}
-      
-      Respond STRICTLY with a JSON array of objects, where each object has:
-      - title (string)
-      - author (string)
-      - reason (string: max 1 sentence explaining why they would like it based on their context)
-      `
-    : `Recommend 5 highly popular and acclaimed books across various genres (Fiction, Academic, Self-Help).
-      Respond STRICTLY with a JSON array of objects, where each object has:
-      - title (string)
-      - author (string)
-      - reason (string: max 1 sentence explaining why it's a great read)
-      `;
+  const hasContext =
+    contextData.wishlists.length > 0 ||
+    contextData.library.length > 0 ||
+    contextData.recentPurchases.length > 0
 
-  // 2. Call Gemini
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is not configured.");
-  }
-  
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const prompt = hasContext
+    ? `Based on this reader's history, recommend 5 books they have not read yet:
+Wishlisted: ${contextData.wishlists.join(", ")}
+In Library: ${contextData.library.join(", ")}
+Recently Purchased: ${contextData.recentPurchases.join(", ")}
 
-  const result = await model.generateContent(prompt);
-  const responseText = result.response.text();
-  
-  let recommendations: AIRecommendation[] = [];
+Respond STRICTLY with a JSON array of 5 objects with keys: title, author, reason (max 1 sentence).`
+    : `Recommend 5 acclaimed books across Indian Literature, Computer Science/Academic, Philosophy, and Fiction.
+Respond STRICTLY with a JSON array of 5 objects with keys: title, author, reason (max 1 sentence).`
+
   try {
-    // Attempt to parse JSON from the response. Often AI wraps JSON in ```json ... ```
-    let jsonStr = responseText.trim();
-    if (jsonStr.startsWith('```json')) {
-      jsonStr = jsonStr.substring(7);
-    }
-    if (jsonStr.startsWith('```')) {
-        jsonStr = jsonStr.substring(3);
-    }
-    if (jsonStr.endsWith('```')) {
-      jsonStr = jsonStr.substring(0, jsonStr.length - 3);
-    }
-    recommendations = JSON.parse(jsonStr.trim());
-  } catch (error) {
-    console.error("Failed to parse Gemini response:", responseText);
-    throw new Error("Failed to generate recommendations. Please try again.");
-  }
+    const genAI = new GoogleGenerativeAI(apiKey)
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
 
-  // 3. Cross-reference with Marketplace
-  const enrichedRecommendations = await Promise.all(
-    recommendations.map(async (rec) => {
-      // Find a book in the database that matches the title (case-insensitive)
-      const availableBook = await prisma.book.findFirst({
-        where: {
-          title: {
-            contains: rec.title,
-            mode: 'insensitive'
+    const result = await model.generateContent(prompt)
+    let jsonStr = result.response.text().trim()
+    jsonStr = jsonStr.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/, "").trim()
+    const recommendations: AIRecommendation[] = JSON.parse(jsonStr)
+
+    const enriched = await Promise.all(
+      recommendations.slice(0, 5).map(async (rec) => {
+        const availableBook = await prisma.book.findFirst({
+          where: {
+            title: { contains: rec.title, mode: "insensitive" },
+            status: "AVAILABLE",
           },
-          status: 'AVAILABLE'
-        },
-        select: { id: true }
-      });
+          select: { id: true },
+        })
 
-      return {
-        ...rec,
-        availableBookId: availableBook?.id || null
-      }
-    })
-  );
+        return {
+          ...rec,
+          availableBookId: availableBook?.id || null,
+        }
+      })
+    )
 
-  return enrichedRecommendations;
+    return enriched
+  } catch (error) {
+    console.warn("Gemini recommendation fallback triggered:", error)
+    return buildAlgorithmicRecommendations(userId, preferredCategories, knownTitles)
+  }
 }

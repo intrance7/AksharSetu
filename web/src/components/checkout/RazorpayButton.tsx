@@ -4,12 +4,14 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Script from "next/script"
 import { Book } from "@prisma/client"
+import { Loader2, ShieldCheck } from "lucide-react"
+import { toast } from "sonner"
 
 interface RazorpayButtonProps {
-  book: Book;
-  user: any;
-  amount: number;
-  deliveryPincode?: string;
+  book: Book
+  user: any
+  amount: number
+  deliveryPincode?: string
 }
 
 export function RazorpayButton({ book, user, amount, deliveryPincode }: RazorpayButtonProps) {
@@ -22,7 +24,6 @@ export function RazorpayButton({ book, user, amount, deliveryPincode }: Razorpay
     setError("")
 
     try {
-      // 1. Create order on backend
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -35,16 +36,22 @@ export function RazorpayButton({ book, user, amount, deliveryPincode }: Razorpay
         throw new Error(data.error || "Failed to initiate checkout")
       }
 
-      // 2. Initialize Razorpay
+      // Sandbox Escrow Instant Completion
+      if (data.sandboxPaid) {
+        toast.success(`Order Confirmed! Shipment AWB #${data.awbCode} generated.`)
+        router.push(`/checkout/success?orderId=${data.orderId}&awb=${data.awbCode}`)
+        router.refresh()
+        return
+      }
+
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // Use public key from env
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: data.amount,
         currency: data.currency,
-        name: "Akshar Setu",
+        name: "AksharSetu",
         description: `Purchase: ${book.title}`,
         order_id: data.razorpayOrderId,
         handler: async function (response: any) {
-          // 3. Verify payment signature on backend
           try {
             const verifyRes = await fetch("/api/verify-payment", {
               method: "POST",
@@ -59,13 +66,13 @@ export function RazorpayButton({ book, user, amount, deliveryPincode }: Razorpay
             const verifyData = await verifyRes.json()
 
             if (verifyRes.ok) {
-              // Redirect to success or back to catalog
-              router.push(`/catalog?success=true&title=${encodeURIComponent(book.title)}`)
+              toast.success("Payment verified!")
+              router.push(`/checkout/success?orderId=${data.orderId}`)
               router.refresh()
             } else {
               setError(verifyData.error || "Payment verification failed")
             }
-          } catch (err) {
+          } catch {
             setError("Something went wrong during verification")
           }
         },
@@ -83,7 +90,6 @@ export function RazorpayButton({ book, user, amount, deliveryPincode }: Razorpay
         setError(response.error.description || "Payment failed")
       })
       paymentObject.open()
-      
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred")
     } finally {
@@ -94,19 +100,28 @@ export function RazorpayButton({ book, user, amount, deliveryPincode }: Razorpay
   return (
     <>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
-      <div className="flex flex-col gap-3 mt-8">
+      <div className="flex flex-col gap-3 mt-6">
         <button
+          type="button"
           onClick={handlePayment}
           disabled={loading}
-          className={`w-full py-4 px-6 rounded-full font-bold flex items-center justify-center gap-2 transition-colors ${
-            loading ? "bg-[#1D1D1F]/20 text-[#1D1D1F]/60 cursor-not-allowed" : "bg-[#0066cc] hover:bg-[#0071e3] text-white"
+          className={`w-full py-4 px-6 rounded-full font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer ${
+            loading
+              ? "bg-[#1d1d1f]/20 text-[#1d1d1f]/60 cursor-not-allowed"
+              : "bg-[#0066cc] hover:bg-[#0071e3] text-white shadow-sm"
           }`}
         >
-          {loading ? "Processing..." : `Pay ₹${amount} Securely`}
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" /> Processing Escrow...
+            </>
+          ) : (
+            <>
+              <ShieldCheck className="w-4 h-4" /> Pay ₹{amount} Securely
+            </>
+          )}
         </button>
-        {error && (
-          <p className="text-red-500 text-sm font-semibold text-center">{error}</p>
-        )}
+        {error && <p className="text-red-500 text-xs font-semibold text-center">{error}</p>}
       </div>
     </>
   )

@@ -1,13 +1,17 @@
 import { notFound, redirect } from "next/navigation"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
-import { getEbook } from "@/lib/gutenberg"
-import ShantiSession from "@/components/library/ShantiSession"
+import { EBook, getEbook, searchEbooks } from "@/lib/gutenberg"
+import { ShantiModeChooser } from "@/components/library/ShantiModeChooser"
+import { ShantiTimer } from "@/components/library/ShantiTimer"
+import EReader from "@/components/ebooks/EReader"
 
 export default async function ShantiModePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ mode?: string }>
 }) {
   const session = await auth()
   if (!session?.user?.id) {
@@ -15,6 +19,8 @@ export default async function ShantiModePage({
   }
 
   const { id } = await params
+  const { mode } = await searchParams
+
   const book = await prisma.libraryBook.findUnique({
     where: { id },
   })
@@ -23,8 +29,7 @@ export default async function ShantiModePage({
     notFound()
   }
 
-  let paragraphs: string[] = []
-  let resolvedGutenbergId: number | null = book.gutenbergId
+  let ebook: EBook | null = null
 
   const sourceId =
     book.gutenbergId ||
@@ -33,46 +38,78 @@ export default async function ShantiModePage({
       : null)
 
   if (sourceId) {
-    const ebook = await getEbook(sourceId)
-    if (ebook && ebook.paragraphs.length > 0) {
-      paragraphs = ebook.paragraphs
-    }
+    ebook = await getEbook(sourceId)
   } else {
     try {
-      const results = await (await import("@/lib/gutenberg")).searchEbooks(book.title)
+      const results = await searchEbooks(book.title)
       const match = results.find(
         (r) =>
           r.title.toLowerCase().includes(book.title.toLowerCase().slice(0, 12)) ||
           book.title.toLowerCase().includes(r.title.toLowerCase().slice(0, 12))
       )
       if (match) {
-        const ebook = await getEbook(match.id)
-        if (ebook && ebook.paragraphs.length > 0) {
-          paragraphs = ebook.paragraphs
+        ebook = await getEbook(match.id)
+        if (ebook) {
           if (typeof match.id === "number") {
-            resolvedGutenbergId = match.id
-            await prisma.libraryBook.update({
-              where: { id: book.id },
-              data: { gutenbergId: match.id },
-            })
+            await prisma.libraryBook
+              .update({
+                where: { id: book.id },
+                data: { gutenbergId: match.id },
+              })
+              .catch(() => {})
+          } else {
+            await prisma.libraryBook
+              .update({
+                where: { id: book.id },
+                data: { platformBookId: String(match.id) },
+              })
+              .catch(() => {})
           }
         }
       }
     } catch {}
   }
 
+  if (mode === "read" && ebook) {
+    return (
+      <EReader
+        book={ebook}
+        defaultViewMode="book"
+        libraryBookId={book.id}
+        initialCloudPage={book.currentPage > 1 ? book.currentPage : undefined}
+        shantiSlot={
+          <ShantiTimer
+            bookId={book.id}
+            title={book.title}
+            author={book.author}
+            compact
+          />
+        }
+      />
+    )
+  }
+
+  if (mode === "physical") {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <ShantiTimer
+          bookId={book.id}
+          title={book.title}
+          author={book.author}
+          initialPage={book.currentPage}
+          initialTotalPages={book.totalPages}
+        />
+      </div>
+    )
+  }
+
   return (
-    <ShantiSession
-      book={{
-        id: book.id,
-        title: book.title,
-        author: book.author,
-        coverImage: book.coverImage,
-        currentPage: book.currentPage,
-        totalPages: book.totalPages,
-        gutenbergId: resolvedGutenbergId,
-      }}
-      paragraphs={paragraphs}
-    />
+    <div className="min-h-screen bg-black flex items-center justify-center py-20">
+      <ShantiModeChooser
+        title={book.title}
+        author={book.author}
+        ebook={ebook ? { title: ebook.title, author: ebook.author } : null}
+      />
+    </div>
   )
 }

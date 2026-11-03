@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useCallback } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { EBook, coverUrl } from "@/lib/gutenberg"
@@ -16,12 +16,48 @@ import {
   ScrollText,
   ExternalLink,
   Layers,
+  Highlighter,
+  Quote,
+  Copy,
+  NotebookPen,
+  Trash2,
+  X,
 } from "lucide-react"
+import { toast } from "sonner"
 import StartShantiButton from "./StartShantiButton"
 
 type ThemeMode = "paper" | "sepia" | "night"
 type FontFamily = "serif" | "sans"
 export type ViewMode = "classic" | "book" | "scan"
+type NoteColor = "amber" | "blue" | "emerald" | "rose"
+
+interface SavedBookNote {
+  id: string
+  quoteText: string
+  noteText: string | null
+  color: NoteColor
+  pageNumber: number
+  createdAt: string
+}
+
+const COLOR_STYLES: Record<NoteColor, { dot: string; card: string }> = {
+  amber: {
+    dot: "bg-amber-400",
+    card: "border-l-4 border-l-amber-400 bg-amber-50/70 text-[#1d1d1f]",
+  },
+  blue: {
+    dot: "bg-[#0066cc]",
+    card: "border-l-4 border-l-[#0066cc] bg-blue-50/70 text-[#1d1d1f]",
+  },
+  emerald: {
+    dot: "bg-emerald-500",
+    card: "border-l-4 border-l-emerald-500 bg-emerald-50/70 text-[#1d1d1f]",
+  },
+  rose: {
+    dot: "bg-rose-500",
+    card: "border-l-4 border-l-rose-500 bg-rose-50/70 text-[#1d1d1f]",
+  },
+}
 
 const THEMES: Record<
   ThemeMode,
@@ -75,28 +111,43 @@ const THEMES: Record<
 export default function EReader({
   book,
   defaultViewMode = "book",
+  libraryBookId,
+  initialCloudPage,
+  shantiSlot,
 }: {
   book: EBook
   defaultViewMode?: ViewMode
+  libraryBookId?: string
+  initialCloudPage?: number
+  shantiSlot?: React.ReactNode
 }) {
   const [viewMode, setViewMode] = useState<ViewMode>(defaultViewMode)
   const [pageSize] = useState(18)
-  const [page, setPage] = useState(1)
-  const [bookSpread, setBookSpread] = useState(0)
+  const [page, setPage] = useState(initialCloudPage || 1)
+  const [bookSpread, setBookSpread] = useState(
+    initialCloudPage ? Math.max(0, Math.floor((initialCloudPage - 1) / 2)) : 0
+  )
   const [flipDirection, setFlipDirection] = useState<1 | -1>(1)
   const [fontSize, setFontSize] = useState(18)
-  const [lineHeight, setLineHeight] = useState(1.8)
+  const [lineHeight] = useState(1.8)
   const [theme, setTheme] = useState<ThemeMode>("sepia")
   const [fontFamily, setFontFamily] = useState<FontFamily>("serif")
   const [bookmarked, setBookmarked] = useState(false)
 
-  // Classic mode pagination
+  // Literary Highlights & Margin Notes state
+  const [notes, setNotes] = useState<SavedBookNote[]>([])
+  const [notesOpen, setNotesOpen] = useState(false)
+  const [selectedQuote, setSelectedQuote] = useState("")
+  const [noteColor, setNoteColor] = useState<NoteColor>("amber")
+  const [marginComment, setMarginComment] = useState("")
+  const [showCommentInput, setShowCommentInput] = useState(false)
+  const [savingNote, setSavingNote] = useState(false)
+
   const totalClassicPages = useMemo(
     () => Math.max(1, Math.ceil(book.paragraphs.length / pageSize)),
     [book.paragraphs.length, pageSize]
   )
 
-  // Book mode pagination: group paragraphs into balanced physical-sized pages (~1250 chars per page)
   const bookPages = useMemo(() => {
     const pages: string[][] = []
     let current: string[] = []
@@ -127,20 +178,32 @@ export default function EReader({
   const spreadKey = `ereader:${book.id}:spread`
   const prefsKey = `ereader:prefs`
 
+  // Load saved notes for this book
   useEffect(() => {
-    const savedPage = localStorage.getItem(progressKey)
-    if (savedPage) {
-      const p = Number(savedPage)
-      if (!Number.isNaN(p) && p >= 1 && p <= totalClassicPages) {
-        setPage(p)
-        setBookmarked(true)
+    fetch(`/api/notes?bookKey=${encodeURIComponent(String(book.id))}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => {
+        if (Array.isArray(data)) setNotes(data)
+      })
+      .catch(() => {})
+  }, [book.id])
+
+  useEffect(() => {
+    if (!initialCloudPage) {
+      const savedPage = localStorage.getItem(progressKey)
+      if (savedPage) {
+        const p = Number(savedPage)
+        if (!Number.isNaN(p) && p >= 1 && p <= totalClassicPages) {
+          setPage(p)
+          setBookmarked(true)
+        }
       }
-    }
-    const savedSpread = localStorage.getItem(spreadKey)
-    if (savedSpread) {
-      const s = Number(savedSpread)
-      if (!Number.isNaN(s) && s >= 0 && s < totalSpreads) {
-        setBookSpread(s)
+      const savedSpread = localStorage.getItem(spreadKey)
+      if (savedSpread) {
+        const s = Number(savedSpread)
+        if (!Number.isNaN(s) && s >= 0 && s < totalSpreads) {
+          setBookSpread(s)
+        }
       }
     }
     const savedPrefs = localStorage.getItem(prefsKey)
@@ -150,12 +213,9 @@ export default function EReader({
         if (parsed.theme && THEMES[parsed.theme as ThemeMode]) setTheme(parsed.theme)
         if (parsed.fontSize) setFontSize(parsed.fontSize)
         if (parsed.fontFamily) setFontFamily(parsed.fontFamily)
-        if (parsed.viewMode && (parsed.viewMode === "classic" || parsed.viewMode === "book")) {
-          setViewMode(parsed.viewMode)
-        }
       } catch {}
     }
-  }, [progressKey, spreadKey, totalClassicPages, totalSpreads])
+  }, [progressKey, spreadKey, totalClassicPages, totalSpreads, initialCloudPage])
 
   useEffect(() => {
     localStorage.setItem(progressKey, String(page))
@@ -177,22 +237,65 @@ export default function EReader({
     )
   }, [theme, fontSize, fontFamily, viewMode])
 
-  const goNextSpread = () => {
+  // Debounced Cloud Progress Sync
+  const activeLogicalPage = viewMode === "book" ? bookSpread * 2 + 1 : page
+  const activeLogicalTotal = viewMode === "book" ? bookPages.length : totalClassicPages
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetch("/api/library/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          libraryBookId,
+          bookKey: String(book.id),
+          currentPage: activeLogicalPage,
+          totalPages: activeLogicalTotal,
+        }),
+      }).catch(() => {})
+    }, 1200)
+    return () => clearTimeout(timer)
+  }, [activeLogicalPage, activeLogicalTotal, book.id, libraryBookId])
+
+  // Text selection listener for In-Reader Highlights & Quotes
+  useEffect(() => {
+    const handleSelection = () => {
+      const sel = window.getSelection()?.toString().trim() || ""
+      if (sel.length >= 10 && sel.length <= 900) {
+        setSelectedQuote(sel)
+      }
+    }
+    document.addEventListener("mouseup", handleSelection)
+    document.addEventListener("keyup", handleSelection)
+    return () => {
+      document.removeEventListener("mouseup", handleSelection)
+      document.removeEventListener("keyup", handleSelection)
+    }
+  }, [])
+
+  const goNextSpread = useCallback(() => {
+    const sel = window.getSelection()?.toString().trim() || ""
+    if (sel.length >= 10) return
     if (bookSpread < totalSpreads - 1) {
       setFlipDirection(1)
       setBookSpread((s) => Math.min(totalSpreads - 1, s + 1))
     }
-  }
+  }, [bookSpread, totalSpreads])
 
-  const goPrevSpread = () => {
+  const goPrevSpread = useCallback(() => {
+    const sel = window.getSelection()?.toString().trim() || ""
+    if (sel.length >= 10) return
     if (bookSpread > 0) {
       setFlipDirection(-1)
       setBookSpread((s) => Math.max(0, s - 1))
     }
-  }
+  }, [bookSpread])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === "INPUT" || tag === "TEXTAREA") return
+
       if (e.key === "ArrowRight") {
         if (viewMode === "book") {
           goNextSpread()
@@ -211,7 +314,87 @@ export default function EReader({
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [viewMode, bookSpread, totalSpreads, totalClassicPages])
+  }, [viewMode, totalClassicPages, goNextSpread, goPrevSpread])
+
+  const handleSaveHighlight = async () => {
+    if (!selectedQuote || savingNote) return
+    setSavingNote(true)
+    try {
+      const res = await fetch("/api/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bookKey: String(book.id),
+          bookTitle: book.title,
+          bookAuthor: book.author,
+          quoteText: selectedQuote,
+          noteText: marginComment.trim() || null,
+          color: noteColor,
+          pageNumber: activeLogicalPage,
+        }),
+      })
+      if (res.status === 401) {
+        toast.error("Sign in to save highlights to your Notebook")
+        return
+      }
+      if (!res.ok) throw new Error("Failed")
+      const created: SavedBookNote = await res.json()
+      setNotes((prev) => [created, ...prev])
+      setSelectedQuote("")
+      setMarginComment("")
+      setShowCommentInput(false)
+      window.getSelection()?.removeAllRanges()
+      toast.success("Saved passage to your Literary Notebook!")
+    } catch {
+      toast.error("Could not save highlight")
+    } finally {
+      setSavingNote(false)
+    }
+  }
+
+  const handleSetProfileQuote = async (quoteToSave: string) => {
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          favoriteQuote: quoteToSave.slice(0, 320),
+          quoteAuthor: `${book.author} — ${book.title}`,
+        }),
+      })
+      if (res.status === 401) {
+        toast.error("Sign in to set your profile signature quote")
+        return
+      }
+      if (!res.ok) throw new Error("Failed")
+      toast.success("Updated your Profile Signature Quote!")
+      setSelectedQuote("")
+      window.getSelection()?.removeAllRanges()
+    } catch {
+      toast.error("Failed to update profile quote")
+    }
+  }
+
+  const handleDeleteNote = async (id: string) => {
+    try {
+      const res = await fetch(`/api/notes?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      })
+      if (res.ok) {
+        setNotes((prev) => prev.filter((n) => n.id !== id))
+        toast.success("Removed highlight")
+      }
+    } catch {}
+  }
+
+  const jumpToLogicalPage = (targetPage: number) => {
+    if (viewMode === "book") {
+      setBookSpread(Math.min(totalSpreads - 1, Math.max(0, Math.floor((targetPage - 1) / 2))))
+    } else {
+      setPage(Math.min(totalClassicPages, Math.max(1, targetPage)))
+    }
+    setNotesOpen(false)
+  }
 
   const slice = useMemo(() => {
     const start = (page - 1) * pageSize
@@ -233,7 +416,6 @@ export default function EReader({
     <div className={`min-h-screen transition-colors duration-300 ${currentTheme.bg} ${currentTheme.text}`}>
       {/* Sticky Top Reader Bar */}
       <div className={`sticky top-12 z-30 border-b backdrop-blur-md transition-colors ${currentTheme.bar}`}>
-        {/* Reading Progress Line */}
         <div className="h-1 w-full bg-black/5 overflow-hidden">
           <div
             className="h-full bg-[#0066cc] transition-all duration-300"
@@ -245,14 +427,14 @@ export default function EReader({
           {/* Back + Book Info */}
           <div className="flex items-center gap-3 min-w-0">
             <Link
-              href="/ebooks"
+              href={libraryBookId ? "/library" : "/ebooks"}
               className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border ${currentTheme.border} hover:opacity-80 transition`}
             >
-              <ArrowLeft className="w-3.5 h-3.5" /> E-Library
+              <ArrowLeft className="w-3.5 h-3.5" /> {libraryBookId ? "My Library" : "E-Library"}
             </Link>
             <div className="truncate">
               <div className="flex items-center gap-2">
-                <p className="text-sm font-bold truncate max-w-[180px] sm:max-w-xs">{book.title}</p>
+                <p className="text-sm font-bold truncate max-w-[160px] sm:max-w-xs">{book.title}</p>
                 {book.sourceLabel && (
                   <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#0066cc]/10 text-[#0066cc]">
                     {book.sourceLabel}
@@ -263,17 +445,16 @@ export default function EReader({
             </div>
           </div>
 
-          {/* Reading Mode Switcher: Classic Read vs Book Read (+ Scanned Original if available) */}
+          {/* Reading Mode Switcher: Classic Read vs Book Read */}
           <div className={`inline-flex items-center rounded-full border p-0.5 ${currentTheme.border} bg-black/5`}>
             <button
               type="button"
               onClick={() => setViewMode("classic")}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                 viewMode === "classic"
                   ? "bg-[#0066cc] text-white shadow-sm"
                   : "hover:opacity-80"
               }`}
-              title="Single-column continuous classic scroll"
             >
               <ScrollText className="w-3.5 h-3.5" />
               Classic Read
@@ -281,12 +462,11 @@ export default function EReader({
             <button
               type="button"
               onClick={() => setViewMode("book")}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                 viewMode === "book"
                   ? "bg-[#0066cc] text-white shadow-sm"
                   : "hover:opacity-80"
               }`}
-              title="Realistic open two-page hardcover book experience"
             >
               <BookOpen className="w-3.5 h-3.5" />
               Book Read
@@ -295,12 +475,11 @@ export default function EReader({
               <button
                 type="button"
                 onClick={() => setViewMode("scan")}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                   viewMode === "scan"
                     ? "bg-[#0066cc] text-white shadow-sm"
                     : "hover:opacity-80"
                 }`}
-                title="Interactive scanned edition viewer"
               >
                 <Layers className="w-3.5 h-3.5" />
                 Scanned Edition
@@ -308,21 +487,38 @@ export default function EReader({
             )}
           </div>
 
-          {/* Typography & Theme Controls */}
+          {/* Typography, Theme, Notebook & Shanti Controls */}
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Font Family */}
-            <div className={`inline-flex rounded-full border p-0.5 text-xs ${currentTheme.border}`}>
+            {/* Notebook Drawer Button */}
+            <button
+              type="button"
+              onClick={() => setNotesOpen(true)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition cursor-pointer ${currentTheme.border} hover:border-[#0066cc]`}
+              title="Open Literary Highlights & Notes (select any text to highlight)"
+            >
+              <NotebookPen className="w-3.5 h-3.5 text-[#0066cc]" />
+              <span>Notes</span>
+              {notes.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-[#0066cc] text-white text-[10px] font-bold">
+                  {notes.length}
+                </span>
+              )}
+            </button>
+
+            <div className={`hidden sm:inline-flex rounded-full border p-0.5 text-xs ${currentTheme.border}`}>
               <button
+                type="button"
                 onClick={() => setFontFamily("serif")}
-                className={`px-2.5 py-1 rounded-full font-serif transition ${
+                className={`px-2.5 py-1 rounded-full font-serif transition cursor-pointer ${
                   fontFamily === "serif" ? "bg-[#0066cc] text-white font-semibold" : ""
                 }`}
               >
                 Serif
               </button>
               <button
+                type="button"
                 onClick={() => setFontFamily("sans")}
-                className={`px-2.5 py-1 rounded-full font-sans transition ${
+                className={`px-2.5 py-1 rounded-full font-sans transition cursor-pointer ${
                   fontFamily === "sans" ? "bg-[#0066cc] text-white font-semibold" : ""
                 }`}
               >
@@ -330,84 +526,277 @@ export default function EReader({
               </button>
             </div>
 
-            {/* Font Size */}
             <div className={`inline-flex items-center rounded-full border px-1 py-0.5 text-xs ${currentTheme.border}`}>
               <button
+                type="button"
                 onClick={() => setFontSize((s) => Math.max(14, s - 2))}
-                className="px-2 py-0.5 font-bold hover:opacity-70"
-                title="Decrease font size"
+                className="px-2 py-0.5 font-bold hover:opacity-70 cursor-pointer"
               >
                 A-
               </button>
-              <span className={`px-1.5 text-[11px] ${currentTheme.sub}`}>{fontSize}</span>
+              <span className={`px-1 text-[11px] ${currentTheme.sub}`}>{fontSize}</span>
               <button
+                type="button"
                 onClick={() => setFontSize((s) => Math.min(26, s + 2))}
-                className="px-2 py-0.5 font-bold hover:opacity-70"
-                title="Increase font size"
+                className="px-2 py-0.5 font-bold hover:opacity-70 cursor-pointer"
               >
                 A+
               </button>
             </div>
 
-            {/* Theme Pills */}
             <div className={`inline-flex items-center rounded-full border p-0.5 text-xs ${currentTheme.border}`}>
               <button
+                type="button"
                 onClick={() => setTheme("paper")}
-                className={`px-2.5 py-1 rounded-full flex items-center gap-1 transition ${
+                className={`px-2 py-1 rounded-full flex items-center gap-1 transition cursor-pointer ${
                   theme === "paper" ? "bg-white text-black shadow-sm font-semibold" : ""
                 }`}
-                title="Paper Mode"
               >
-                <Sun className="w-3 h-3" /> Paper
+                <Sun className="w-3 h-3" />
               </button>
               <button
+                type="button"
                 onClick={() => setTheme("sepia")}
-                className={`px-2.5 py-1 rounded-full flex items-center gap-1 transition ${
+                className={`px-2 py-1 rounded-full flex items-center gap-1 transition cursor-pointer ${
                   theme === "sepia" ? "bg-[#e3d2b4] text-[#2b2115] font-semibold" : ""
                 }`}
-                title="Sepia Mode"
               >
-                <Sparkles className="w-3 h-3" /> Sepia
+                <Sparkles className="w-3 h-3" />
               </button>
               <button
+                type="button"
                 onClick={() => setTheme("night")}
-                className={`px-2.5 py-1 rounded-full flex items-center gap-1 transition ${
+                className={`px-2 py-1 rounded-full flex items-center gap-1 transition cursor-pointer ${
                   theme === "night" ? "bg-[#2c2c30] text-white font-semibold" : ""
                 }`}
-                title="Night Mode"
               >
-                <Moon className="w-3 h-3" /> Night
+                <Moon className="w-3 h-3" />
               </button>
             </div>
 
-            {/* Shanti Focus Mode Launch */}
-            <div className="hidden lg:block">
-              <StartShantiButton
-                gutenbergId={book.id}
-                title={book.title}
-                author={book.author}
-                coverImage={book.coverImage || coverUrl(book.id)}
-                totalPages={viewMode === "book" ? bookPages.length : totalClassicPages}
-                compact
-              />
-            </div>
+            {shantiSlot ? (
+              <div>{shantiSlot}</div>
+            ) : (
+              <div className="hidden xl:block">
+                <StartShantiButton
+                  gutenbergId={book.id}
+                  title={book.title}
+                  author={book.author}
+                  coverImage={book.coverImage || coverUrl(book.id)}
+                  totalPages={viewMode === "book" ? bookPages.length : totalClassicPages}
+                  compact
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
 
+      {/* Floating Selection Action Pill (In-Reader Highlights, Margin Notes & 1-Click Profile Quote) */}
+      <AnimatePresence>
+        {selectedQuote && (
+          <motion.div
+            initial={{ opacity: 0, y: 16, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.96 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[94vw] max-w-xl rounded-2xl bg-[#141416]/95 text-white border border-white/15 shadow-2xl backdrop-blur-xl p-4"
+          >
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <p className="text-xs italic text-white/80 line-clamp-2">
+                “{selectedQuote}”
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedQuote("")
+                  setShowCommentInput(false)
+                  window.getSelection()?.removeAllRanges()
+                }}
+                className="text-white/50 hover:text-white shrink-0 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {showCommentInput && (
+              <input
+                type="text"
+                value={marginComment}
+                onChange={(e) => setMarginComment(e.target.value)}
+                placeholder="Add a personal margin note or reflection..."
+                className="w-full mb-3 px-3.5 py-2 rounded-full bg-white/10 border border-white/15 text-xs text-white placeholder:text-white/40 focus:outline-none focus:border-[#0066cc]"
+              />
+            )}
+
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5">
+                {(["amber", "blue", "emerald", "rose"] as NoteColor[]).map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setNoteColor(c)}
+                    className={`w-5 h-5 rounded-full ${COLOR_STYLES[c].dot} transition transform cursor-pointer ${
+                      noteColor === c ? "ring-2 ring-white scale-110" : "opacity-65 hover:opacity-100"
+                    }`}
+                    title={`Highlight ${c}`}
+                  />
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setShowCommentInput((v) => !v)}
+                  className="ml-1 px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[11px] font-semibold transition cursor-pointer"
+                >
+                  {showCommentInput ? "Hide Note" : "+ Margin Note"}
+                </button>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleSaveHighlight}
+                  disabled={savingNote}
+                  className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-semibold transition cursor-pointer"
+                >
+                  <Highlighter className="w-3.5 h-3.5" />
+                  Save Highlight
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSetProfileQuote(selectedQuote)}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition cursor-pointer"
+                  title="Feature this passage on your public profile"
+                >
+                  <Quote className="w-3.5 h-3.5 text-amber-400" />
+                  Profile Quote
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`“${selectedQuote}” — ${book.author}, ${book.title}`)
+                    toast.success("Copied formatted quote!")
+                    setSelectedQuote("")
+                  }}
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+                  title="Copy formatted quote"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Slide-Over Literary Notebook Drawer */}
+      <AnimatePresence>
+        {notesOpen && (
+          <div className="fixed inset-0 z-50 flex justify-end">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setNotesOpen(false)}
+              className="absolute inset-0 bg-black/50 backdrop-blur-xs"
+            />
+            <motion.aside
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="relative z-10 w-full max-w-md bg-white text-[#1d1d1f] h-full shadow-2xl flex flex-col"
+            >
+              <div className="p-6 border-b border-black/10 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#0066cc]">
+                    Literary Notebook
+                  </p>
+                  <h3 className="text-lg font-bold tracking-tight truncate max-w-[280px]">
+                    {book.title}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setNotesOpen(false)}
+                  className="w-8 h-8 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] flex items-center justify-center cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                {notes.length === 0 ? (
+                  <div className="text-center py-16">
+                    <Highlighter className="w-10 h-10 text-[#86868b]/40 mx-auto mb-3" />
+                    <p className="font-bold text-sm text-[#1d1d1f]">No highlights saved yet</p>
+                    <p className="text-xs text-[#86868b] mt-1 max-w-xs mx-auto">
+                      Select any sentence while reading in Book Read or Classic Read to highlight it, add a margin note, or set it as your profile quote.
+                    </p>
+                  </div>
+                ) : (
+                  notes.map((n) => (
+                    <div
+                      key={n.id}
+                      className={`rounded-2xl p-4 shadow-xs border border-black/5 ${
+                        COLOR_STYLES[n.color]?.card || COLOR_STYLES.amber.card
+                      }`}
+                    >
+                      <p className="text-sm font-serif italic leading-relaxed mb-2">
+                        “{n.quoteText}”
+                      </p>
+                      {n.noteText && (
+                        <p className="text-xs font-medium text-[#1d1d1f]/80 bg-white/80 rounded-xl px-3 py-2 mb-3">
+                          Note: {n.noteText}
+                        </p>
+                      )}
+                      <div className="flex items-center justify-between text-[11px] text-[#86868b]">
+                        <button
+                          type="button"
+                          onClick={() => jumpToLogicalPage(n.pageNumber)}
+                          className="font-bold text-[#0066cc] hover:underline cursor-pointer"
+                        >
+                          Jump to Page {n.pageNumber}
+                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleSetProfileQuote(n.quoteText)}
+                            className="font-semibold hover:text-[#1d1d1f] cursor-pointer"
+                          >
+                            Use on Profile
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteNote(n.id)}
+                            className="text-red-500 hover:text-red-700 cursor-pointer"
+                            title="Delete highlight"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.aside>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* MODE 1: REALISTIC 2-PAGE OPEN HARDCOVER BOOK READ */}
       {viewMode === "book" && (
         <div className="max-w-7xl mx-auto px-3 sm:px-6 py-6 sm:py-10">
-          {/* Open Hardcover Book Casing */}
           <div
             className={`relative rounded-[28px] p-2.5 sm:p-4 md:p-6 shadow-[0_30px_80px_rgba(0,0,0,0.45)] border-2 transition-colors ${currentTheme.bookCover}`}
             style={{ perspective: "1800px" }}
           >
-            {/* Outer Stacked Paper Page Edges */}
             <div className={`relative rounded-[20px] p-1 sm:p-2 ${currentTheme.pageEdge} shadow-inner`}>
-              {/* Top Crimson Bookmark Ribbon */}
               <div
-                onClick={() => setBookmarked(true)}
+                onClick={() => {
+                  setBookmarked(true)
+                  toast.success(`Bookmarked Spread ${bookSpread + 1}`)
+                }}
                 title="Bookmark current spread"
                 className="hidden lg:block absolute -top-3 left-1/2 -translate-x-1/2 z-30 w-6 h-12 bg-gradient-to-b from-[#b91c1c] to-[#7f1d1d] shadow-md cursor-pointer transition-transform hover:translate-y-0.5"
                 style={{
@@ -415,7 +804,6 @@ export default function EReader({
                 }}
               />
 
-              {/* Animated 2-Page Book Spread */}
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={bookSpread}
@@ -440,7 +828,6 @@ export default function EReader({
                   }}
                   className={`relative grid grid-cols-1 lg:grid-cols-2 rounded-[16px] overflow-hidden shadow-xl ${currentTheme.pageBg}`}
                 >
-                  {/* Center Book Spine Crease & Shadow (Desktop 2-Page Spread) */}
                   <div
                     aria-hidden="true"
                     className="hidden lg:block pointer-events-none absolute inset-y-0 left-1/2 -translate-x-1/2 w-16 z-20"
@@ -452,10 +839,10 @@ export default function EReader({
                     }}
                   />
 
-                  {/* LEFT PAGE (Verso) */}
+                  {/* LEFT PAGE */}
                   <div
                     onClick={goPrevSpread}
-                    className={`relative flex flex-col justify-between min-h-[580px] sm:min-h-[660px] px-6 sm:px-10 md:px-14 py-8 sm:py-10 border-b lg:border-b-0 lg:border-r ${currentTheme.border} cursor-pointer select-text`}
+                    className={`relative flex flex-col justify-between min-h-[580px] sm:min-h-[660px] px-6 sm:px-10 md:px-14 py-8 sm:py-10 border-b lg:border-b-0 lg:border-r ${currentTheme.border} select-text`}
                     style={{
                       backgroundImage:
                         theme === "night"
@@ -463,16 +850,14 @@ export default function EReader({
                           : "linear-gradient(90deg, rgba(0,0,0,0.03) 0%, rgba(0,0,0,0) 8%, rgba(0,0,0,0) 92%, rgba(0,0,0,0.04) 100%)",
                     }}
                   >
-                    {/* Running Header (Left Page) */}
                     <div>
                       <div
                         className={`flex items-center justify-between text-[11px] uppercase tracking-[0.2em] pb-4 mb-6 border-b ${currentTheme.border} ${currentTheme.sub}`}
                       >
-                        <span>{ leftPageIndex + 1 }</span>
+                        <span>{leftPageIndex + 1}</span>
                         <span className="truncate max-w-[240px] font-semibold">{book.title}</span>
                       </div>
 
-                      {/* First Spread Decorative Title Ornament */}
                       {bookSpread === 0 && (
                         <div className={`mb-6 pb-5 border-b ${currentTheme.border}`}>
                           <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#0066cc] mb-1">
@@ -489,7 +874,6 @@ export default function EReader({
                         </div>
                       )}
 
-                      {/* Left Page Body Paragraphs */}
                       <div
                         style={{ fontSize: `${fontSize}px`, lineHeight }}
                         className={`space-y-4 ${fontFamily === "serif" ? "font-serif" : "font-sans"}`}
@@ -509,20 +893,26 @@ export default function EReader({
                       </div>
                     </div>
 
-                    {/* Left Page Footer Folio */}
                     <div className={`pt-6 mt-6 flex items-center justify-between text-xs ${currentTheme.sub}`}>
-                      <span className="inline-flex items-center gap-1 font-medium hover:text-[#0066cc]">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          goPrevSpread()
+                        }}
+                        className="inline-flex items-center gap-1 font-medium hover:text-[#0066cc] cursor-pointer"
+                      >
                         <ChevronLeft className="w-3.5 h-3.5" />
                         {bookSpread > 0 ? "Turn Back" : "Opening Page"}
-                      </span>
+                      </button>
                       <span className="font-mono text-[11px]">Page {leftPageIndex + 1}</span>
                     </div>
                   </div>
 
-                  {/* RIGHT PAGE (Recto) */}
+                  {/* RIGHT PAGE */}
                   <div
                     onClick={goNextSpread}
-                    className="relative flex flex-col justify-between min-h-[580px] sm:min-h-[660px] px-6 sm:px-10 md:px-14 py-8 sm:py-10 cursor-pointer select-text"
+                    className="relative flex flex-col justify-between min-h-[580px] sm:min-h-[660px] px-6 sm:px-10 md:px-14 py-8 sm:py-10 select-text"
                     style={{
                       backgroundImage:
                         theme === "night"
@@ -531,7 +921,6 @@ export default function EReader({
                     }}
                   >
                     <div>
-                      {/* Running Header (Right Page) */}
                       <div
                         className={`flex items-center justify-between text-[11px] uppercase tracking-[0.2em] pb-4 mb-6 border-b ${currentTheme.border} ${currentTheme.sub}`}
                       >
@@ -539,7 +928,6 @@ export default function EReader({
                         <span>{rightParagraphs.length > 0 ? rightPageIndex + 1 : ""}</span>
                       </div>
 
-                      {/* Right Page Body Paragraphs */}
                       {rightParagraphs.length > 0 ? (
                         <div
                           style={{ fontSize: `${fontSize}px`, lineHeight }}
@@ -573,15 +961,21 @@ export default function EReader({
                       )}
                     </div>
 
-                    {/* Right Page Footer Folio */}
                     <div className={`pt-6 mt-6 flex items-center justify-between text-xs ${currentTheme.sub}`}>
                       <span className="font-mono text-[11px]">
                         {rightParagraphs.length > 0 ? `Page ${rightPageIndex + 1}` : "Finis"}
                       </span>
-                      <span className="inline-flex items-center gap-1 font-medium hover:text-[#0066cc]">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          goNextSpread()
+                        }}
+                        className="inline-flex items-center gap-1 font-medium hover:text-[#0066cc] cursor-pointer"
+                      >
                         {bookSpread < totalSpreads - 1 ? "Turn Page" : "Last Spread"}
                         <ChevronRight className="w-3.5 h-3.5" />
-                      </span>
+                      </button>
                     </div>
                   </div>
                 </motion.div>
@@ -589,14 +983,18 @@ export default function EReader({
             </div>
           </div>
 
-          {/* Bottom Book Spread Controls */}
           <div className="mt-6 flex flex-wrap items-center justify-between gap-4 px-2">
             <button
+              type="button"
               onClick={goPrevSpread}
               disabled={bookSpread <= 0}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border transition ${
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border transition cursor-pointer ${
                 currentTheme.border
-              } ${bookSpread <= 0 ? "opacity-40 cursor-not-allowed" : "hover:bg-[#0066cc] hover:text-white hover:border-[#0066cc]"}`}
+              } ${
+                bookSpread <= 0
+                  ? "opacity-40 cursor-not-allowed"
+                  : "hover:bg-[#0066cc] hover:text-white hover:border-[#0066cc]"
+              }`}
             >
               <ChevronLeft className="w-4 h-4" /> Previous Pages
             </button>
@@ -618,7 +1016,6 @@ export default function EReader({
                   setBookSpread(next)
                 }}
                 className="w-32 sm:w-44 accent-[#0066cc] cursor-pointer"
-                title="Scrub through book pages"
               />
               {book.externalReadUrl && (
                 <a
@@ -633,9 +1030,10 @@ export default function EReader({
             </div>
 
             <button
+              type="button"
               onClick={goNextSpread}
               disabled={bookSpread >= totalSpreads - 1}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold bg-[#0066cc] text-white hover:bg-[#0071e3] transition ${
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold bg-[#0066cc] text-white hover:bg-[#0071e3] transition cursor-pointer ${
                 bookSpread >= totalSpreads - 1 ? "opacity-40 cursor-not-allowed" : ""
               }`}
             >
@@ -645,7 +1043,7 @@ export default function EReader({
         </div>
       )}
 
-      {/* MODE 2: CLASSIC READ (Single-Column Scroll View) */}
+      {/* MODE 2: CLASSIC READ */}
       {viewMode === "classic" && (
         <article className="max-w-3xl mx-auto px-6 sm:px-10 py-10 sm:py-14">
           {page === 1 && (
@@ -690,12 +1088,13 @@ export default function EReader({
             className={`mt-14 pt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-4 ${currentTheme.border}`}
           >
             <button
+              type="button"
               onClick={() => {
                 setPage((p) => Math.max(1, p - 1))
                 window.scrollTo({ top: 0, behavior: "smooth" })
               }}
               disabled={page <= 1}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border transition ${
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border transition cursor-pointer ${
                 currentTheme.border
               } ${page <= 1 ? "opacity-40 cursor-not-allowed" : "hover:opacity-80"}`}
             >
@@ -723,12 +1122,13 @@ export default function EReader({
             </div>
 
             <button
+              type="button"
               onClick={() => {
                 setPage((p) => Math.min(totalClassicPages, p + 1))
                 window.scrollTo({ top: 0, behavior: "smooth" })
               }}
               disabled={page >= totalClassicPages}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold bg-[#0066cc] text-white hover:bg-[#0071e3] transition ${
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold bg-[#0066cc] text-white hover:bg-[#0071e3] transition cursor-pointer ${
                 page >= totalClassicPages ? "opacity-40 cursor-not-allowed" : ""
               }`}
             >
@@ -738,7 +1138,7 @@ export default function EReader({
         </article>
       )}
 
-      {/* MODE 3: SCANNED ORIGINAL EMBED (Internet Archive / Google Books Interactive Reader) */}
+      {/* MODE 3: SCANNED ORIGINAL EMBED */}
       {viewMode === "scan" && book.embedUrl && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <div className="rounded-2xl overflow-hidden border border-black/15 shadow-2xl bg-black">

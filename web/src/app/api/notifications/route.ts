@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const session = await auth()
     if (!session || !session.user?.id) {
@@ -12,6 +12,7 @@ export async function GET(req: Request) {
     const notifications = await prisma.notification.findMany({
       where: { userId: session.user.id },
       orderBy: { createdAt: "desc" },
+      take: 40,
     })
 
     return NextResponse.json(notifications)
@@ -29,14 +30,22 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json()
-    const { id, read } = body
+    const { id, read, markAllRead } = body
+
+    if (markAllRead) {
+      const result = await prisma.notification.updateMany({
+        where: { userId: session.user.id, read: false },
+        data: { read: true },
+      })
+      return NextResponse.json({ updatedCount: result.count })
+    }
 
     if (!id) {
       return NextResponse.json({ error: "Missing ID" }, { status: 400 })
     }
 
     const notification = await prisma.notification.findUnique({
-      where: { id }
+      where: { id },
     })
 
     if (!notification || notification.userId !== session.user.id) {

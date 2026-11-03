@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
-import { pusherServer } from "@/lib/pusher"
+import { notifyWishlistMatches } from "@/lib/wishlistAlerts"
 
 export async function POST(req: Request) {
   try {
@@ -31,47 +31,16 @@ export async function POST(req: Request) {
         price: Number(price),
         images,
         ownerId: session.user.id,
-        status: "AVAILABLE"
+        status: "AVAILABLE",
       },
     })
 
-    // --- WISHLIST ALERT LOGIC ---
-    // Find wishlists that match by exact ISBN or substring of the Title
-    const matchingWishlists = await prisma.wishlist.findMany({
-      where: {
-        userId: { not: session.user.id }, // don't notify the person listing it
-        OR: [
-          { isbn: isbn || "NO_MATCH_ISBN" },
-          { title: { contains: title, mode: 'insensitive' } }
-        ]
-      }
+    await notifyWishlistMatches({
+      bookId: book.id,
+      title: book.title,
+      isbn: book.isbn,
+      sellerId: session.user.id,
     })
-
-    // Deduplicate user IDs so a user doesn't get 5 notifications if they have 5 matching wishlists
-    const usersToNotify = Array.from(new Set(matchingWishlists.map(w => w.userId)))
-
-    if (usersToNotify.length > 0) {
-      const notificationsToCreate = usersToNotify.map(userId => ({
-        userId,
-        type: "WISHLIST_ALERT",
-        message: `A book on your wishlist ("${title}") was just listed!`,
-        link: `/catalog/${book.id}`,
-      }))
-
-      await prisma.notification.createMany({
-        data: notificationsToCreate
-      })
-
-      // Emit Pusher events to all matched users
-      for (const userId of usersToNotify) {
-        await pusherServer.trigger(
-          `notify-${userId}`,
-          'new-notification',
-          { message: `A book on your wishlist ("${title}") was just listed!`, link: `/catalog/${book.id}` }
-        )
-      }
-    }
-    // ----------------------------
 
     return NextResponse.json(book, { status: 201 })
   } catch (error: any) {

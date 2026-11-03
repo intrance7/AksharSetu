@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { EBookSource, EBookSummary, searchEbooks, coverUrl } from "@/lib/gutenberg"
 import EbookGrid from "@/components/ebooks/EbookGrid"
+import { LiveReadersStrip } from "@/components/library/LiveReadersStrip"
 import {
   BookOpen,
   Search,
@@ -192,6 +193,8 @@ export default async function EbooksPage({
 
       {/* Main Content Container */}
       <div className="max-w-7xl mx-auto px-6 pt-8 space-y-10">
+        <LiveReadersStrip />
+
         {/* Source Filter Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 bg-white rounded-2xl p-3 border border-black/5 shadow-sm">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">

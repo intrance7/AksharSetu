@@ -11,11 +11,11 @@ export async function GET() {
 
     const books = await prisma.libraryBook.findMany({
       where: { userId: session.user.id },
-      orderBy: { createdAt: "desc" },
+      orderBy: { updatedAt: "desc" },
     })
 
     return NextResponse.json(books)
-  } catch (error: any) {
+  } catch {
     return NextResponse.json({ error: "Failed to fetch library" }, { status: 500 })
   }
 }
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { title, author, coverImage, platformBookId, gutenbergId } = body
+    const { title, author, coverImage, platformBookId, gutenbergId, totalPages, status } = body
 
     if (!title || !author) {
       return NextResponse.json({ error: "Title and author are required" }, { status: 400 })
@@ -55,17 +55,19 @@ export async function POST(req: Request) {
 
     const newBook = await prisma.libraryBook.create({
       data: {
-        title,
-        author,
-        coverImage,
+        title: String(title).trim(),
+        author: String(author).trim(),
+        coverImage: coverImage || null,
         platformBookId: resolvedPlatformId,
         gutenbergId: numericGutenberg,
+        totalPages: Math.max(10, Number(totalPages) || 250),
+        status: ["WANT_TO_READ", "READING", "READ"].includes(status) ? status : "WANT_TO_READ",
         userId: session.user.id,
       },
     })
 
     return NextResponse.json(newBook, { status: 201 })
-  } catch (error: any) {
+  } catch {
     return NextResponse.json({ error: "Failed to add book" }, { status: 500 })
   }
 }

@@ -2,7 +2,8 @@ import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { LibraryGrid } from "@/components/library/LibraryGrid"
-import { BookOpen, Tablet, Sparkles, Clock, CheckCircle2 } from "lucide-react"
+import { LiveReadersStrip } from "@/components/library/LiveReadersStrip"
+import { BookOpen, Tablet, Sparkles, Clock, Highlighter } from "lucide-react"
 import Link from "next/link"
 
 export default async function LibraryPage() {
@@ -12,83 +13,148 @@ export default async function LibraryPage() {
     redirect("/login")
   }
 
-  const [libraryBooks, readingSessions] = await Promise.all([
+  const [libraryBooks, readingSessions, recentNotes] = await Promise.all([
     prisma.libraryBook.findMany({
       where: { userId: session.user.id },
-      orderBy: { createdAt: "desc" },
+      orderBy: { updatedAt: "desc" },
     }),
     prisma.readingSession.findMany({
       where: { userId: session.user.id },
       select: { durationMinutes: true },
+    }),
+    prisma.bookNote.findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: "desc" },
+      take: 6,
     }),
   ])
 
   const totalMinutes = readingSessions.reduce((sum, s) => sum + s.durationMinutes, 0)
   const readingCount = libraryBooks.filter((b) => b.status === "READING").length
   const completedCount = libraryBooks.filter((b) => b.status === "READ").length
-  const ebookCount = libraryBooks.filter((b) => b.gutenbergId !== null).length
+  const ebookCount = libraryBooks.filter(
+    (b) =>
+      b.gutenbergId !== null ||
+      (b.platformBookId && /^(ia-|ol-|gb-|pg-|\d+)/.test(b.platformBookId))
+  ).length
 
   return (
-    <div className="min-h-screen bg-[#F2EBE1] pt-16 pb-24 relative overflow-hidden">
-      {/* Decorative Side Doodles */}
-      <div className="hidden xl:block absolute -left-10 top-64 w-[280px] pointer-events-none z-0 opacity-75">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/doodle-plant-books.png" alt="" className="w-full h-auto mix-blend-multiply" />
-      </div>
-
-      <div className="container mx-auto max-w-[1280px] px-4 md:px-8 relative z-10">
-        {/* Top Header */}
-        <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-10 gap-6">
+    <div className="min-h-screen bg-[#f5f5f7] pb-24">
+      {/* High-Contrast Hero */}
+      <section className="bg-black text-[#f5f5f7] pt-20 pb-14 border-b border-white/10">
+        <div className="container mx-auto max-w-7xl px-6 flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C84200]/10 text-[#C84200] text-xs font-black uppercase tracking-widest mb-3">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-blue-300 text-xs font-semibold tracking-wide mb-4">
               <Sparkles className="w-3.5 h-3.5" /> Personal Reading Room
             </div>
-            <h1 className="text-4xl md:text-6xl font-black text-[#1D1D1F] tracking-tight leading-none mb-3">
-              My Library
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tighter leading-none mb-3">
+              My Library.
             </h1>
-            <p className="text-[#1D1D1F]/65 text-lg font-medium flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-[#C84200]" /> Track your physical books, saved e-books, and Shanti Mode focus sessions.
+            <p className="text-[#86868b] text-base md:text-lg max-w-2xl">
+              Synced reading progress across physical books, open digital editions, Shanti focus timers, and your saved literary highlights.
             </p>
           </div>
 
-          <Link
-            id="library-browse-ebooks"
-            href="/ebooks"
-            className="inline-flex items-center gap-2 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white px-6 h-12 text-sm font-black uppercase tracking-wider transition-colors shadow-md shrink-0"
-          >
-            <Tablet className="w-4 h-4" /> Browse E-Library
-          </Link>
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <Link
+              href="/orders"
+              className="inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white px-5 h-11 text-xs font-semibold transition-colors"
+            >
+              Orders & Swaps
+            </Link>
+            <Link
+              id="library-browse-ebooks"
+              href="/ebooks"
+              className="inline-flex items-center gap-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white px-6 h-11 text-xs font-bold uppercase tracking-wider transition-colors shadow-md"
+            >
+              <Tablet className="w-4 h-4" /> Browse E-Library
+            </Link>
+          </div>
         </div>
+      </section>
 
+      <div className="container mx-auto max-w-7xl px-6 pt-8 space-y-8">
         {/* Reading Stats Bento Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-          <div className="bg-white rounded-2xl p-5 border border-[#1D1D1F]/5 shadow-sm">
-            <span className="text-xs font-black uppercase tracking-wider text-[#86868B] flex items-center gap-1.5 mb-1">
-              <BookOpen className="w-3.5 h-3.5 text-[#C84200]" /> Total Shelf
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="bg-white rounded-2xl p-5 border border-black/5 shadow-sm">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#86868b] flex items-center gap-1.5 mb-1">
+              <BookOpen className="w-3.5 h-3.5 text-[#0066cc]" /> Total Shelf
             </span>
-            <p className="text-3xl font-black text-[#1D1D1F]">{libraryBooks.length}</p>
+            <p className="text-3xl font-bold text-[#1d1d1f]">{libraryBooks.length}</p>
           </div>
-          <div className="bg-white rounded-2xl p-5 border border-[#1D1D1F]/5 shadow-sm">
-            <span className="text-xs font-black uppercase tracking-wider text-[#86868B] flex items-center gap-1.5 mb-1">
-              <Sparkles className="w-3.5 h-3.5 text-[#D99A0B]" /> Currently Reading
+          <div className="bg-white rounded-2xl p-5 border border-black/5 shadow-sm">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#86868b] flex items-center gap-1.5 mb-1">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Reading
             </span>
-            <p className="text-3xl font-black text-[#1D1D1F]">{readingCount}</p>
+            <p className="text-3xl font-bold text-[#1d1d1f]">{readingCount}</p>
           </div>
-          <div className="bg-white rounded-2xl p-5 border border-[#1D1D1F]/5 shadow-sm">
-            <span className="text-xs font-black uppercase tracking-wider text-[#86868B] flex items-center gap-1.5 mb-1">
-              <Tablet className="w-3.5 h-3.5 text-[#3B4CCA]" /> Digital Classics
+          <div className="bg-white rounded-2xl p-5 border border-black/5 shadow-sm">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#86868b] flex items-center gap-1.5 mb-1">
+              <Tablet className="w-3.5 h-3.5 text-[#0066cc]" /> Digital Editions
             </span>
-            <p className="text-3xl font-black text-[#1D1D1F]">{ebookCount}</p>
+            <p className="text-3xl font-bold text-[#1d1d1f]">{ebookCount}</p>
           </div>
-          <div className="bg-white rounded-2xl p-5 border border-[#1D1D1F]/5 shadow-sm">
-            <span className="text-xs font-black uppercase tracking-wider text-[#86868B] flex items-center gap-1.5 mb-1">
-              <Clock className="w-3.5 h-3.5 text-[#287F56]" /> Shanti Focus
+          <div className="bg-white rounded-2xl p-5 border border-black/5 shadow-sm">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#86868b] flex items-center gap-1.5 mb-1">
+              <Highlighter className="w-3.5 h-3.5 text-rose-500" /> Highlights
             </span>
-            <p className="text-3xl font-black text-[#1D1D1F]">
-              {totalMinutes} <span className="text-sm font-bold text-[#86868B]">mins ({completedCount} read)</span>
+            <p className="text-3xl font-bold text-[#1d1d1f]">{recentNotes.length}</p>
+          </div>
+          <div className="col-span-2 md:col-span-1 bg-white rounded-2xl p-5 border border-black/5 shadow-sm">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#86868b] flex items-center gap-1.5 mb-1">
+              <Clock className="w-3.5 h-3.5 text-emerald-600" /> Shanti Focus
+            </span>
+            <p className="text-3xl font-bold text-[#1d1d1f]">
+              {totalMinutes}{" "}
+              <span className="text-xs font-semibold text-[#86868b]">
+                m ({completedCount} done)
+              </span>
             </p>
           </div>
         </div>
+
+        {/* Live Reading Rooms ("Shanti Together") */}
+        <LiveReadersStrip />
+
+        {/* Recent Literary Highlights & Notes Shelf */}
+        {recentNotes.length > 0 && (
+          <section className="space-y-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-[#0066cc]">
+                Literary Notebook
+              </p>
+              <h2 className="text-xl font-bold tracking-tight text-[#1d1d1f]">
+                Recent Highlights & Margin Notes
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {recentNotes.slice(0, 3).map((note) => (
+                <Link
+                  key={note.id}
+                  href={`/ebooks/${encodeURIComponent(note.bookKey)}?view=book`}
+                  className="bg-white rounded-2xl p-5 border border-black/5 shadow-sm hover:shadow-md transition flex flex-col justify-between"
+                >
+                  <div>
+                    <p className="font-serif italic text-sm text-[#1d1d1f] line-clamp-3 mb-2">
+                      “{note.quoteText}”
+                    </p>
+                    {note.noteText && (
+                      <p className="text-xs text-[#86868b] bg-[#f5f5f7] rounded-xl px-3 py-2 mb-3 line-clamp-2">
+                        Note: {note.noteText}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-[#86868b] pt-2 border-t border-black/5">
+                    <span className="font-semibold text-[#1d1d1f] truncate max-w-[180px]">
+                      {note.bookTitle}
+                    </span>
+                    <span className="text-[#0066cc] font-bold">Page {note.pageNumber} →</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         <LibraryGrid initialBooks={libraryBooks} />
       </div>

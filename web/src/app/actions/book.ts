@@ -4,6 +4,8 @@ import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { notifyWishlistMatches } from "@/lib/wishlistAlerts"
+import { checkAndAwardBadges } from "@/services/badgeService"
 
 export async function createBook(formData: FormData) {
   const session = await auth()
@@ -33,7 +35,8 @@ export async function createBook(formData: FormData) {
   const exchangePreferences = formData.get("exchangePreferences") as string
 
   // Detailed Condition
-  const parseCond = (key: string) => formData.has(key) ? parseInt(formData.get(key) as string, 10) : 5
+  const parseCond = (key: string) =>
+    formData.has(key) ? parseInt(formData.get(key) as string, 10) : 5
   const condCover = parseCond("condCover")
   const condPages = parseCond("condPages")
   const condHighlighting = parseCond("condHighlighting")
@@ -46,13 +49,11 @@ export async function createBook(formData: FormData) {
   const booksInBundle = booksInBundleStr ? parseInt(booksInBundleStr, 10) : 1
   const bundleDescription = formData.get("bundleDescription") as string
 
-  // Simple validation
   if (!title || !author || !condition || !category) {
     throw new Error("Missing required fields")
   }
 
-  // Create Book
-  await prisma.book.create({
+  const createdBook = await prisma.book.create({
     data: {
       title,
       author,
@@ -64,10 +65,10 @@ export async function createBook(formData: FormData) {
       images: imageUrl ? [imageUrl] : [],
       ownerId: session.user.id,
       status: "AVAILABLE",
-      
+
       university: university || null,
       course: course || null,
-      semester: semester,
+      semester,
       subject: subject || null,
 
       acceptsExchange,
@@ -84,12 +85,22 @@ export async function createBook(formData: FormData) {
       bundleDescription: bundleDescription || null,
 
       deliveryType: (formData.get("deliveryType") as string) || "SHIPPING",
-    }
+    },
   })
 
-  // Revalidate catalog page so the new book shows up
+  // Trigger Wishlist Alerts & Badge evaluation asynchronously
+  await notifyWishlistMatches({
+    bookId: createdBook.id,
+    title: createdBook.title,
+    isbn: createdBook.isbn,
+    sellerId: session.user.id,
+  })
+  checkAndAwardBadges(session.user.id).catch(() => {})
+
   revalidatePath("/catalog")
-  
-  // Redirect to catalog
+  revalidatePath("/campus")
+  revalidatePath("/map")
+  revalidatePath("/orders")
+
   redirect("/catalog")
 }

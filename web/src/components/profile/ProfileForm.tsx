@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Check, MapPin, Quote, Sparkles, Image as ImageIcon } from "lucide-react"
+import { Loader2, Check, MapPin, Quote, Sparkles, Image as ImageIcon, Upload } from "lucide-react"
 import { PRESET_QUOTES } from "@/lib/gamification"
 import { toast } from "sonner"
 
@@ -33,6 +33,7 @@ interface ProfileFormProps {
 export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [success, setSuccess] = useState(false)
   const [formData, setFormData] = useState({
     name: user.name || "",
@@ -52,6 +53,41 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
     setSuccess(false)
+  }
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingAvatar(true)
+    try {
+      const presignRes = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename: file.name, contentType: file.type }),
+      })
+      const presignData = await presignRes.json()
+      if (!presignRes.ok) {
+        throw new Error(presignData.error || "Upload failed")
+      }
+
+      const putRes = await fetch(presignData.uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      })
+      if (!putRes.ok) {
+        throw new Error("Could not store uploaded image")
+      }
+
+      setFormData((prev) => ({ ...prev, image: presignData.publicUrl }))
+      setSuccess(false)
+      toast.success("Avatar uploaded! Click Save to update your profile.")
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to upload avatar")
+    } finally {
+      setUploadingAvatar(false)
+    }
   }
 
   const handleSelectPresetQuote = (q: { quote: string; author: string }) => {
@@ -165,30 +201,47 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
         </div>
       </div>
 
-      {/* Avatar URL & Presets */}
+      {/* Avatar Upload, URL & Presets */}
       <div className="flex flex-col gap-2">
         <label className="text-xs font-black text-[#1D1D1F] uppercase tracking-wider flex items-center gap-1.5">
-          <ImageIcon className="w-3.5 h-3.5 text-[#0066cc]" /> Avatar Image URL or Quick Pick
+          <ImageIcon className="w-3.5 h-3.5 text-[#0066cc]" /> Profile Avatar (Upload, URL, or Preset)
         </label>
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-[#1D1D1F] overflow-hidden shrink-0 flex items-center justify-center border border-black/10">
-            {formData.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={formData.image} alt="Avatar preview" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-white font-black text-lg">
-                {(formData.name || "R").charAt(0).toUpperCase()}
-              </span>
-            )}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex items-center gap-3 flex-1">
+            <div className="w-12 h-12 rounded-full bg-[#1D1D1F] overflow-hidden shrink-0 flex items-center justify-center border border-black/10">
+              {formData.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={formData.image} alt="Avatar preview" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-white font-black text-lg">
+                  {(formData.name || "R").charAt(0).toUpperCase()}
+                </span>
+              )}
+            </div>
+            <input
+              type="text"
+              name="image"
+              value={formData.image}
+              onChange={handleChange}
+              placeholder="https://... or upload photo"
+              className="h-12 flex-1 rounded-xl border border-black/10 bg-[#F5F5F7] px-4 text-sm font-medium text-[#1D1D1F] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-all"
+            />
           </div>
-          <input
-            type="text"
-            name="image"
-            value={formData.image}
-            onChange={handleChange}
-            placeholder="https://... or choose a preset avatar below"
-            className="h-12 flex-1 rounded-xl border border-black/10 bg-[#F5F5F7] px-4 text-sm font-medium text-[#1D1D1F] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-all"
-          />
+          <label className="h-12 px-4 rounded-full border border-black/10 bg-[#e8e8ed] hover:bg-[#d2d2d7] text-[#1D1D1F] text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shrink-0 relative overflow-hidden">
+            {uploadingAvatar ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Upload className="w-4 h-4 text-[#0066cc]" />
+            )}
+            <span>{uploadingAvatar ? "Uploading..." : "Upload Photo"}</span>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarUpload}
+              disabled={uploadingAvatar}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+            />
+          </label>
         </div>
         <div className="flex items-center gap-2 mt-1 flex-wrap">
           <span className="text-[11px] font-bold text-[#86868b] mr-1">Presets:</span>

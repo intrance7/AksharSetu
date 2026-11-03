@@ -2,13 +2,23 @@ import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import Razorpay from "razorpay"
+import { checkAndAwardBadges } from "@/services/badgeService"
 
+const rzpKeyId = process.env.RAZORPAY_KEY_ID || "placeholder"
+const rzpKeySecret = process.env.RAZORPAY_KEY_SECRET || "placeholder"
+const hasLiveRazorpay =
+  rzpKeyId !== "placeholder" &&
+  rzpKeySecret !== "placeholder" &&
+  rzpKeyId.startsWith("rzp_")
 
-// Initialize Razorpay instance
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || "placeholder",
-  key_secret: process.env.RAZORPAY_KEY_SECRET || "placeholder",
+  key_id: rzpKeyId,
+  key_secret: rzpKeySecret,
 })
+
+function generateAwbCode() {
+  return `AKS${Math.floor(100000000 + Math.random() * 900000000)}`
+}
 
 export async function POST(req: Request) {
   try {
@@ -17,7 +27,7 @@ export async function POST(req: Request) {
     if (!session || !session.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    const userId = session.user.id;
+    const userId = session.user.id
 
     const body = await req.json()
     const { bookId, deliveryPincode } = body
@@ -26,9 +36,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Book ID is required" }, { status: 400 })
     }
 
-    // Start a transaction to ensure atomic operations
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Fetch the book to check availability
       const book = await tx.book.findUnique({
         where: { id: bookId },
       })
@@ -46,42 +54,86 @@ export async function POST(req: Request) {
       }
 
       if (book.price === 0) {
-        throw new Error("Donations cannot be purchased through checkout")
+        throw new Error("Free donations are requested directly without checkout")
       }
 
-      // 2. Mark the book as RESERVED atomically
+      const platformFee = 25
+      let shippingFee = 40
+      if (deliveryPincode && deliveryPincode.length === 6) {
+        const firstDigit = deliveryPincode[0]
+        shippingFee = firstDigit === "1" ? 40 : firstDigit === "2" ? 60 : 90
+      }
+
+      const totalAmount = book.price + platformFee + shippingFee
+
+      // Sandbox Escrow Fallback when Razorpay keys are placeholders
+      if (!hasLiveRazorpay) {
+        await tx.book.update({
+          where: { id: bookId },
+          data: { status: "SOLD" },
+        })
+
+        const awb = generateAwbCode()
+        const order = await tx.order.create({
+          data: {
+            amount: totalAmount,
+            status: "PAID",
+            paymentId: `sandbox_pay_${Date.now()}`,
+            bookId: book.id,
+            buyerId: userId,
+            shipment: {
+              create: {
+                awbCode: awb,
+                courierName: "AksharSetu Express (Delhivery)",
+                status: "READY_TO_SHIP",
+                trackingUrl: `/orders`,
+              },
+            },
+          },
+        })
+
+        await tx.user.update({
+          where: { id: book.ownerId },
+          data: { booksSold: { increment: 1 } },
+        })
+
+        await tx.notification.createMany({
+          data: [
+            {
+              userId: book.ownerId,
+              type: "ORDER_UPDATE",
+              message: `Your book "${book.title}" sold for ₹${book.price}! AWB #${awb} generated.`,
+              link: "/orders",
+            },
+            {
+              userId,
+              type: "ORDER_UPDATE",
+              message: `Order confirmed for "${book.title}"! Track shipment AWB #${awb}.`,
+              link: "/orders",
+            },
+          ],
+        })
+
+        return {
+          sandboxPaid: true,
+          orderId: order.id,
+          awbCode: awb,
+          sellerId: book.ownerId,
+        }
+      }
+
+      // Live Razorpay Flow
       const updatedBook = await tx.book.update({
         where: { id: bookId },
         data: { status: "RESERVED" },
       })
 
-      const platformFee = 25
-      let shippingFee = 40 // Default base shipping
-      
-      if (deliveryPincode && deliveryPincode.length === 6) {
-         // Mock Shiprocket API logic
-         // If first digit is 1, local (40). If 2, nearby (60). Else 90.
-         // Here we assume pickup pincode starts with '1' for the sake of demo.
-         const firstDigit = deliveryPincode[0]
-         if (firstDigit === '1') {
-           shippingFee = 40
-         } else if (firstDigit === '2') {
-           shippingFee = 60
-         } else {
-           shippingFee = 90
-         }
-      }
-
-      const totalAmount = updatedBook.price + platformFee + shippingFee
-
-      // 3. Create a Razorpay Order
       const rzpOrder = await razorpay.orders.create({
-        amount: Math.round(totalAmount * 100), // amount in smallest currency unit (paise)
+        amount: Math.round(totalAmount * 100),
         currency: "INR",
         receipt: `receipt_book_${updatedBook.id.substring(0, 8)}`,
       })
 
-      // 4. Create a PENDING Order in our DB, storing the razorpay_order_id in paymentId
       const order = await tx.order.create({
         data: {
           amount: totalAmount,
@@ -92,17 +144,22 @@ export async function POST(req: Request) {
         },
       })
 
-      // 5. Trigger Shiprocket logistics (DEFERRED)
-      // We will add Shiprocket integration here later for shipping logic.
-      // For now, the Order is created without a Shipment record.
-
       return {
+        sandboxPaid: false,
         orderId: order.id,
         razorpayOrderId: rzpOrder.id,
         amount: rzpOrder.amount,
         currency: rzpOrder.currency,
+        sellerId: book.ownerId,
       }
     })
+
+    if (result.sandboxPaid) {
+      await Promise.allSettled([
+        checkAndAwardBadges(userId),
+        checkAndAwardBadges(result.sellerId),
+      ])
+    }
 
     return NextResponse.json(result, { status: 201 })
   } catch (error: any) {
