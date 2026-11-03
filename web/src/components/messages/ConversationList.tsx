@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { formatDistanceToNow } from "date-fns"
 import {
   MessageSquare,
   Loader2,
-  User,
   Search,
   MapPin,
   Sparkles,
@@ -14,6 +14,8 @@ import {
   Quote,
   ArrowUpRight,
   Users,
+  Check,
+  CheckCheck,
 } from "lucide-react"
 import { motion } from "framer-motion"
 
@@ -26,8 +28,15 @@ interface Conversation {
     isShantiModeActive?: boolean
     liveStatus?: string | null
   }
-  lastMessage: { content: string; createdAt: string; isMine: boolean }
+  lastMessage: {
+    id: string
+    content: string
+    createdAt: string
+    isMine: boolean
+    read: boolean
+  }
   messageCount?: number
+  unreadCount?: number
 }
 
 interface ReaderProfile {
@@ -50,22 +59,35 @@ interface ReaderProfile {
 }
 
 export function ConversationList() {
+  const searchParams = useSearchParams()
+  const initialTab =
+    searchParams.get("tab") === "discover" ? "discover" : "chats"
+
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [readers, setReaders] = useState<ReaderProfile[]>([])
   const [loadingConvos, setLoadingConvos] = useState(true)
   const [loadingReaders, setLoadingReaders] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
-  const [activeTab, setActiveTab] = useState<"chats" | "discover">("chats")
+  const [activeTab, setActiveTab] = useState<"chats" | "discover">(initialTab)
+
+  const loadConversations = useCallback(async () => {
+    try {
+      const res = await fetch("/api/conversations")
+      if (!res.ok) return
+      const data = await res.json()
+      if (Array.isArray(data)) setConversations(data)
+    } catch {
+      // ignore transient errors
+    } finally {
+      setLoadingConvos(false)
+    }
+  }, [])
 
   useEffect(() => {
-    fetch("/api/conversations")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) setConversations(data)
-        setLoadingConvos(false)
-      })
-      .catch(() => setLoadingConvos(false))
-  }, [])
+    loadConversations()
+    const interval = setInterval(loadConversations, 5000)
+    return () => clearInterval(interval)
+  }, [loadConversations])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -96,6 +118,11 @@ export function ConversationList() {
     )
   })
 
+  const totalUnread = conversations.reduce(
+    (sum, c) => sum + (c.unreadCount || 0),
+    0
+  )
+
   return (
     <div className="flex flex-col gap-8">
       {/* Top Search & Mode Switcher Bar */}
@@ -107,7 +134,11 @@ export function ConversationList() {
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value)
-              if (e.target.value.trim() && activeTab === "chats" && conversations.length === 0) {
+              if (
+                e.target.value.trim() &&
+                activeTab === "chats" &&
+                conversations.length === 0
+              ) {
                 setActiveTab("discover")
               }
             }}
@@ -131,6 +162,11 @@ export function ConversationList() {
             <span className="px-2 py-0.5 rounded-full text-[10px] bg-white/15">
               {conversations.length}
             </span>
+            {totalUnread > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-[#0066cc] text-white">
+                {totalUnread} new
+              </span>
+            )}
           </button>
           <button
             type="button"
@@ -166,7 +202,8 @@ export function ConversationList() {
                 {searchQuery ? "No matching conversations" : "No conversations yet"}
               </h2>
               <p className="text-[#86868b] font-medium text-sm max-w-md mx-auto mb-6">
-                Discover fellow readers below or switch to &ldquo;Find Profiles&rdquo; to start a conversation!
+                Discover fellow readers below or switch to &ldquo;Find Profiles&rdquo;
+                to start a conversation!
               </p>
               <button
                 type="button"
@@ -178,96 +215,129 @@ export function ConversationList() {
             </div>
           ) : (
             <div className="flex flex-col gap-2.5">
-              {filteredConversations.map((conv, i) => (
-                <motion.div
-                  key={conv.otherUser.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.03, duration: 0.25 }}
-                >
-                  <div className="flex items-center gap-4 bg-white hover:bg-[#FAF6F0] rounded-2xl p-4 md:p-5 border border-[#1D1D1F]/5 shadow-sm transition-all hover:shadow-md">
-                    {/* Avatar */}
-                    <Link
-                      href={`/profile/${conv.otherUser.id}`}
-                      className="relative w-14 h-14 rounded-full bg-[#1D1D1F] flex items-center justify-center shrink-0 overflow-hidden hover:opacity-90 transition-opacity"
-                      title="View Profile"
+              {filteredConversations.map((conv, i) => {
+                const hasUnread = (conv.unreadCount || 0) > 0
+                return (
+                  <motion.div
+                    key={conv.otherUser.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.03, duration: 0.25 }}
+                  >
+                    <div
+                      className={`flex items-center gap-4 bg-white hover:bg-[#FAF6F0] rounded-2xl p-4 md:p-5 border shadow-sm transition-all hover:shadow-md ${
+                        hasUnread
+                          ? "border-[#0066cc]/35 ring-1 ring-[#0066cc]/15"
+                          : "border-[#1D1D1F]/5"
+                      }`}
                     >
-                      {conv.otherUser.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={conv.otherUser.image}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-white font-black text-lg">
-                          {(conv.otherUser.name || "R").charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                      {conv.otherUser.isShantiModeActive && (
-                        <span className="absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full bg-emerald-400 ring-2 ring-white" />
-                      )}
-                    </Link>
-
-                    {/* Content */}
-                    <Link
-                      href={`/messages/${conv.otherUser.id}`}
-                      className="flex-1 min-w-0"
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <h3 className="font-bold text-[#1D1D1F] text-base truncate">
-                            {conv.otherUser.name || "Reader"}
-                          </h3>
-                          {conv.otherUser.location && (
-                            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-[#86868b]">
-                              <MapPin className="w-3 h-3 text-[#C84200]" />
-                              {conv.otherUser.location}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-xs font-medium text-[#86868b] shrink-0 ml-3">
-                          {formatDistanceToNow(
-                            new Date(conv.lastMessage.createdAt),
-                            { addSuffix: true }
-                          )}
-                        </span>
-                      </div>
-                      <p className="text-sm text-[#1D1D1F]/70 font-medium truncate">
-                        {conv.lastMessage.isMine && (
-                          <span className="text-[#86868b] font-semibold">
-                            You:{" "}
-                          </span>
-                        )}
-                        {conv.lastMessage.content}
-                      </p>
-                    </Link>
-
-                    {/* Quick Actions */}
-                    <div className="flex items-center gap-2 shrink-0">
+                      {/* Avatar */}
                       <Link
                         href={`/profile/${conv.otherUser.id}`}
-                        className="hidden sm:inline-flex items-center gap-1 px-3 py-2 rounded-full bg-[#F5F5F7] hover:bg-[#e8e8ed] text-xs font-bold text-[#1D1D1F] transition-colors"
+                        className="relative w-14 h-14 rounded-full bg-[#1D1D1F] flex items-center justify-center shrink-0 overflow-hidden hover:opacity-90 transition-opacity"
+                        title="View Profile"
                       >
-                        Profile <ArrowUpRight className="w-3.5 h-3.5" />
+                        {conv.otherUser.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={conv.otherUser.image}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-white font-black text-lg">
+                            {(conv.otherUser.name || "R").charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                        {conv.otherUser.isShantiModeActive && (
+                          <span className="absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full bg-emerald-400 ring-2 ring-white" />
+                        )}
                       </Link>
+
+                      {/* Content */}
                       <Link
                         href={`/messages/${conv.otherUser.id}`}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-xs font-bold text-white transition-colors"
+                        className="flex-1 min-w-0"
                       >
-                        Chat
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <h3 className="font-bold text-[#1D1D1F] text-base truncate">
+                              {conv.otherUser.name || "Reader"}
+                            </h3>
+                            {hasUnread && (
+                              <span className="px-2 py-0.5 rounded-full bg-[#0066cc] text-white text-[10px] font-bold shrink-0">
+                                {conv.unreadCount} new
+                              </span>
+                            )}
+                            {conv.otherUser.location && (
+                              <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-[#86868b]">
+                                <MapPin className="w-3 h-3 text-[#C84200]" />
+                                {conv.otherUser.location}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-xs font-medium text-[#86868b] shrink-0 ml-3">
+                            {formatDistanceToNow(
+                              new Date(conv.lastMessage.createdAt),
+                              { addSuffix: true }
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {conv.lastMessage.isMine && (
+                            <span className="inline-flex items-center shrink-0">
+                              {conv.lastMessage.read ? (
+                                <CheckCheck className="w-3.5 h-3.5 text-[#0066cc]" />
+                              ) : (
+                                <Check className="w-3.5 h-3.5 text-[#86868b]" />
+                              )}
+                            </span>
+                          )}
+                          <p
+                            className={`text-sm truncate ${
+                              hasUnread
+                                ? "font-bold text-[#1D1D1F]"
+                                : "font-medium text-[#1D1D1F]/70"
+                            }`}
+                          >
+                            {conv.lastMessage.isMine && (
+                              <span className="text-[#86868b] font-semibold">
+                                You:{" "}
+                              </span>
+                            )}
+                            {conv.lastMessage.content}
+                          </p>
+                        </div>
                       </Link>
+
+                      {/* Quick Actions */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Link
+                          href={`/profile/${conv.otherUser.id}`}
+                          className="hidden sm:inline-flex items-center gap-1 px-3 py-2 rounded-full bg-[#F5F5F7] hover:bg-[#e8e8ed] text-xs font-bold text-[#1D1D1F] transition-colors"
+                        >
+                          Profile <ArrowUpRight className="w-3.5 h-3.5" />
+                        </Link>
+                        <Link
+                          href={`/messages/${conv.otherUser.id}`}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-xs font-bold text-white transition-colors"
+                        >
+                          Chat
+                        </Link>
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                )
+              })}
             </div>
           )}
         </div>
       )}
 
       {/* Always show Reader Discovery in "discover" tab OR below empty/short chat lists */}
-      {(activeTab === "discover" || conversations.length < 5 || searchQuery.trim() !== "") && (
+      {(activeTab === "discover" ||
+        conversations.length < 5 ||
+        searchQuery.trim() !== "") && (
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div>
@@ -278,7 +348,8 @@ export function ConversationList() {
                   : "Discover Community Readers"}
               </h2>
               <p className="text-xs font-medium text-[#86868b]">
-                Find profiles, explore their book collections & quotes, and chat directly.
+                Find profiles, explore their book collections & quotes, and chat
+                directly.
               </p>
             </div>
             <Link

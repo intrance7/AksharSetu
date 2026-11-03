@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
-import { BookOpen, Menu, X, User, MapPin, ChevronDown } from "lucide-react"
+import { BookOpen, Menu, X, User, MapPin, ChevronDown, MessageSquare } from "lucide-react"
 import { NotificationBell } from "./NotificationBell"
 import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/Button"
@@ -14,10 +14,31 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null)
   const [menuHeight, setMenuHeight] = useState<number>(64)
+  const [unreadMessages, setUnreadMessages] = useState<number>(0)
   const contentRef = useRef<HTMLDivElement>(null)
   const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const switchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const wasOpen = useRef(false)
+
+  useEffect(() => {
+    if (!session?.user?.id) return
+    let active = true
+    const fetchUnread = async () => {
+      try {
+        const res = await fetch("/api/messages/unread")
+        if (res.ok && active) {
+          const data = await res.json()
+          setUnreadMessages(Number(data.unreadCount) || 0)
+        }
+      } catch {}
+    }
+    fetchUnread()
+    const timer = setInterval(fetchUnread, 15000)
+    return () => {
+      active = false
+      clearInterval(timer)
+    }
+  }, [session?.user?.id])
 
   useEffect(() => {
     wasOpen.current = !!activeMenu
@@ -167,6 +188,18 @@ export function Navbar() {
 
                     {session && (
                       <div className="flex items-center gap-3 ml-1 pl-3 border-l border-[#C84200]/20">
+                        <Link
+                          href="/messages"
+                          className="relative p-2 rounded-full text-[#C84200] hover:bg-[#C84200]/10 transition-colors"
+                          title="Messages & Reader Connect"
+                        >
+                          <MessageSquare className="h-5 w-5" />
+                          {unreadMessages > 0 && (
+                            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#0066cc] text-white text-[10px] font-black flex items-center justify-center">
+                              {unreadMessages > 9 ? "9+" : unreadMessages}
+                            </span>
+                          )}
+                        </Link>
                         <NotificationBell userId={session.user?.id || ""} />
                         <Link
                           href={`/profile/${session.user?.id || "me"}`}
@@ -211,7 +244,21 @@ export function Navbar() {
                   {/* Mobile Actions */}
                   <div className="flex md:hidden items-center gap-2">
                     {session && (
-                      <NotificationBell userId={session.user?.id || ""} />
+                      <>
+                        <Link
+                          href="/messages"
+                          className="relative p-2 rounded-full text-[#C84200] hover:bg-[#C84200]/10 transition-colors"
+                          title="Messages"
+                        >
+                          <MessageSquare className="h-5 w-5" />
+                          {unreadMessages > 0 && (
+                            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#0066cc] text-white text-[10px] font-black flex items-center justify-center">
+                              {unreadMessages > 9 ? "9+" : unreadMessages}
+                            </span>
+                          )}
+                        </Link>
+                        <NotificationBell userId={session.user?.id || ""} />
+                      </>
                     )}
                     <button
                       type="button"

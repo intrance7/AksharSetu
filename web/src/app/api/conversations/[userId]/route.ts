@@ -18,7 +18,7 @@ export async function GET(
     const myId = session.user.id
 
     // Mark incoming messages in this thread as read
-    await prisma.message.updateMany({
+    const updated = await prisma.message.updateMany({
       where: {
         senderId: otherUserId,
         receiverId: myId,
@@ -26,6 +26,17 @@ export async function GET(
       },
       data: { read: true },
     })
+
+    if (updated.count > 0) {
+      try {
+        const channelId = `chat-dm-${[myId, otherUserId].sort().join("-")}`
+        await pusherServer.trigger(channelId, "messages-read", {
+          readerId: myId,
+        })
+      } catch {
+        // Non-fatal if Pusher is offline
+      }
+    }
 
     const [messages, rawOtherUser] = await Promise.all([
       prisma.message.findMany({
@@ -53,6 +64,23 @@ export async function GET(
           quoteAuthor: true,
           isShantiModeActive: true,
           liveStatus: true,
+          sellerRating: true,
+          responseTime: true,
+          books: {
+            where: { status: "AVAILABLE" },
+            take: 8,
+            orderBy: { createdAt: "desc" },
+            select: {
+              id: true,
+              title: true,
+              author: true,
+              price: true,
+              condition: true,
+              deliveryType: true,
+              acceptsExchange: true,
+              images: true,
+            },
+          },
           _count: {
             select: { books: true, badges: true },
           },
@@ -71,8 +99,11 @@ export async function GET(
           quoteAuthor: rawOtherUser.quoteAuthor,
           isShantiModeActive: rawOtherUser.isShantiModeActive,
           liveStatus: rawOtherUser.liveStatus,
+          sellerRating: rawOtherUser.sellerRating,
+          responseTime: rawOtherUser.responseTime,
           booksCount: rawOtherUser._count.books,
           badgesCount: rawOtherUser._count.badges,
+          books: rawOtherUser.books,
         }
       : null
 
@@ -96,7 +127,7 @@ export async function POST(
 
     const { userId: otherUserId } = await params
     const body = await req.json()
-    const { content } = body
+    const { content, requestId, orderId } = body
 
     if (!content || !content.trim()) {
       return NextResponse.json({ error: "Message content is required" }, { status: 400 })
@@ -116,6 +147,8 @@ export async function POST(
         content: content.trim(),
         senderId: session.user.id,
         receiverId: otherUserId,
+        requestId: requestId || null,
+        orderId: orderId || null,
         read: false,
       },
       include: {
@@ -145,6 +178,49 @@ export async function POST(
     return NextResponse.json(message, { status: 201 })
   } catch (error) {
     console.error("Send message error:", error)
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+  }
+}
+
+// DELETE /api/conversations/[userId]?messageId=... — unsend own message
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ userId: string }> }
+) {
+  try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { userId: otherUserId } = await params
+    const { searchParams } = new URL(req.url)
+    const messageId = searchParams.get("messageId")
+
+    if (!messageId) {
+      return NextResponse.json({ error: "Missing messageId" }, { status: 400 })
+    }
+
+    const existing = await prisma.message.findUnique({
+      where: { id: messageId },
+    })
+
+    if (!existing || existing.senderId !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    await prisma.message.delete({
+      where: { id: messageId },
+    })
+
+    try {
+      const channelId = `chat-dm-${[session.user.id, otherUserId].sort().join("-")}`
+      await pusherServer.trigger(channelId, "message-deleted", { messageId })
+    } catch {}
+
+    return NextResponse.json({ deleted: true, messageId })
+  } catch (error) {
+    console.error("Delete message error:", error)
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
   }
 }

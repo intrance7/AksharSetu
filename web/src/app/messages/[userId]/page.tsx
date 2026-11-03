@@ -13,6 +13,7 @@ export default async function ChatPage({
     reqId?: string
     book?: string
     offeredBook?: string
+    orderId?: string
     quote?: string
     quoteSource?: string
   }>
@@ -48,7 +49,9 @@ export default async function ChatPage({
   } else if (sp.action === "exchange" && sp.book) {
     const [targetBook, offeredBook] = await Promise.all([
       prisma.book.findUnique({ where: { id: sp.book } }),
-      sp.offeredBook ? prisma.book.findUnique({ where: { id: sp.offeredBook } }) : Promise.resolve(null),
+      sp.offeredBook
+        ? prisma.book.findUnique({ where: { id: sp.offeredBook } })
+        : Promise.resolve(null),
     ])
     if (targetBook) {
       contextBanner = {
@@ -62,6 +65,48 @@ export default async function ChatPage({
               " "
             )}) in exchange for your "${targetBook.title}". Let me know if you're interested!`
           : `Hi! I'm interested in exchanging a book from my shelf for your "${targetBook.title}" by ${targetBook.author}. What genres or titles are you looking for?`,
+        bookId: targetBook.id,
+      }
+    }
+  } else if (sp.book) {
+    const targetBook = await prisma.book.findUnique({
+      where: { id: sp.book },
+    })
+    if (targetBook) {
+      const priceLabel =
+        targetBook.price === 0
+          ? targetBook.acceptsExchange
+            ? "1-for-1 Swap"
+            : "Free Donation"
+          : `₹${targetBook.price}`
+      contextBanner = {
+        badge: `Book Inquiry · ${priceLabel}`,
+        title: `${targetBook.title} by ${targetBook.author}`,
+        prefillMessage: `Hi! I'm interested in your listing "${targetBook.title}" (${priceLabel}, ${targetBook.condition.replace(
+          "_",
+          " "
+        )}). Is it still available for ${
+          targetBook.deliveryType === "MEETUP"
+            ? "a local meetup handoff"
+            : "pickup or shipping"
+        }?`,
+        bookId: targetBook.id,
+      }
+    }
+  } else if (sp.orderId) {
+    const order = await prisma.order.findUnique({
+      where: { id: sp.orderId },
+      include: { book: true, shipment: true },
+    })
+    if (order) {
+      contextBanner = {
+        badge: `Order #${order.shipment?.awbCode || order.id.slice(0, 8)}`,
+        title: `${order.book.title} · ₹${order.amount}`,
+        prefillMessage: `Hi! Reaching out regarding our order for "${order.book.title}" (${
+          order.shipment?.awbCode ? `AWB #${order.shipment.awbCode}` : "Order confirmed"
+        }).`,
+        orderId: order.id,
+        bookId: order.bookId,
       }
     }
   } else if (sp.quote) {
@@ -73,8 +118,8 @@ export default async function ChatPage({
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pt-20 pb-8">
-      <div className="container mx-auto max-w-3xl px-4">
+    <div className="min-h-screen bg-[#f5f5f7] pt-20 pb-6">
+      <div className="container mx-auto max-w-6xl px-4">
         <ChatThread userId={userId} contextBanner={contextBanner} />
       </div>
     </div>

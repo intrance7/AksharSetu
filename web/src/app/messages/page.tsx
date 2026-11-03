@@ -1,7 +1,8 @@
+import { Suspense } from "react"
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { ConversationList } from "@/components/messages/ConversationList"
-import { MessageSquare, Trophy, User } from "lucide-react"
+import { MessageSquare, Trophy, User, Loader2 } from "lucide-react"
 import Link from "next/link"
 
 export default async function MessagesPage() {
@@ -45,7 +46,15 @@ export default async function MessagesPage() {
           </div>
         </div>
 
-        <ConversationList />
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-6 h-6 animate-spin text-[#1D1D1F]/30" />
+            </div>
+          }
+        >
+          <ConversationList />
+        </Suspense>
       </div>
     </div>
   )

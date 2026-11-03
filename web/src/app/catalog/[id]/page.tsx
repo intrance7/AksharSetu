@@ -228,7 +228,7 @@ export default async function ListingDetailPage({
                 </div>
                 {!isOwner && session && (
                   <Link
-                    href={`/messages/${book.owner.id}`}
+                    href={`/messages/${book.owner.id}?book=${book.id}`}
                     className="flex items-center gap-1.5 bg-[#1d1d1f] hover:bg-[#0066cc] text-white text-xs font-semibold px-4 py-2 rounded-full transition-colors shrink-0"
                   >
                     <MessageCircle className="w-3.5 h-3.5" />

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 
-// GET /api/conversations — returns all conversations for the current user
+// GET /api/conversations — returns all conversations for the current user with unread counts
 export async function GET() {
   try {
     const session = await auth()
@@ -54,14 +54,23 @@ export async function GET() {
           isShantiModeActive: boolean
           liveStatus: string | null
         }
-        lastMessage: { content: string; createdAt: Date; isMine: boolean }
+        lastMessage: {
+          id: string
+          content: string
+          createdAt: Date
+          isMine: boolean
+          read: boolean
+        }
         messageCount: number
+        unreadCount: number
       }
     >()
 
     for (const msg of messages) {
       const rawOther = msg.senderId === userId ? msg.receiver : msg.sender
+      if (!rawOther) continue
       const isMine = msg.senderId === userId
+      const isUnreadIncoming = !isMine && !msg.read
 
       const existing = conversationMap.get(rawOther.id)
       if (!existing) {
@@ -75,14 +84,20 @@ export async function GET() {
             liveStatus: rawOther.liveStatus,
           },
           lastMessage: {
+            id: msg.id,
             content: msg.content,
             createdAt: msg.createdAt,
             isMine,
+            read: msg.read,
           },
           messageCount: 1,
+          unreadCount: isUnreadIncoming ? 1 : 0,
         })
       } else {
         existing.messageCount += 1
+        if (isUnreadIncoming) {
+          existing.unreadCount += 1
+        }
       }
     }
 
