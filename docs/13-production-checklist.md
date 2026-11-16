@@ -1,31 +1,28 @@
 # Production Checklist & Secrets Tracker
 
-> **Purpose:** We will keep adding to this document as we build AksharSetu. It serves as a single source of truth for everything we need to configure, switch out, or keep secret before launching the app to the real world!
+> **Purpose:** Single source of truth for everything built, configured, and remaining before public launch.
 
-## 1. Environment Variables & Secrets
-*We will need to generate real production keys for these when deploying. Do **NOT** put the actual secret values in this file!*
+## 1. Core Application Modules (100% Built & Verified Locally)
+- [x] **Authentication & Security**: NextAuth v5 (Credentials + Google OAuth), Password Reset (`/forgot-password`), Role-based Admin guard (`USER` / `ADMIN`).
+- [x] **Book Marketplace & Catalog (`/catalog`, `/catalog/new`)**: ISBN Barcode Scanner, 5-Point Condition Grader, AI Smart Price Estimator, AI Description Generator, Semester Bundles, 1-for-1 Swaps, and Wishlist Alerts (`/wishlist`).
+- [x] **Campus & Hyperlocal Discovery (`/campus`, `/map`, `/requests`)**: University & Semester Textbook Hub, Interactive GPS "Books Near Me" Map, and Community Request Board.
+- [x] **Real-Time Marketplace Messaging (`/messages`)**: 3-Column Messenger, Book Context Cards, Structured Price Negotiation Offers (`BookOffer`), Private Validated Attachments (`sharp` WebP + PDF/DOCX), Reactions, Replies, Read Receipts, and Block/Report Safety.
+- [x] **Identity, XP, 6-Rarity Badges, Heatmap & Quests (`/profile/[id]`, `/badges`, `/leaderboard`)**: Server-authoritative XP & nonlinear levels, 29 SVG vector badges across 6 rarities, 365-day GitHub-style contribution heatmap, streaks, Daily Check-In, Quests, Cosmetics (`AP`), and Social Follow.
+- [x] **Digital E-Library, Shanti Mode & Sabha Clubs (`/ebooks`, `/library`, `/clubs`)**: Multi-source public-domain E-Reader (Flipbook + Classic Scroll), Literary Highlights (`BookNote`), Shanti Focus Timer, and Sabha Reading Circles.
+- [x] **Checkout, Orders, Vidya Daan & Admin (`/checkout`, `/orders`, `/donations`, `/admin`)**: Courier Shipping + Local Meetup Reservation, 6-Stage NGO Donation Pipeline, Printable Verifiable Certificates, and Admin Operations + Gamification Audit Console.
+- [x] **SEO & PWA**: Dynamic OpenGraph metadata, `sitemap.xml`, `robots.txt`, and `manifest.webmanifest`.
 
-- [ ] `DATABASE_URL` (The connection string to our production PostgreSQL database, e.g., Supabase or Vercel Postgres)
-- [ ] `AUTH_SECRET` (A random 32-byte string for NextAuth session encryption. Generate with `openssl rand -base64 33`)
-- [ ] `AUTH_GOOGLE_ID` (Client ID for Google OAuth)
-- [ ] `AUTH_GOOGLE_SECRET` (Client Secret for Google OAuth)
+## 2. Environment Variables & Secrets (For Fresh Vercel Deployment)
+- [x] `DATABASE_URL` (Cloud PostgreSQL connection string — Prisma Postgres)
+- [x] `AUTH_SECRET` & `NEXTAUTH_SECRET`
+- [x] `AUTH_URL` (Production URL)
+- [x] `AUTH_GOOGLE_ID` & `AUTH_GOOGLE_SECRET` (Add `<AUTH_URL>/api/auth/callback/google` in Google Cloud Console)
+- [x] `PUSHER_APP_ID`, `NEXT_PUBLIC_PUSHER_KEY`, `PUSHER_SECRET`, `NEXT_PUBLIC_PUSHER_CLUSTER`
+- [x] `GEMINI_API_KEY`
+- [x] `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `NEXT_PUBLIC_RAZORPAY_KEY_ID`
 
-## 2. Infrastructure & Services
-*Services we need to provision before launch:*
-
-- [ ] **Cloud Database**: A managed PostgreSQL database (Recommended: Supabase, Vercel Postgres, or Neon).
-- [ ] **Image Storage**: A place to store uploaded book photos (Recommended: AWS S3, Cloudinary, or Supabase Storage).
-- [ ] **Hosting**: The platform where the Next.js app will be deployed (Recommended: Vercel).
-
-## 3. Pre-Launch Configuration
-- [ ] **Domain Name**: Purchase and link the custom domain (e.g., `aksharsetu.com`).
-- [ ] **Database Migration**: Run `npx prisma migrate deploy` on the production database.
-- [ ] **Analytics**: Set up Vercel Analytics or Google Analytics to track user traffic.
-
-## 4. Security & Compliance
-- [ ] Verify Row Level Security (RLS) if using Supabase, or ensure Server Actions properly check user sessions before modifying data.
-- [ ] Ensure all input forms are properly sanitized (we can use Zod validation).
-- [ ] Ensure Terms of Service and Privacy Policy pages are accessible and finalized.
-
----
-*Note: I will update this file automatically as we add new integrations and features to the project!*
+## 3. Optional Polish / Final Launch Steps
+- [ ] **Fresh Vercel Deployment**: Link clean Vercel project with Root Directory set to `web` and deploy latest `main`.
+- [ ] **Global `Ctrl+K` Omnisearch Palette**: Instant search modal across physical books, e-books, `@username` profiles, and book clubs.
+- [ ] **Donor Dedication Note ("Story Attached")**: Optional personal note from donors explaining why they loved a donated book (displayed on listing & Vidya Daan certificate).
+- [ ] **Custom Domain (Optional)**: Connect custom domain in Vercel Domains.

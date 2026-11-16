@@ -25,10 +25,10 @@ const createFreshPrismaClient = (): PrismaClient => {
 }
 
 declare const globalThis: {
-  prismaGlobalV8?: PrismaClient
+  prismaGlobalV9?: PrismaClient
 } & typeof global
 
-const existing = globalThis.prismaGlobalV8
+const existing = globalThis.prismaGlobalV9
 const prisma: PrismaClient =
   existing &&
   "bookNote" in existing &&
@@ -36,12 +36,13 @@ const prisma: PrismaClient =
   "bookClub" in existing &&
   "conversation" in existing &&
   "bookOffer" in existing &&
-  "xpTransaction" in existing
+  "xpTransaction" in existing &&
+  "supportTicket" in existing
     ? existing
     : createFreshPrismaClient()
 
 export default prisma
 
 if (process.env.NODE_ENV !== "production") {
-  globalThis.prismaGlobalV8 = prisma
+  globalThis.prismaGlobalV9 = prisma
 }

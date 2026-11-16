@@ -17,6 +17,7 @@ import {
   Loader2,
   Trophy,
   RotateCcw,
+  LifeBuoy,
 } from "lucide-react"
 import {
   verifyUser,
@@ -29,7 +30,13 @@ import {
 } from "@/app/actions/admin"
 import { toast } from "sonner"
 
-type AdminTab = "donations" | "campaigns" | "books" | "users" | "gamification"
+type AdminTab =
+  | "donations"
+  | "campaigns"
+  | "books"
+  | "users"
+  | "gamification"
+  | "support"
 
 const DONATION_STAGES = [
   "DONATED",
@@ -156,6 +163,38 @@ export function AdminConsoleClient({
     }
   }, [tab, gamificationData, loadGamificationAdmin])
 
+  const [supportData, setSupportData] = useState<{
+    allTickets: any[]
+    customArticles: any[]
+  } | null>(null)
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({})
+  const [articleForm, setArticleForm] = useState({
+    slug: "",
+    title: "",
+    categorySlug: "getting-started",
+    summary: "",
+    contentMarkdown: "",
+  })
+
+  const loadSupportAdmin = useCallback(async () => {
+    try {
+      const res = await fetch("/api/support")
+      if (res.ok) {
+        const d = await res.json()
+        setSupportData({
+          allTickets: d.allTickets || [],
+          customArticles: d.customArticles || [],
+        })
+      }
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    if (tab === "support" && !supportData) {
+      loadSupportAdmin()
+    }
+  }, [tab, supportData, loadSupportAdmin])
+
   const tabs: { id: AdminTab; label: string; count: number; icon: any }[] = [
     {
       id: "donations",
@@ -184,8 +223,14 @@ export function AdminConsoleClient({
     {
       id: "gamification",
       label: "Gamification, XP & Audit",
-      count: gamificationData?.badges?.length || 21,
+      count: gamificationData?.badges?.length || 34,
       icon: Trophy,
+    },
+    {
+      id: "support",
+      label: "Support & Help Docs",
+      count: supportData?.allTickets?.length || 0,
+      icon: LifeBuoy,
     },
   ]
 
@@ -928,6 +973,235 @@ export function AdminConsoleClient({
                           Reversed
                         </span>
                       )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 6: SUPPORT TICKETS & HELP CENTER ARTICLE MANAGEMENT */}
+      {tab === "support" && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Publish / Update Help Article */}
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault()
+              const res = await fetch("/api/support", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  action: "admin_save_article",
+                  ...articleForm,
+                }),
+              })
+              if (res.ok) {
+                toast.success("Help Center article published!")
+                setArticleForm({
+                  slug: "",
+                  title: "",
+                  categorySlug: "getting-started",
+                  summary: "",
+                  contentMarkdown: "",
+                })
+                loadSupportAdmin()
+              } else {
+                toast.error("Failed to save article")
+              }
+            }}
+            className="lg:col-span-5 bg-white rounded-3xl p-6 border border-black/5 shadow-sm space-y-3.5"
+          >
+            <h3 className="text-lg font-black text-[#1d1d1f]">
+              Publish / Edit Help Center Article
+            </h3>
+            <input
+              required
+              value={articleForm.slug}
+              onChange={(e) =>
+                setArticleForm((p) => ({ ...p, slug: e.target.value }))
+              }
+              placeholder="URL Slug (e.g. campus-pickup-tips)"
+              className="w-full rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-bold"
+            />
+            <input
+              required
+              value={articleForm.title}
+              onChange={(e) =>
+                setArticleForm((p) => ({ ...p, title: e.target.value }))
+              }
+              placeholder="Article Title"
+              className="w-full rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-bold"
+            />
+            <select
+              value={articleForm.categorySlug}
+              onChange={(e) =>
+                setArticleForm((p) => ({ ...p, categorySlug: e.target.value }))
+              }
+              className="w-full rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-bold"
+            >
+              <option value="getting-started">Getting Started</option>
+              <option value="account-and-profiles">Account & Profiles</option>
+              <option value="buying-books">Buying Books</option>
+              <option value="selling-books">Selling Books</option>
+              <option value="messaging-and-communication">
+                Messaging & Communication
+              </option>
+              <option value="reading-and-digital-library">
+                Reading & Digital Library
+              </option>
+              <option value="xp-levels-and-progression">
+                XP, Levels & Progression
+              </option>
+              <option value="badges-and-achievements">
+                Badges & Achievements
+              </option>
+              <option value="quests-streaks-and-rewards">
+                Quests, Streaks & Rewards
+              </option>
+              <option value="community-and-social-features">
+                Community & Social Features
+              </option>
+              <option value="payments-and-transactions">
+                Payments & Transactions
+              </option>
+              <option value="safety-privacy-and-security">
+                Safety, Privacy & Security
+              </option>
+              <option value="technical-support">Technical Support</option>
+            </select>
+            <input
+              required
+              value={articleForm.summary}
+              onChange={(e) =>
+                setArticleForm((p) => ({ ...p, summary: e.target.value }))
+              }
+              placeholder="Short summary for search cards"
+              className="w-full rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-medium"
+            />
+            <textarea
+              rows={4}
+              required
+              value={articleForm.contentMarkdown}
+              onChange={(e) =>
+                setArticleForm((p) => ({
+                  ...p,
+                  contentMarkdown: e.target.value,
+                }))
+              }
+              placeholder="Article paragraphs (separate paragraphs with a blank line)..."
+              className="w-full rounded-xl bg-[#f5f5f7] p-3.5 text-xs font-medium"
+            />
+            <button
+              type="submit"
+              className="w-full rounded-full bg-[#0066cc] hover:bg-[#0071e3] py-2.5 text-xs font-bold text-white cursor-pointer"
+            >
+              Publish to /help
+            </button>
+          </form>
+
+          {/* Support Ticket Queue */}
+          <div className="lg:col-span-7 bg-white rounded-3xl p-6 border border-black/5 shadow-sm space-y-4">
+            <h3 className="text-lg font-black text-[#1d1d1f]">
+              Support Tickets Queue ({supportData?.allTickets?.length || 0})
+            </h3>
+            {!supportData ? (
+              <div className="py-8 flex justify-center">
+                <Loader2 className="w-5 h-5 animate-spin text-[#86868b]" />
+              </div>
+            ) : supportData.allTickets.length === 0 ? (
+              <p className="text-xs text-[#86868b] py-6 text-center">
+                No support tickets in the queue.
+              </p>
+            ) : (
+              <div className="space-y-3 max-h-[540px] overflow-y-auto pr-1">
+                {supportData.allTickets.map((t: any) => (
+                  <div
+                    key={t.id}
+                    className="rounded-2xl bg-[#f5f5f7] p-4 space-y-2.5 text-xs"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono font-bold text-[#0066cc]">
+                        {t.ticketNumber} · {t.category}
+                      </span>
+                      <select
+                        value={t.status}
+                        onChange={async (e) => {
+                          const nextStatus = e.target.value
+                          const res = await fetch("/api/support", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              action: "admin_update_ticket",
+                              ticketId: t.id,
+                              status: nextStatus,
+                            }),
+                          })
+                          if (res.ok) {
+                            toast.success(`Ticket updated to ${nextStatus}`)
+                            loadSupportAdmin()
+                          }
+                        }}
+                        className="rounded-full bg-white px-3 py-1 text-[11px] font-bold border border-black/10"
+                      >
+                        {[
+                          "OPEN",
+                          "IN_PROGRESS",
+                          "WAITING_FOR_USER",
+                          "RESOLVED",
+                          "CLOSED",
+                        ].map((s) => (
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="font-bold text-[#1d1d1f]">{t.subject}</div>
+                    <p className="text-[#6e6e73]">{t.description}</p>
+                    <div className="text-[11px] text-[#86868b]">
+                      From: {t.contactEmail}
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <input
+                        value={
+                          replyDrafts[t.id] !== undefined
+                            ? replyDrafts[t.id]
+                            : t.adminResponse || ""
+                        }
+                        onChange={(e) =>
+                          setReplyDrafts((p) => ({
+                            ...p,
+                            [t.id]: e.target.value,
+                          }))
+                        }
+                        placeholder="Write official support response..."
+                        className="flex-1 rounded-full bg-white px-3.5 py-1.5 text-xs border border-black/10"
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const res = await fetch("/api/support", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              action: "admin_update_ticket",
+                              ticketId: t.id,
+                              status: "RESOLVED",
+                              adminResponse:
+                                replyDrafts[t.id] ?? t.adminResponse ?? "",
+                            }),
+                          })
+                          if (res.ok) {
+                            toast.success("Response sent & ticket resolved!")
+                            loadSupportAdmin()
+                          }
+                        }}
+                        className="rounded-full bg-[#0066cc] text-white px-4 py-1.5 text-xs font-bold cursor-pointer"
+                      >
+                        Send & Resolve
+                      </button>
                     </div>
                   </div>
                 ))}

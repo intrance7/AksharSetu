@@ -99,6 +99,7 @@ model User {
   questClaims              UserQuestClaim[]
   followers                UserFollow[]              @relation("UserFollowers")
   following                UserFollow[]              @relation("UserFollowing")
+  supportTickets           SupportTicket[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -574,6 +575,49 @@ model UserFollow {
   @@unique([followerId, followingId])
   @@index([followingId])
   @@index([followerId])
+}
+
+model SupportTicket {
+  id           String   @id @default(uuid())
+  ticketCode   String   @unique
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name         String
+  email        String
+  category     String   // GENERAL, BUG_REPORT, USER_REPORT, SUSPICIOUS_LISTING, PAYMENT_ISSUE, COPYRIGHT_DMCA, ACCOUNT_ACCESS
+  subject      String
+  description  String   @db.Text
+  referenceUrl String?
+  status       String   @default("OPEN") // OPEN, IN_PROGRESS, WAITING_FOR_USER, RESOLVED, CLOSED
+  responses    Json?    // Array of { senderName, role, message, createdAt }
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+model HelpArticleFeedback {
+  id        String   @id @default(uuid())
+  slug      String
+  userId    String?
+  helpful   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([slug])
+}
+
+model HelpCustomArticle {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  title     String
+  category  String
+  summary   String
+  body      String   @db.Text
+  version   String   @default("1.0")
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model UserBadge {
