@@ -2,7 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import {
   getLegalDocumentBySlug,
-  LEGAL_DOCUMENTS,
+  LEGAL_DOCUMENT_LIST,
 } from "@/lib/legalDocumentsData"
 import {
   Scale,
@@ -10,7 +10,6 @@ import {
   Calendar,
   History,
   AlertCircle,
-  CheckCircle2,
 } from "lucide-react"
 
 export default async function LegalDocumentPage({
@@ -71,7 +70,7 @@ export default async function LegalDocumentPage({
                 All 14 Platform Policies
               </h2>
               <div className="space-y-1 max-h-[420px] overflow-y-auto pr-1">
-                {LEGAL_DOCUMENTS.map((item) => {
+                {LEGAL_DOCUMENT_LIST.map((item) => {
                   const active = item.slug === doc.slug
                   return (
                     <Link
@@ -108,7 +107,9 @@ export default async function LegalDocumentPage({
                         {ch.date}
                       </span>
                     </div>
-                    <p className="text-[11px] text-[#6e6e73] mt-1">{ch.note}</p>
+                    <p className="text-[11px] text-[#6e6e73] mt-1">
+                      {ch.summary}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -117,7 +118,7 @@ export default async function LegalDocumentPage({
 
           {/* Main Policy Clauses */}
           <main className="lg:col-span-8 space-y-6">
-            {doc.requiresLegalCounselReview && (
+            {doc.requiresCounselNotice && (
               <div className="rounded-2xl border border-amber-500/30 bg-amber-50/90 p-4 flex items-start gap-3 text-xs text-amber-900">
                 <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
                 <div>
@@ -136,8 +137,7 @@ export default async function LegalDocumentPage({
             <div className="rounded-2xl bg-white p-6 sm:p-8 shadow-sm border border-black/[0.06] space-y-8">
               {doc.sections.map((section, idx) => (
                 <section
-                  key={section.id}
-                  id={section.id}
+                  key={section.heading}
                   className={
                     idx > 0 ? "pt-8 border-t border-black/[0.06]" : undefined
                   }
@@ -146,23 +146,10 @@ export default async function LegalDocumentPage({
                     {section.heading}
                   </h2>
                   <div className="mt-3 space-y-3 text-sm text-[#1d1d1f]/85 leading-relaxed">
-                    {section.paragraphs.map((p, pIdx) => (
+                    {section.body.split(/\n\n+/).map((p, pIdx) => (
                       <p key={pIdx}>{p}</p>
                     ))}
                   </div>
-                  {section.bullets && section.bullets.length > 0 && (
-                    <ul className="mt-4 space-y-2 rounded-xl bg-[#f5f5f7] p-4">
-                      {section.bullets.map((b, bIdx) => (
-                        <li
-                          key={bIdx}
-                          className="flex items-start gap-2.5 text-xs sm:text-sm text-[#1d1d1f]"
-                        >
-                          <CheckCircle2 className="h-4 w-4 text-[#0066cc] shrink-0 mt-0.5" />
-                          <span>{b}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
                 </section>
               ))}
             </div>

@@ -25,7 +25,7 @@ import {
   FAQ_ITEMS,
   type HelpArticle,
 } from "@/lib/helpCenterData"
-import { LEGAL_DOCUMENTS } from "@/lib/legalDocumentsData"
+import { LEGAL_DOCUMENT_LIST } from "@/lib/legalDocumentsData"
 import { BADGE_ARTWORK_LIST } from "@/lib/badgeRegistry"
 
 function highlightText(text: string, query: string) {
@@ -50,7 +50,7 @@ function highlightText(text: string, query: string) {
 export interface CustomHelpArticleItem {
   slug: string
   title: string
-  categorySlug: string
+  category: string
   summary: string
   updatedAt: string
 }
@@ -67,21 +67,19 @@ export function HelpCenterClient({
     const customMapped: HelpArticle[] = customArticles.map((c) => ({
       slug: c.slug,
       title: c.title,
-      categorySlug: c.categorySlug,
+      category: c.category,
       summary: c.summary,
-      lastUpdated: c.updatedAt.slice(0, 10),
+      updatedAt: c.updatedAt.slice(0, 10),
       popular: false,
       recentlyUpdated: true,
-      readTimeMinutes: 3,
-      tableOfContents: [{ id: "overview", title: "Overview" }],
       sections: [
         {
           id: "overview",
           heading: c.title,
-          paragraphs: [c.summary],
+          body: c.summary,
         },
       ],
-      relatedSlugs: ["welcome-to-aksharsetu"],
+      relatedSlugs: ["getting-started-with-aksharsetu"],
     }))
     const existingSlugs = new Set(customMapped.map((c) => c.slug))
     return [
@@ -93,10 +91,7 @@ export function HelpCenterClient({
   const filteredArticles = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
     return allArticles.filter((article) => {
-      if (
-        selectedCategory !== "all" &&
-        article.categorySlug !== selectedCategory
-      ) {
+      if (selectedCategory !== "all" && article.category !== selectedCategory) {
         return false
       }
       if (!q) return true
@@ -106,7 +101,7 @@ export function HelpCenterClient({
         article.sections.some(
           (s) =>
             s.heading.toLowerCase().includes(q) ||
-            s.paragraphs.some((p) => p.toLowerCase().includes(q))
+            s.body.toLowerCase().includes(q)
         )
       )
     })
@@ -120,10 +115,10 @@ export function HelpCenterClient({
       (f) =>
         f.question.toLowerCase().includes(q) ||
         f.answer.toLowerCase().includes(q) ||
-        f.tags.some((t) => t.toLowerCase().includes(q))
+        f.category.toLowerCase().includes(q)
     ).slice(0, 5)
 
-    const legalDocs = LEGAL_DOCUMENTS.filter(
+    const legalDocs = LEGAL_DOCUMENT_LIST.filter(
       (l) =>
         l.title.toLowerCase().includes(q) ||
         l.summary.toLowerCase().includes(q) ||
@@ -268,7 +263,8 @@ export function HelpCenterClient({
             {unifiedResults.total === 0 ? (
               <div className="py-10 text-center">
                 <p className="text-sm font-semibold text-[#1d1d1f]">
-                  No matching documentation found for &ldquo;{searchQuery}&rdquo;.
+                  No matching documentation found for &ldquo;{searchQuery}
+                  &rdquo;.
                 </p>
                 <p className="text-xs text-[#86868b] mt-1">
                   Try searching for &ldquo;XP&rdquo;, &ldquo;offer&rdquo;,
@@ -317,7 +313,7 @@ export function HelpCenterClient({
                       {unifiedResults.faqs.map((faq) => (
                         <Link
                           key={faq.id}
-                          href={`/faq?q=${encodeURIComponent(searchQuery)}`}
+                          href={`/faq`}
                           className="block rounded-xl border border-black/[0.06] bg-[#f5f5f7]/50 hover:bg-[#f5f5f7] p-4 transition-all"
                         >
                           <div className="text-sm font-bold text-[#1d1d1f]">
@@ -341,7 +337,7 @@ export function HelpCenterClient({
                       {unifiedResults.badges.map((b) => (
                         <Link
                           key={b.code}
-                          href={`/achievements?q=${encodeURIComponent(b.name)}`}
+                          href={`/achievements`}
                           className="rounded-xl border border-black/[0.06] bg-[#f5f5f7]/60 hover:bg-[#f5f5f7] p-3 flex items-center justify-between"
                         >
                           <div>
@@ -491,15 +487,15 @@ export function HelpCenterClient({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {HELP_CATEGORIES.map((cat) => {
               const count = allArticles.filter(
-                (a) => a.categorySlug === cat.slug
+                (a) => a.category === cat.id
               ).length
-              const isSelected = selectedCategory === cat.slug
+              const isSelected = selectedCategory === cat.id
               return (
                 <button
-                  key={cat.slug}
+                  key={cat.id}
                   type="button"
                   onClick={() =>
-                    setSelectedCategory(isSelected ? "all" : cat.slug)
+                    setSelectedCategory(isSelected ? "all" : cat.id)
                   }
                   className={`text-left rounded-2xl p-5 transition-all border ${
                     isSelected
@@ -508,7 +504,7 @@ export function HelpCenterClient({
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-bold">{cat.title}</span>
+                    <span className="text-sm font-bold">{cat.name}</span>
                     <span
                       className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
                         isSelected
@@ -539,8 +535,8 @@ export function HelpCenterClient({
               {selectedCategory === "all"
                 ? "All Help Center Guides"
                 : `${
-                    HELP_CATEGORIES.find((c) => c.slug === selectedCategory)
-                      ?.title || "Category"
+                    HELP_CATEGORIES.find((c) => c.id === selectedCategory)
+                      ?.name || "Category"
                   } Guides`}
             </h2>
             <span className="text-xs font-semibold text-[#86868b]">
@@ -551,8 +547,8 @@ export function HelpCenterClient({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredArticles.map((article) => {
               const categoryTitle =
-                HELP_CATEGORIES.find((c) => c.slug === article.categorySlug)
-                  ?.title || article.categorySlug
+                HELP_CATEGORIES.find((c) => c.id === article.category)?.name ||
+                article.category
               return (
                 <Link
                   key={article.slug}
@@ -563,8 +559,8 @@ export function HelpCenterClient({
                     <div className="flex items-center justify-between gap-2 text-[11px] font-bold uppercase tracking-wider text-[#0066cc]">
                       <span>{categoryTitle}</span>
                       <span className="inline-flex items-center gap-1 text-[#86868b] font-medium normal-case">
-                        <Clock className="h-3 w-3" /> {article.readTimeMinutes}{" "}
-                        min read
+                        <Clock className="h-3 w-3" />{" "}
+                        {Math.max(2, article.sections.length)} min read
                       </span>
                     </div>
                     <h3 className="text-base font-bold text-[#1d1d1f] group-hover:text-[#0066cc] mt-2">
@@ -576,7 +572,7 @@ export function HelpCenterClient({
                   </div>
                   <div className="mt-4 pt-3 border-t border-black/[0.05] flex items-center justify-between text-xs">
                     <span className="text-[#86868b]">
-                      Updated {article.lastUpdated}
+                      Updated {article.updatedAt}
                     </span>
                     <span className="font-bold text-[#0066cc] inline-flex items-center gap-1">
                       Read Guide <ArrowRight className="h-3.5 w-3.5" />
@@ -633,7 +629,7 @@ export function HelpCenterClient({
                       {art.title}
                     </div>
                     <div className="text-[11px] text-[#86868b]">
-                      Updated {art.lastUpdated}
+                      Updated {art.updatedAt}
                     </div>
                   </div>
                   <ArrowRight className="h-4 w-4 text-[#0066cc] shrink-0 ml-3" />

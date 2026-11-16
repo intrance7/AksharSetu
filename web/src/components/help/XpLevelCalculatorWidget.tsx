@@ -7,7 +7,7 @@ import {
   LEVEL_TITLES,
   XP_REWARDS,
 } from "@/lib/gamification"
-import { Calculator, Sparkles, Trophy, Flame, BookOpen } from "lucide-react"
+import { Calculator } from "lucide-react"
 
 function cumulativeXpForLevel(targetLevel: number): number {
   let total = 0
@@ -29,8 +29,8 @@ export function XpLevelCalculatorWidget() {
     if (mode === "xp") return Math.max(0, customXp)
     return (
       booksCompleted * XP_REWARDS.BOOK_COMPLETED +
-      readingMinutes * XP_REWARDS.READING_MINUTE +
-      reviewsWritten * XP_REWARDS.BOOK_REVIEW +
+      readingMinutes * 2 +
+      reviewsWritten * XP_REWARDS.REVIEW_PUBLISHED +
       booksDonated * XP_REWARDS.BOOK_DONATED
     )
   }, [
@@ -49,10 +49,12 @@ export function XpLevelCalculatorWidget() {
 
   const milestones = useMemo(
     () =>
-      LEVEL_TITLES.map((m) => ({
-        ...m,
-        requiredTotalXp: cumulativeXpForLevel(m.minLevel),
-      })),
+      [...LEVEL_TITLES]
+        .reverse()
+        .map((m) => ({
+          ...m,
+          requiredTotalXp: cumulativeXpForLevel(m.minLevel),
+        })),
     []
   )
 
@@ -69,7 +71,7 @@ export function XpLevelCalculatorWidget() {
           <p className="text-xs text-[#86868b] mt-0.5">
             Powered by the exact deterministic curve used across AksharSetu:
             <code className="ml-1 rounded bg-[#f5f5f7] px-1.5 py-0.5 text-[#1d1d1f] font-mono">
-              100 + (level - 1) × 45 + (level - 1)² × 5
+              round(100 × level^1.5)
             </code>
           </p>
         </div>
@@ -159,7 +161,7 @@ export function XpLevelCalculatorWidget() {
               </div>
               <div className="rounded-xl bg-[#f5f5f7] p-3.5">
                 <div className="text-xs font-bold text-[#1d1d1f]">
-                  Reading Minutes (+{XP_REWARDS.READING_MINUTE} XP/min)
+                  Reading Minutes (+2 XP/min)
                 </div>
                 <input
                   type="number"
@@ -174,7 +176,7 @@ export function XpLevelCalculatorWidget() {
               </div>
               <div className="rounded-xl bg-[#f5f5f7] p-3.5">
                 <div className="text-xs font-bold text-[#1d1d1f]">
-                  Verified Reviews (+{XP_REWARDS.BOOK_REVIEW} XP)
+                  Verified Reviews (+{XP_REWARDS.REVIEW_PUBLISHED} XP)
                 </div>
                 <input
                   type="number"
@@ -217,8 +219,7 @@ export function XpLevelCalculatorWidget() {
                 {breakdown.rankTitle}
               </div>
               <div className="text-xs text-[#86868b]">
-                {breakdown.rankSanskrit} · {simulatedXp.toLocaleString()} Total
-                XP
+                {simulatedXp.toLocaleString()} Total XP
               </div>
             </div>
             <div className="h-14 w-14 rounded-2xl bg-[#0066cc] flex flex-col items-center justify-center">
@@ -237,7 +238,7 @@ export function XpLevelCalculatorWidget() {
                 Level {breakdown.level} Progress ({breakdown.progressPercent}%)
               </span>
               <span className="font-bold text-white">
-                {breakdown.currentLevelXP.toLocaleString()} /{" "}
+                {breakdown.xpIntoLevel.toLocaleString()} /{" "}
                 {breakdown.xpForNextLevel.toLocaleString()} XP
               </span>
             </div>
@@ -252,12 +253,11 @@ export function XpLevelCalculatorWidget() {
               <strong className="text-white">
                 {Math.max(
                   0,
-                  breakdown.xpForNextLevel - breakdown.currentLevelXP
+                  breakdown.xpForNextLevel - breakdown.xpIntoLevel
                 ).toLocaleString()}{" "}
                 XP
               </strong>{" "}
-              more to reach Level {breakdown.level + 1} (Cumulative:{" "}
-              {breakdown.nextLevelCumulativeXP.toLocaleString()} XP).
+              more to reach Level {breakdown.level + 1}.
             </div>
           </div>
         </div>
@@ -268,7 +268,7 @@ export function XpLevelCalculatorWidget() {
         <h3 className="text-xs font-bold uppercase tracking-wider text-[#86868b] mb-3">
           Official Rank Tiers & Cumulative XP Thresholds
         </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
           {milestones.map((m) => {
             const unlocked = breakdown.level >= m.minLevel
             return (
@@ -286,8 +286,7 @@ export function XpLevelCalculatorWidget() {
                 <div className="text-xs font-bold text-[#1d1d1f] mt-0.5">
                   {m.title}
                 </div>
-                <div className="text-[10px] text-[#86868b]">{m.sanskrit}</div>
-                <div className="text-[11px] font-semibold text-[#1d1d1f] mt-1.5">
+                <div className="text-[11px] font-semibold text-[#6e6e73] mt-1">
                   {m.requiredTotalXp.toLocaleString()} XP
                 </div>
               </div>

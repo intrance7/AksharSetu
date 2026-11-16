@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { LEGAL_DOCUMENTS } from "@/lib/legalDocumentsData"
+import { LEGAL_DOCUMENT_LIST } from "@/lib/legalDocumentsData"
 import { Scale, ArrowRight, ShieldCheck, Calendar, FileText } from "lucide-react"
 
 export const metadata = {
@@ -29,7 +29,7 @@ export default function LegalIndexPage() {
 
       <div className="mx-auto max-w-5xl px-4 sm:px-6 -mt-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {LEGAL_DOCUMENTS.map((doc) => (
+          {LEGAL_DOCUMENT_LIST.map((doc) => (
             <Link
               key={doc.slug}
               href={`/legal/${doc.slug}`}

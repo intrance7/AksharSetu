@@ -29,8 +29,8 @@ export default function FaqPage() {
     "ALL" | FaqItem["category"]
   >("ALL")
   const [openIds, setOpenIds] = useState<string[]>([
-    FAQ_ITEMS[0]?.id || "faq-1",
-    FAQ_ITEMS[9]?.id || "faq-10",
+    FAQ_ITEMS[0]?.id || "faq-what-is-aksharsetu",
+    FAQ_ITEMS[1]?.id || "faq-is-it-free",
   ])
 
   const filteredFaqs = useMemo(() => {
@@ -43,7 +43,7 @@ export default function FaqPage() {
       return (
         item.question.toLowerCase().includes(q) ||
         item.answer.toLowerCase().includes(q) ||
-        item.tags.some((t) => t.toLowerCase().includes(q))
+        item.category.toLowerCase().includes(q)
       )
     })
   }, [query, selectedCategory])
@@ -130,8 +130,16 @@ export default function FaqPage() {
                   )}
                 </button>
                 {isOpen && (
-                  <div className="px-6 pb-5 pt-1 text-xs sm:text-sm text-[#6e6e73] leading-relaxed border-t border-black/[0.04]">
-                    {faq.answer}
+                  <div className="px-6 pb-5 pt-2 text-xs sm:text-sm text-[#6e6e73] leading-relaxed border-t border-black/[0.04]">
+                    <p>{faq.answer}</p>
+                    {faq.relatedLink && (
+                      <Link
+                        href={faq.relatedLink.href}
+                        className="mt-2 inline-block text-xs font-bold text-[#0066cc] hover:underline"
+                      >
+                        {faq.relatedLink.label} →
+                      </Link>
+                    )}
                   </div>
                 )}
               </div>

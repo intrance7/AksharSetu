@@ -37,7 +37,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/help/welcome-to-aksharsetu"
+                  href="/help/getting-started-with-aksharsetu"
                   className="hover:text-[#0066cc] transition-colors"
                 >
                   How It Works
@@ -159,7 +159,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/help/account-security-and-privacy"
+                  href="/help/safety-blocking-and-reporting"
                   className="hover:text-[#0066cc] transition-colors"
                 >
                   Safety Tips

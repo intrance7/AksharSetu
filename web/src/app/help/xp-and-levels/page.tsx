@@ -1,8 +1,8 @@
 import Link from "next/link"
-import { XP_REWARDS, LEVEL_TITLES } from "@/lib/gamification"
+import { XP_REWARDS } from "@/lib/gamification"
 import { XpLevelCalculatorWidget } from "@/components/help/XpLevelCalculatorWidget"
 import { ArticleFeedbackWidget } from "@/components/help/ArticleFeedbackWidget"
-import { Sparkles, ShieldCheck, ArrowLeft, ChevronRight } from "lucide-react"
+import { Sparkles, ShieldCheck, ChevronRight } from "lucide-react"
 
 export const metadata = {
   title: "XP & Levels Guide — AksharSetu Help Center",
@@ -24,10 +24,22 @@ const XP_ACTION_ROWS = [
     category: "Donation",
   },
   {
+    action: "Complete Weekly Challenge Quest",
+    xp: `+${XP_REWARDS.WEEKLY_CHALLENGE} XP`,
+    cap: "Once per ISO week",
+    category: "Quests",
+  },
+  {
     action: "Sell or Exchange a Book",
     xp: `+${XP_REWARDS.BOOK_SOLD} XP`,
     cap: "Verified upon order/offer completion",
     category: "Marketplace",
+  },
+  {
+    action: "Publish a Verified Book Review",
+    xp: `+${XP_REWARDS.REVIEW_PUBLISHED} XP`,
+    cap: "1 review per book per user",
+    category: "Reviews",
   },
   {
     action: "List a Book in the Marketplace",
@@ -36,10 +48,10 @@ const XP_ACTION_ROWS = [
     category: "Marketplace",
   },
   {
-    action: "Unlock an Achievement Badge",
-    xp: `+${XP_REWARDS.BADGE_EARNED}+ XP`,
-    cap: "One-time per badge (40 to 2,500 XP by rarity)",
-    category: "Achievements",
+    action: "Daily Check-In Claim",
+    xp: `+${XP_REWARDS.DAILY_CHECKIN} XP`,
+    cap: "Once per UTC calendar day (+10 AP)",
+    category: "Streaks",
   },
   {
     action: "Purchase a Book on AksharSetu",
@@ -48,40 +60,16 @@ const XP_ACTION_ROWS = [
     category: "Marketplace",
   },
   {
-    action: "Publish a Verified Book Review",
-    xp: `+${XP_REWARDS.BOOK_REVIEW} XP`,
-    cap: "1 review per book per user",
-    category: "Reviews",
-  },
-  {
-    action: "Save a Literary Note or Passage Highlight",
-    xp: `+${XP_REWARDS.BOOK_NOTE} XP`,
-    cap: "Up to 5 notes/day XP cap",
+    action: "Shanti Mode Mindful Reading Session",
+    xp: `+${XP_REWARDS.READING_SESSION} XP (+2 XP/min)`,
+    cap: "Minimum 1 minute; daily fair-play cap applies",
     category: "Reading",
   },
   {
     action: "Post in a Sabha Book Club",
-    xp: `+${XP_REWARDS.CLUB_POST} XP`,
+    xp: `+${XP_REWARDS.CLUB_CONTRIBUTION} XP`,
     cap: "Up to 5 posts/day XP cap",
     category: "Community",
-  },
-  {
-    action: "Add a Book to Personal Reading Shelf",
-    xp: `+${XP_REWARDS.LIBRARY_ITEM} XP`,
-    cap: "Per unique book added",
-    category: "Reading",
-  },
-  {
-    action: "Daily Check-In Claim",
-    xp: `+${XP_REWARDS.DAILY_CHECKIN} XP`,
-    cap: "Once per UTC calendar day (+10 AP)",
-    category: "Streaks",
-  },
-  {
-    action: "Shanti Mode Mindful Reading Session",
-    xp: `+${XP_REWARDS.READING_MINUTE} XP / min`,
-    cap: "Minimum 1 minute; daily fair-play cap applies",
-    category: "Reading",
   },
 ]
 

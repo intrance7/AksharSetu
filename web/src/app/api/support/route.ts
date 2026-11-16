@@ -1,15 +1,38 @@
 import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
+
+function mapTicketForClient(t: any) {
+  const responses = Array.isArray(t.responses) ? t.responses : []
+  const lastAdmin = responses[responses.length - 1]
+  return {
+    id: t.id,
+    ticketNumber: t.ticketCode,
+    ticketCode: t.ticketCode,
+    category: t.category,
+    subject: t.subject,
+    description: t.description,
+    contactEmail: t.email,
+    status: t.status,
+    priority:
+      t.category === "PAYMENT_ISSUE" ||
+      t.category === "ACCOUNT_ACCESS" ||
+      t.category === "COPYRIGHT_DMCA"
+        ? "HIGH"
+        : "NORMAL",
+    adminResponse: lastAdmin?.message || null,
+    respondedAt: lastAdmin?.createdAt || null,
+    createdAt: t.createdAt,
+  }
+}
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
     const userId = session?.user?.id
 
     const customArticles = await prisma.helpCustomArticle.findMany({
-      where: { isPublished: true },
+      where: { published: true },
       orderBy: { updatedAt: "desc" },
     })
 
@@ -20,15 +43,15 @@ export async function GET() {
       })
     }
 
-    const myTickets = await prisma.supportTicket.findMany({
+    const myTicketsRaw = await prisma.supportTicket.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
       take: 30,
     })
 
     let allTickets: unknown[] = []
-    if (session?.user?.role === "ADMIN") {
-      allTickets = await prisma.supportTicket.findMany({
+    if ((session?.user as any)?.role === "ADMIN") {
+      const rawAll = await prisma.supportTicket.findMany({
         include: {
           user: {
             select: { id: true, name: true, email: true, username: true },
@@ -37,10 +60,11 @@ export async function GET() {
         orderBy: { createdAt: "desc" },
         take: 100,
       })
+      allTickets = rawAll.map(mapTicketForClient)
     }
 
     return NextResponse.json({
-      tickets: myTickets,
+      tickets: myTicketsRaw.map(mapTicketForClient),
       allTickets,
       customArticles,
     })
@@ -55,7 +79,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
     const body = await req.json()
     const action = body.action || "create_ticket"
 
@@ -71,9 +95,6 @@ export async function POST(req: Request) {
       const relatedUrl = body.relatedUrl
         ? String(body.relatedUrl).trim().slice(0, 300)
         : null
-      const attachmentUrl = body.attachmentUrl
-        ? String(body.attachmentUrl).trim().slice(0, 500)
-        : null
 
       if (!subject || !description || !contactEmail) {
         return NextResponse.json(
@@ -83,27 +104,20 @@ export async function POST(req: Request) {
       }
 
       const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase()
-      const ticketNumber = `TKT-${randomCode}`
-
-      const priority =
-        category === "PAYMENT_ISSUE" ||
-        category === "ACCOUNT_ACCESS" ||
-        category === "COPYRIGHT_DMCA"
-          ? "HIGH"
-          : "NORMAL"
+      const ticketCode = `TKT-${randomCode}`
 
       const ticket = await prisma.supportTicket.create({
         data: {
-          ticketNumber,
+          ticketCode,
           userId: session?.user?.id || null,
-          contactEmail,
-          contactName: session?.user?.name || String(body.contactName || "").trim() || null,
+          email: contactEmail,
+          name:
+            session?.user?.name ||
+            String(body.contactName || "AksharSetu Reader").trim(),
           category,
           subject,
           description,
-          relatedUrl,
-          attachmentUrl,
-          priority,
+          referenceUrl: relatedUrl,
           status: "OPEN",
         },
       })
@@ -114,39 +128,50 @@ export async function POST(req: Request) {
             data: {
               userId: session.user.id,
               type: "SUPPORT_TICKET",
-              message: `Support ticket ${ticket.ticketNumber} ("${ticket.subject}") has been received.`,
+              message: `Support ticket ${ticket.ticketCode} ("${ticket.subject}") has been received.`,
               link: `/support`,
             },
           })
           .catch(() => {})
       }
 
-      return NextResponse.json({ ticket })
+      return NextResponse.json({ ticket: mapTicketForClient(ticket) })
     }
 
-    // Admin actions below require ADMIN role
-    if (session?.user?.role !== "ADMIN") {
+    if ((session?.user as any)?.role !== "ADMIN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     if (action === "admin_update_ticket") {
-      const { ticketId, status, adminResponse, priority } = body
+      const { ticketId, status, adminResponse } = body
       if (!ticketId) {
         return NextResponse.json({ error: "Missing ticketId" }, { status: 400 })
       }
+
+      const existing = await prisma.supportTicket.findUnique({
+        where: { id: String(ticketId) },
+      })
+      const prevResponses = Array.isArray(existing?.responses)
+        ? (existing.responses as any[])
+        : []
+      const nextResponses =
+        adminResponse && String(adminResponse).trim()
+          ? [
+              ...prevResponses,
+              {
+                senderName: session?.user?.name || "Support Admin",
+                role: "ADMIN",
+                message: String(adminResponse).trim(),
+                createdAt: new Date().toISOString(),
+              },
+            ]
+          : prevResponses
 
       const updated = await prisma.supportTicket.update({
         where: { id: String(ticketId) },
         data: {
           ...(status ? { status: String(status) } : {}),
-          ...(priority ? { priority: String(priority) } : {}),
-          ...(adminResponse !== undefined
-            ? {
-                adminResponse: String(adminResponse).trim() || null,
-                respondedById: session.user.id,
-                respondedAt: new Date(),
-              }
-            : {}),
+          responses: nextResponses,
         },
       })
 
@@ -156,14 +181,14 @@ export async function POST(req: Request) {
             data: {
               userId: updated.userId,
               type: "SUPPORT_UPDATE",
-              message: `Ticket ${updated.ticketNumber} status updated to ${updated.status}.`,
+              message: `Ticket ${updated.ticketCode} status updated to ${updated.status}.`,
               link: `/support`,
             },
           })
           .catch(() => {})
       }
 
-      return NextResponse.json({ ticket: updated })
+      return NextResponse.json({ ticket: mapTicketForClient(updated) })
     }
 
     if (action === "admin_save_article") {
@@ -188,20 +213,18 @@ export async function POST(req: Request) {
         where: { slug },
         update: {
           title,
-          categorySlug,
+          category: categorySlug,
           summary,
-          contentMarkdown,
-          isPublished: body.isPublished !== false,
-          updatedById: session.user.id,
+          body: contentMarkdown,
+          published: body.isPublished !== false,
         },
         create: {
           slug,
           title,
-          categorySlug,
+          category: categorySlug,
           summary,
-          contentMarkdown,
-          isPublished: body.isPublished !== false,
-          updatedById: session.user.id,
+          body: contentMarkdown,
+          published: body.isPublished !== false,
         },
       })
 

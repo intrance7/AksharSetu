@@ -13,9 +13,7 @@ import {
   Clock,
   Calendar,
   BookOpen,
-  CheckCircle2,
   ArrowRight,
-  Info,
 } from "lucide-react"
 
 export const dynamic = "force-dynamic"
@@ -36,28 +34,26 @@ export default async function HelpArticleDetailPage({
       })
       .catch(() => null)
 
-    if (custom && custom.isPublished) {
+    if (custom && custom.published) {
       article = {
         slug: custom.slug,
         title: custom.title,
-        categorySlug: custom.categorySlug,
+        category: custom.category,
         summary: custom.summary,
-        lastUpdated: custom.updatedAt.toISOString().slice(0, 10),
+        updatedAt: custom.updatedAt.toISOString().slice(0, 10),
         popular: false,
         recentlyUpdated: true,
-        readTimeMinutes: 4,
-        tableOfContents: [{ id: "content", title: custom.title }],
         sections: [
           {
             id: "content",
             heading: custom.title,
-            paragraphs: custom.contentMarkdown
-              .split(/\n\n+/)
-              .map((p) => p.trim())
-              .filter(Boolean),
+            body: custom.body,
           },
         ],
-        relatedSlugs: ["welcome-to-aksharsetu", "account-security-and-privacy"],
+        relatedSlugs: [
+          "getting-started-with-aksharsetu",
+          "safety-blocking-and-reporting",
+        ],
       }
     }
   }
@@ -66,7 +62,7 @@ export default async function HelpArticleDetailPage({
     notFound()
   }
 
-  const category = HELP_CATEGORIES.find((c) => c.slug === article.categorySlug)
+  const category = HELP_CATEGORIES.find((c) => c.id === article.category)
   const relatedArticles = article.relatedSlugs
     .map((s) => HELP_ARTICLES.find((a) => a.slug === s))
     .filter((a): a is HelpArticle => Boolean(a))
@@ -86,7 +82,7 @@ export default async function HelpArticleDetailPage({
               href="/help"
               className="hover:text-white transition-colors text-[#0066cc] font-semibold"
             >
-              {category?.title || "Documentation"}
+              {category?.name || "Documentation"}
             </Link>
             <ChevronRight className="h-3.5 w-3.5" />
             <span className="text-white line-clamp-1">{article.title}</span>
@@ -102,11 +98,11 @@ export default async function HelpArticleDetailPage({
           <div className="mt-5 flex flex-wrap items-center gap-4 text-xs text-[#86868b]">
             <span className="inline-flex items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5 text-[#0066cc]" /> Last updated:{" "}
-              <strong className="text-white">{article.lastUpdated}</strong>
+              <strong className="text-white">{article.updatedAt}</strong>
             </span>
             <span className="inline-flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-[#0066cc]" />{" "}
-              {article.readTimeMinutes} minute read
+              {Math.max(2, article.sections.length)} minute read
             </span>
           </div>
         </div>
@@ -122,7 +118,7 @@ export default async function HelpArticleDetailPage({
                 Contents
               </h2>
               <ul className="space-y-2 text-xs">
-                {article.tableOfContents.map((item, idx) => (
+                {article.sections.map((item, idx) => (
                   <li key={item.id}>
                     <a
                       href={`#${item.id}`}
@@ -131,7 +127,7 @@ export default async function HelpArticleDetailPage({
                       <span className="text-[#86868b] font-mono">
                         0{idx + 1}
                       </span>
-                      <span>{item.title}</span>
+                      <span>{item.heading}</span>
                     </a>
                   </li>
                 ))}
@@ -180,7 +176,7 @@ export default async function HelpArticleDetailPage({
                   </h2>
 
                   <div className="mt-3 space-y-3 text-sm text-[#1d1d1f]/85 leading-relaxed">
-                    {section.paragraphs.map((p, pIdx) => (
+                    {section.body.split(/\n\n+/).map((p, pIdx) => (
                       <p key={pIdx}>{p}</p>
                     ))}
                   </div>
@@ -203,15 +199,6 @@ export default async function HelpArticleDetailPage({
                           </li>
                         ))}
                       </ol>
-                    </div>
-                  )}
-
-                  {section.callout && (
-                    <div className="mt-4 rounded-xl border border-[#0066cc]/20 bg-[#0066cc]/5 p-4 flex items-start gap-3">
-                      <Info className="h-4 w-4 text-[#0066cc] shrink-0 mt-0.5" />
-                      <p className="text-xs font-medium text-[#1d1d1f]">
-                        {section.callout}
-                      </p>
                     </div>
                   )}
                 </section>

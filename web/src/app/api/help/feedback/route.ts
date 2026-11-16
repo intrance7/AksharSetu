@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 
 export async function GET(req: Request) {
@@ -24,11 +23,10 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
     const body = await req.json()
     const slug = String(body.slug || "").trim()
     const helpful = Boolean(body.helpful)
-    const comment = body.comment ? String(body.comment).trim().slice(0, 500) : null
 
     if (!slug) {
       return NextResponse.json({ error: "Missing article slug" }, { status: 400 })
@@ -39,7 +37,6 @@ export async function POST(req: Request) {
         slug,
         userId: session?.user?.id || null,
         helpful,
-        comment,
       },
     })
 

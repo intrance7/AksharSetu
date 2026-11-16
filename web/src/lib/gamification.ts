@@ -127,6 +127,48 @@ export const RARITY_CONFIG: Record<
   },
 }
 
+export const BADGE_RARITY_META: Record<
+  BadgeRarity,
+  { label: string; bg: string; color: string; border: string }
+> = {
+  COMMON: {
+    label: "Common",
+    bg: "#f5f5f7",
+    color: "#1d1d1f",
+    border: "#d2d2d7",
+  },
+  UNCOMMON: {
+    label: "Uncommon",
+    bg: "#ecfdf5",
+    color: "#065f46",
+    border: "#34d399",
+  },
+  RARE: {
+    label: "Rare",
+    bg: "#eff6ff",
+    color: "#0052a3",
+    border: "#3b82f6",
+  },
+  EPIC: {
+    label: "Epic",
+    bg: "#f5f3ff",
+    color: "#5b21b6",
+    border: "#8b5cf6",
+  },
+  LEGENDARY: {
+    label: "Legendary",
+    bg: "#fffbeb",
+    color: "#92400e",
+    border: "#f59e0b",
+  },
+  MYTHIC: {
+    label: "Mythic",
+    bg: "#fff1f2",
+    color: "#9f1239",
+    border: "#f43f5e",
+  },
+}
+
 export const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100, 365] as const
 
 export interface CosmeticItem {

@@ -12,7 +12,7 @@ export const metadata = {
 export default async function HelpCenterPage() {
   const customArticlesRaw = await prisma.helpCustomArticle
     .findMany({
-      where: { isPublished: true },
+      where: { published: true },
       orderBy: { updatedAt: "desc" },
     })
     .catch(() => [])
@@ -20,7 +20,7 @@ export default async function HelpCenterPage() {
   const customArticles = customArticlesRaw.map((c) => ({
     slug: c.slug,
     title: c.title,
-    categorySlug: c.categorySlug,
+    category: c.category,
     summary: c.summary,
     updatedAt: c.updatedAt.toISOString(),
   }))

@@ -1,5 +1,4 @@
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { ensureDefaultBadges, checkAndAwardBadges } from "@/services/badgeService"
 import { calculateLevelFromXP, type BadgeRarity } from "@/lib/gamification"
@@ -17,7 +16,7 @@ export const metadata = {
 }
 
 export default async function AchievementsPage() {
-  const session = await getServerSession(authOptions)
+  const session = await auth()
   const userId = session?.user?.id || null
 
   if (userId) {
@@ -60,13 +59,10 @@ export default async function AchievementsPage() {
 
     if (user) {
       for (const ub of user.badges) {
-        unlockedMap.set(ub.badgeId, ub.awardedAt.toISOString())
-      }
-      if (user.pinnedBadgeIds) {
-        try {
-          const parsed = JSON.parse(user.pinnedBadgeIds)
-          if (Array.isArray(parsed)) pinnedBadgeIds = parsed
-        } catch {}
+        unlockedMap.set(ub.badgeId, ub.earnedAt.toISOString())
+        if (ub.isPinned) {
+          pinnedBadgeIds.push(ub.badgeId)
+        }
       }
 
       const booksCompleted = user.libraryBooks.filter(
@@ -115,7 +111,8 @@ export default async function AchievementsPage() {
   const enrichedBadges: EnrichedAchievementItem[] = allBadges.map((b) => {
     const unlockedAt = unlockedMap.get(b.id) || null
     const unlocked = Boolean(unlockedAt)
-    const rawCurrent = userMetrics[b.metricKey] ?? (unlocked ? b.requirementThreshold : 0)
+    const rawCurrent =
+      userMetrics[b.metricKey] ?? (unlocked ? b.requirementThreshold : 0)
     const currentValue = unlocked
       ? Math.max(rawCurrent, b.requirementThreshold)
       : rawCurrent
@@ -130,7 +127,10 @@ export default async function AchievementsPage() {
     const unlockCount = countMap.get(b.id) || 0
     const communityUnlockPercent =
       totalUsersCount > 0
-        ? Math.min(100, Math.max(1, Math.round((unlockCount / totalUsersCount) * 100)))
+        ? Math.min(
+            100,
+            Math.max(1, Math.round((unlockCount / totalUsersCount) * 100))
+          )
         : 5
 
     return {

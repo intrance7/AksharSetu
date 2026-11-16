@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { DEFAULT_QUESTS } from "@/services/badgeService"
-import { AVATAR_FRAMES, PROFILE_THEMES } from "@/lib/gamification"
+import { COSMETIC_CATALOG } from "@/lib/gamification"
 import { ArticleFeedbackWidget } from "@/components/help/ArticleFeedbackWidget"
 import { Target, ChevronRight, Sparkles, Gift } from "lucide-react"
 
@@ -11,6 +11,9 @@ export const metadata = {
 }
 
 export default function QuestsAndRewardsDocPage() {
+  const frames = COSMETIC_CATALOG.filter((c) => c.type === "frame")
+  const banners = COSMETIC_CATALOG.filter((c) => c.type === "banner")
+
   return (
     <div className="min-h-screen bg-[#f5f5f7] pb-24">
       <section className="bg-black text-[#f5f5f7] pt-12 pb-16 px-4 sm:px-6 border-b border-white/10">
@@ -119,10 +122,10 @@ export default function QuestsAndRewardsDocPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#86868b] mb-3">
-                Avatar Frames ({AVATAR_FRAMES.length})
+                Avatar Frames ({frames.length})
               </h3>
               <div className="space-y-2.5">
-                {AVATAR_FRAMES.map((frame) => (
+                {frames.map((frame) => (
                   <div
                     key={frame.id}
                     className="rounded-xl bg-[#f5f5f7] p-3.5 flex items-center justify-between"
@@ -132,11 +135,11 @@ export default function QuestsAndRewardsDocPage() {
                         {frame.name}
                       </div>
                       <div className="text-[11px] text-[#86868b]">
-                        {frame.requirement}
+                        {frame.description}
                       </div>
                     </div>
                     <span className="text-[11px] font-bold text-[#0066cc]">
-                      Level {frame.minLevel}+
+                      Level {frame.minLevel}+ · {frame.pointsCost} AP
                     </span>
                   </div>
                 ))}
@@ -145,10 +148,10 @@ export default function QuestsAndRewardsDocPage() {
 
             <div>
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#86868b] mb-3">
-                Profile Banner Themes ({PROFILE_THEMES.length})
+                Profile Banner Themes ({banners.length})
               </h3>
               <div className="space-y-2.5">
-                {PROFILE_THEMES.map((theme) => (
+                {banners.map((theme) => (
                   <div
                     key={theme.id}
                     className="rounded-xl bg-[#f5f5f7] p-3.5 flex items-center justify-between"
@@ -162,7 +165,7 @@ export default function QuestsAndRewardsDocPage() {
                       </div>
                     </div>
                     <span className="text-[11px] font-bold text-[#0066cc]">
-                      Level {theme.minLevel}+
+                      Level {theme.minLevel}+ · {theme.pointsCost} AP
                     </span>
                   </div>
                 ))}

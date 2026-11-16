@@ -408,7 +408,7 @@ export function AchievementsCatalogClient({
                       code={badge.code}
                       category={badge.category}
                       rarity={badge.rarity}
-                      locked={!badge.unlocked}
+                      unlocked={badge.unlocked}
                       size={68}
                     />
                     <div className="flex flex-col items-end gap-1.5">
@@ -512,7 +512,7 @@ export function AchievementsCatalogClient({
                 code={selectedBadge.code}
                 category={selectedBadge.category}
                 rarity={selectedBadge.rarity}
-                locked={!selectedBadge.unlocked}
+                unlocked={selectedBadge.unlocked}
                 size={112}
               />
 
