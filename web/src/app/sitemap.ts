@@ -27,3 +27,4 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: route === "" ? 1.0 : route === "/catalog" ? 0.9 : 0.8,
   }))
 }
+
