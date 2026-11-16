@@ -16,17 +16,41 @@ import {
   Users,
   Check,
   CheckCheck,
+  Pin,
+  Archive,
+  BellOff,
 } from "lucide-react"
 import { motion } from "framer-motion"
+import { toast } from "sonner"
+import type { DeliveryState } from "@/lib/messaging/types"
 
-interface Conversation {
+interface ConversationItem {
+  id: string
+  type: "DIRECT" | "LISTING"
+  role: "BUYER" | "SELLER" | "MEMBER"
+  isPinned: boolean
+  isArchived: boolean
+  isMuted: boolean
+  unreadCount: number
+  book: {
+    id: string
+    title: string
+    author: string
+    image: string | null
+    price: number
+    condition: string
+    status: string
+  } | null
   otherUser: {
     id: string
-    name: string | null
+    name: string
+    username: string
     image: string | null
     location?: string | null
     isShantiModeActive?: boolean
     liveStatus?: string | null
+    online: boolean
+    lastSeenAt: string | null
   }
   lastMessage: {
     id: string
@@ -34,9 +58,8 @@ interface Conversation {
     createdAt: string
     isMine: boolean
     read: boolean
+    state: DeliveryState | null
   }
-  messageCount?: number
-  unreadCount?: number
 }
 
 interface ReaderProfile {
@@ -58,21 +81,27 @@ interface ReaderProfile {
   }
 }
 
+type FilterId = "all" | "unread" | "buying" | "selling" | "archived"
+
 export function ConversationList() {
   const searchParams = useSearchParams()
   const initialTab =
     searchParams.get("tab") === "discover" ? "discover" : "chats"
 
-  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [conversations, setConversations] = useState<ConversationItem[]>([])
   const [readers, setReaders] = useState<ReaderProfile[]>([])
   const [loadingConvos, setLoadingConvos] = useState(true)
   const [loadingReaders, setLoadingReaders] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState<"chats" | "discover">(initialTab)
+  const [activeFilter, setActiveFilter] = useState<FilterId>("all")
 
   const loadConversations = useCallback(async () => {
     try {
-      const res = await fetch("/api/conversations")
+      const params = new URLSearchParams()
+      if (activeFilter !== "all") params.set("filter", activeFilter)
+      if (searchQuery.trim()) params.set("q", searchQuery.trim())
+      const res = await fetch(`/api/conversations?${params.toString()}`)
       if (!res.ok) return
       const data = await res.json()
       if (Array.isArray(data)) setConversations(data)
@@ -81,12 +110,17 @@ export function ConversationList() {
     } finally {
       setLoadingConvos(false)
     }
-  }, [])
+  }, [activeFilter, searchQuery])
 
   useEffect(() => {
-    loadConversations()
+    const timer = setTimeout(() => {
+      loadConversations()
+    }, 150)
     const interval = setInterval(loadConversations, 5000)
-    return () => clearInterval(interval)
+    return () => {
+      clearTimeout(timer)
+      clearInterval(interval)
+    }
   }, [loadConversations])
 
   useEffect(() => {
@@ -108,15 +142,31 @@ export function ConversationList() {
     return () => clearTimeout(timer)
   }, [searchQuery])
 
-  const filteredConversations = conversations.filter((c) => {
-    if (!searchQuery.trim()) return true
-    const q = searchQuery.toLowerCase()
-    return (
-      (c.otherUser.name || "").toLowerCase().includes(q) ||
-      (c.otherUser.location || "").toLowerCase().includes(q) ||
-      c.lastMessage.content.toLowerCase().includes(q)
-    )
-  })
+  const toggleConversationSetting = async (
+    convId: string,
+    patch: { isPinned?: boolean; isArchived?: boolean }
+  ) => {
+    try {
+      const res = await fetch(`/api/conversations/${convId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "settings", ...patch }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed")
+      loadConversations()
+      if (patch.isPinned !== undefined) {
+        toast.success(patch.isPinned ? "Pinned to top" : "Unpinned")
+      }
+      if (patch.isArchived !== undefined) {
+        toast.success(
+          patch.isArchived ? "Archived conversation" : "Restored to inbox"
+        )
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Could not update conversation")
+    }
+  }
 
   const totalUnread = conversations.reduce(
     (sum, c) => sum + (c.unreadCount || 0),
@@ -124,114 +174,143 @@ export function ConversationList() {
   )
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       {/* Top Search & Mode Switcher Bar */}
-      <div className="bg-white rounded-2xl p-4 border border-black/5 shadow-sm flex flex-col md:flex-row items-stretch md:items-center gap-3">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 text-[#86868b] absolute left-4 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value)
-              if (
-                e.target.value.trim() &&
-                activeTab === "chats" &&
-                conversations.length === 0
-              ) {
-                setActiveTab("discover")
-              }
-            }}
-            placeholder="Search readers by name, city, bio, or favorite quote..."
-            className="w-full h-11 pl-11 pr-4 rounded-full bg-[#F5F5F7] text-sm font-medium text-[#1D1D1F] placeholder:text-[#86868b] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] border border-transparent transition-all"
-          />
+      <div className="bg-white rounded-2xl p-4 border border-black/5 shadow-sm space-y-3">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-[#86868b] absolute left-4 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search conversations, @usernames, books, or reader profiles..."
+              className="w-full h-11 pl-11 pr-4 rounded-full bg-[#F5F5F7] text-sm font-medium text-[#1D1D1F] placeholder:text-[#86868b] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] border border-transparent transition-all"
+            />
+          </div>
+
+          <div className="flex items-center bg-[#F5F5F7] p-1 rounded-full shrink-0">
+            <button
+              type="button"
+              onClick={() => setActiveTab("chats")}
+              className={`px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                activeTab === "chats"
+                  ? "bg-[#1D1D1F] text-white shadow-sm"
+                  : "text-[#86868b] hover:text-[#1D1D1F]"
+              }`}
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              Conversations
+              <span className="px-2 py-0.5 rounded-full text-[10px] bg-white/15">
+                {conversations.length}
+              </span>
+              {totalUnread > 0 && (
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-[#0066cc] text-white">
+                  {totalUnread} new
+                </span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("discover")}
+              className={`px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                activeTab === "discover"
+                  ? "bg-[#0066cc] text-white shadow-sm"
+                  : "text-[#86868b] hover:text-[#1D1D1F]"
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              New Message / Profiles
+              <span className="px-2 py-0.5 rounded-full text-[10px] bg-black/10">
+                {readers.length}
+              </span>
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center bg-[#F5F5F7] p-1 rounded-full shrink-0">
-          <button
-            type="button"
-            onClick={() => setActiveTab("chats")}
-            className={`px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === "chats"
-                ? "bg-[#1D1D1F] text-white shadow-sm"
-                : "text-[#86868b] hover:text-[#1D1D1F]"
-            }`}
-          >
-            <MessageSquare className="w-3.5 h-3.5" />
-            Conversations
-            <span className="px-2 py-0.5 rounded-full text-[10px] bg-white/15">
-              {conversations.length}
-            </span>
-            {totalUnread > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-[#0066cc] text-white">
-                {totalUnread} new
-              </span>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("discover")}
-            className={`px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === "discover"
-                ? "bg-[#0066cc] text-white shadow-sm"
-                : "text-[#86868b] hover:text-[#1D1D1F]"
-            }`}
-          >
-            <Users className="w-3.5 h-3.5" />
-            Find Profiles
-            <span className="px-2 py-0.5 rounded-full text-[10px] bg-black/10">
-              {readers.length}
-            </span>
-          </button>
-        </div>
+        {/* Filter Chips: All | Unread | Buying | Selling | Archived */}
+        {activeTab === "chats" && (
+          <div className="flex items-center gap-1.5 overflow-x-auto pt-1">
+            {(
+              [
+                { id: "all", label: "All Conversations" },
+                { id: "unread", label: "Unread" },
+                { id: "buying", label: "Buying" },
+                { id: "selling", label: "Selling" },
+                { id: "archived", label: "Archived" },
+              ] as { id: FilterId; label: string }[]
+            ).map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setActiveFilter(f.id)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
+                  activeFilter === f.id
+                    ? "bg-[#0066cc] text-white"
+                    : "bg-[#f5f5f7] text-[#86868b] hover:text-[#1d1d1f]"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Tab 1: Active Conversations */}
       {activeTab === "chats" && (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
           {loadingConvos ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="w-6 h-6 animate-spin text-[#1D1D1F]/30" />
             </div>
-          ) : filteredConversations.length === 0 ? (
-            <div className="bg-white rounded-3xl border border-[#1D1D1F]/5 shadow-sm p-10 text-center">
+          ) : conversations.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-[#1D1D1F]/5 shadow-sm p-10 text-center">
               <div className="w-14 h-14 rounded-full bg-[#F5F5F7] flex items-center justify-center mx-auto mb-4">
                 <MessageSquare className="w-6 h-6 text-[#86868b]" />
               </div>
               <h2 className="text-xl font-black text-[#1D1D1F] mb-2">
-                {searchQuery ? "No matching conversations" : "No conversations yet"}
+                {searchQuery
+                  ? "No matching conversations"
+                  : activeFilter !== "all"
+                  ? `No ${activeFilter} conversations`
+                  : "No conversations yet"}
               </h2>
               <p className="text-[#86868b] font-medium text-sm max-w-md mx-auto mb-6">
-                Discover fellow readers below or switch to &ldquo;Find Profiles&rdquo;
-                to start a conversation!
+                Message any seller from a book listing or connect with fellow
+                readers below.
               </p>
               <button
                 type="button"
                 onClick={() => setActiveTab("discover")}
                 className="inline-flex items-center gap-2 bg-[#0066cc] hover:bg-[#0071e3] text-white px-6 py-3 rounded-full font-bold text-xs transition-colors cursor-pointer"
               >
-                <Users className="w-4 h-4" /> Explore Reader Profiles
+                <Users className="w-4 h-4" /> Start a New Message
               </button>
             </div>
           ) : (
             <div className="flex flex-col gap-2.5">
-              {filteredConversations.map((conv, i) => {
+              {conversations.map((conv, i) => {
                 const hasUnread = (conv.unreadCount || 0) > 0
+                const chatHref = `/messages/${conv.otherUser.id}${
+                  conv.book ? `?book=${conv.book.id}` : ""
+                }`
+
                 return (
                   <motion.div
-                    key={conv.otherUser.id}
+                    key={conv.id}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.03, duration: 0.25 }}
+                    transition={{ delay: i * 0.025, duration: 0.2 }}
                   >
                     <div
                       className={`flex items-center gap-4 bg-white hover:bg-[#FAF6F0] rounded-2xl p-4 md:p-5 border shadow-sm transition-all hover:shadow-md ${
                         hasUnread
-                          ? "border-[#0066cc]/35 ring-1 ring-[#0066cc]/15"
+                          ? "border-[#0066cc]/40 ring-1 ring-[#0066cc]/15"
                           : "border-[#1D1D1F]/5"
                       }`}
                     >
-                      {/* Avatar */}
+                      {/* Avatar + Online Indicator */}
                       <Link
                         href={`/profile/${conv.otherUser.id}`}
                         className="relative w-14 h-14 rounded-full bg-[#1D1D1F] flex items-center justify-center shrink-0 overflow-hidden hover:opacity-90 transition-opacity"
@@ -246,33 +325,46 @@ export function ConversationList() {
                           />
                         ) : (
                           <span className="text-white font-black text-lg">
-                            {(conv.otherUser.name || "R").charAt(0).toUpperCase()}
+                            {(conv.otherUser.name || "R")
+                              .charAt(0)
+                              .toUpperCase()}
                           </span>
                         )}
-                        {conv.otherUser.isShantiModeActive && (
-                          <span className="absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full bg-emerald-400 ring-2 ring-white" />
+                        {conv.otherUser.online && (
+                          <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white" />
                         )}
                       </Link>
 
-                      {/* Content */}
-                      <Link
-                        href={`/messages/${conv.otherUser.id}`}
-                        className="flex-1 min-w-0"
-                      >
+                      {/* Main Content */}
+                      <Link href={chatHref} className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-2 min-w-0">
+                          <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                            {conv.isPinned && (
+                              <Pin className="w-3.5 h-3.5 text-[#0066cc] shrink-0" />
+                            )}
                             <h3 className="font-bold text-[#1D1D1F] text-base truncate">
-                              {conv.otherUser.name || "Reader"}
+                              {conv.otherUser.name}
                             </h3>
+                            <span className="text-xs font-medium text-[#86868b] hidden sm:inline">
+                              @{conv.otherUser.username}
+                            </span>
+                            {conv.isMuted && (
+                              <BellOff className="w-3 h-3 text-[#86868b]" />
+                            )}
                             {hasUnread && (
                               <span className="px-2 py-0.5 rounded-full bg-[#0066cc] text-white text-[10px] font-bold shrink-0">
                                 {conv.unreadCount} new
                               </span>
                             )}
-                            {conv.otherUser.location && (
-                              <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-[#86868b]">
-                                <MapPin className="w-3 h-3 text-[#C84200]" />
-                                {conv.otherUser.location}
+                            {conv.role !== "MEMBER" && (
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
+                                  conv.role === "BUYER"
+                                    ? "bg-[#0066cc]/10 text-[#0066cc]"
+                                    : "bg-amber-50 text-amber-800"
+                                }`}
+                              >
+                                {conv.role === "BUYER" ? "Buying" : "Selling"}
                               </span>
                             )}
                           </div>
@@ -283,11 +375,24 @@ export function ConversationList() {
                             )}
                           </span>
                         </div>
+
+                        {conv.book && (
+                          <p className="text-xs font-bold text-[#0066cc] truncate mb-0.5">
+                            📚 {conv.book.title} ·{" "}
+                            {conv.book.price === 0
+                              ? "Free / Swap"
+                              : `₹${conv.book.price}`}{" "}
+                            ({conv.book.status})
+                          </p>
+                        )}
+
                         <div className="flex items-center gap-1.5">
                           {conv.lastMessage.isMine && (
                             <span className="inline-flex items-center shrink-0">
-                              {conv.lastMessage.read ? (
+                              {conv.lastMessage.state === "read" ? (
                                 <CheckCheck className="w-3.5 h-3.5 text-[#0066cc]" />
+                              ) : conv.lastMessage.state === "delivered" ? (
+                                <CheckCheck className="w-3.5 h-3.5 text-[#86868b]" />
                               ) : (
                                 <Check className="w-3.5 h-3.5 text-[#86868b]" />
                               )}
@@ -310,19 +415,60 @@ export function ConversationList() {
                         </div>
                       </Link>
 
-                      {/* Quick Actions */}
+                      {/* Associated Book Thumbnail + Pin/Archive/Open Actions */}
                       <div className="flex items-center gap-2 shrink-0">
-                        <Link
-                          href={`/profile/${conv.otherUser.id}`}
-                          className="hidden sm:inline-flex items-center gap-1 px-3 py-2 rounded-full bg-[#F5F5F7] hover:bg-[#e8e8ed] text-xs font-bold text-[#1D1D1F] transition-colors"
+                        {conv.book?.image && (
+                          <Link
+                            href={`/catalog/${conv.book.id}`}
+                            title={conv.book.title}
+                            className="hidden sm:block w-10 h-13 rounded-lg overflow-hidden border border-black/10 shrink-0"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={conv.book.image}
+                              alt={conv.book.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </Link>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            toggleConversationSetting(conv.id, {
+                              isPinned: !conv.isPinned,
+                            })
+                          }
+                          title={conv.isPinned ? "Unpin" : "Pin conversation"}
+                          className={`p-2 rounded-full transition-colors cursor-pointer ${
+                            conv.isPinned
+                              ? "bg-[#0066cc]/10 text-[#0066cc]"
+                              : "bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#86868b]"
+                          }`}
                         >
-                          Profile <ArrowUpRight className="w-3.5 h-3.5" />
-                        </Link>
+                          <Pin className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            toggleConversationSetting(conv.id, {
+                              isArchived: !conv.isArchived,
+                            })
+                          }
+                          title={
+                            conv.isArchived ? "Unarchive" : "Archive conversation"
+                          }
+                          className="p-2 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#86868b] transition-colors cursor-pointer"
+                        >
+                          <Archive className="w-3.5 h-3.5" />
+                        </button>
+
                         <Link
-                          href={`/messages/${conv.otherUser.id}`}
+                          href={chatHref}
                           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-xs font-bold text-white transition-colors"
                         >
-                          Chat
+                          Open
                         </Link>
                       </div>
                     </div>
@@ -334,9 +480,9 @@ export function ConversationList() {
         </div>
       )}
 
-      {/* Always show Reader Discovery in "discover" tab OR below empty/short chat lists */}
+      {/* Reader Discovery Section */}
       {(activeTab === "discover" ||
-        conversations.length < 5 ||
+        conversations.length < 4 ||
         searchQuery.trim() !== "") && (
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
@@ -348,15 +494,15 @@ export function ConversationList() {
                   : "Discover Community Readers"}
               </h2>
               <p className="text-xs font-medium text-[#86868b]">
-                Find profiles, explore their book collections & quotes, and chat
-                directly.
+                Find profiles, explore their book collections & quotes, and
+                start a conversation.
               </p>
             </div>
             <Link
               href="/leaderboard?tab=directory"
               className="text-xs font-bold text-[#0066cc] hover:underline flex items-center gap-1"
             >
-              View Full Leaderboard & Directory &rarr;
+              Full Directory &rarr;
             </Link>
           </div>
 
@@ -444,15 +590,15 @@ export function ConversationList() {
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/profile/${reader.id}`}
-                        className="px-3.5 py-1.5 rounded-full bg-[#e8e8ed] hover:bg-[#d2d2d7] text-[#1D1D1F] text-xs font-bold transition-colors"
+                        className="px-3.5 py-1.5 rounded-full bg-[#e8e8ed] hover:bg-[#d2d2d7] text-[#1D1D1F] text-xs font-bold transition-colors flex items-center gap-1"
                       >
-                        Profile
+                        Profile <ArrowUpRight className="w-3 h-3" />
                       </Link>
                       <Link
                         href={`/messages/${reader.id}`}
                         className="px-4 py-1.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
                       >
-                        <MessageSquare className="w-3.5 h-3.5" /> Chat
+                        <MessageSquare className="w-3.5 h-3.5" /> Message
                       </Link>
                     </div>
                   </div>

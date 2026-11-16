@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
+import { touchUserPresence } from "@/lib/messaging/service"
 
 export async function GET() {
   try {
@@ -9,10 +10,14 @@ export async function GET() {
       return NextResponse.json({ unreadCount: 0 })
     }
 
+    const userId = session.user.id
+    touchUserPresence(userId)
+
     const unreadCount = await prisma.message.count({
       where: {
-        receiverId: session.user.id,
+        receiverId: userId,
         read: false,
+        deletedAt: null,
       },
     })
 
@@ -22,4 +27,3 @@ export async function GET() {
     return NextResponse.json({ unreadCount: 0 })
   }
 }
-

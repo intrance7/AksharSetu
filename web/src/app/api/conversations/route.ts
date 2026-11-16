@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
+import {
+  syncLegacyMessagesForUser,
+  touchUserPresence,
+  isUserOnline,
+  findOrCreateConversation,
+} from "@/lib/messaging/service"
+import { errorResponse } from "@/lib/messaging/http"
+import type { DeliveryState } from "@/lib/messaging/types"
 
-// GET /api/conversations — returns all conversations for the current user with unread counts
-export async function GET() {
+// GET /api/conversations — returns all conversations for the logged-in user
+export async function GET(req: Request) {
   try {
     const session = await auth()
     if (!session?.user?.id) {
@@ -11,101 +19,247 @@ export async function GET() {
     }
 
     const userId = session.user.id
+    await Promise.all([
+      syncLegacyMessagesForUser(userId),
+      touchUserPresence(userId),
+    ])
 
-    const messages = await prisma.message.findMany({
-      where: {
-        OR: [{ senderId: userId }, { receiverId: userId }],
-      },
+    const { searchParams } = new URL(req.url)
+    const filter = searchParams.get("filter") || "all" // all | unread | buying | selling | archived
+    const query = (searchParams.get("q") || "").trim().toLowerCase()
+
+    const participations = await prisma.conversationParticipant.findMany({
+      where: { userId },
       include: {
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-            location: true,
-            isShantiModeActive: true,
-            liveStatus: true,
-          },
-        },
-        receiver: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-            location: true,
-            isShantiModeActive: true,
-            liveStatus: true,
+        conversation: {
+          include: {
+            book: {
+              select: {
+                id: true,
+                title: true,
+                author: true,
+                price: true,
+                condition: true,
+                status: true,
+                images: true,
+                ownerId: true,
+              },
+            },
+            participants: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    image: true,
+                    location: true,
+                    isShantiModeActive: true,
+                    liveStatus: true,
+                    lastSeenAt: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
-      orderBy: { createdAt: "desc" },
     })
 
-    const conversationMap = new Map<
-      string,
-      {
-        otherUser: {
-          id: string
-          name: string | null
-          image: string | null
-          location: string | null
-          isShantiModeActive: boolean
-          liveStatus: string | null
-        }
-        lastMessage: {
-          id: string
-          content: string
-          createdAt: Date
-          isMine: boolean
-          read: boolean
-        }
-        messageCount: number
-        unreadCount: number
-      }
-    >()
+    // Compute unread counts across all conversations in one query
+    const convIds = participations.map((p) => p.conversationId)
+    const unreadMessages =
+      convIds.length > 0
+        ? await prisma.message.findMany({
+            where: {
+              conversationId: { in: convIds },
+              senderId: { not: userId },
+              deletedAt: null,
+            },
+            select: {
+              conversationId: true,
+              createdAt: true,
+              read: true,
+            },
+          })
+        : []
 
-    for (const msg of messages) {
-      const rawOther = msg.senderId === userId ? msg.receiver : msg.sender
-      if (!rawOther) continue
-      const isMine = msg.senderId === userId
-      const isUnreadIncoming = !isMine && !msg.read
+    const lastReadByConv = new Map<string, Date | null>()
+    for (const p of participations) {
+      lastReadByConv.set(p.conversationId, p.lastReadAt)
+    }
 
-      const existing = conversationMap.get(rawOther.id)
-      if (!existing) {
-        conversationMap.set(rawOther.id, {
-          otherUser: {
-            id: rawOther.id,
-            name: rawOther.name || rawOther.email?.split("@")[0] || "Reader",
-            image: rawOther.image,
-            location: rawOther.location,
-            isShantiModeActive: rawOther.isShantiModeActive,
-            liveStatus: rawOther.liveStatus,
-          },
-          lastMessage: {
-            id: msg.id,
-            content: msg.content,
-            createdAt: msg.createdAt,
-            isMine,
-            read: msg.read,
-          },
-          messageCount: 1,
-          unreadCount: isUnreadIncoming ? 1 : 0,
-        })
-      } else {
-        existing.messageCount += 1
-        if (isUnreadIncoming) {
-          existing.unreadCount += 1
-        }
+    const unreadCountMap = new Map<string, number>()
+    for (const m of unreadMessages) {
+      if (!m.conversationId) continue
+      const lastRead = lastReadByConv.get(m.conversationId)
+      const isUnread = lastRead ? m.createdAt > lastRead : !m.read
+      if (isUnread) {
+        unreadCountMap.set(
+          m.conversationId,
+          (unreadCountMap.get(m.conversationId) || 0) + 1
+        )
       }
     }
 
-    const conversations = Array.from(conversationMap.values())
+    const items = participations
+      .map((mePart) => {
+        const conv = mePart.conversation
+        const otherPart = conv.participants.find((p) => p.userId !== userId)
+        if (!otherPart?.user) return null
 
-    return NextResponse.json(conversations)
+        const other = otherPart.user
+        const online = isUserOnline(other.lastSeenAt, other.isShantiModeActive)
+        const unreadCount = unreadCountMap.get(conv.id) || 0
+        const isMine = conv.lastMessageSenderId === userId
+
+        let deliveryState: DeliveryState | null = null
+        if (conv.lastMessageAt && isMine) {
+          if (
+            otherPart.lastReadAt &&
+            new Date(otherPart.lastReadAt) >= new Date(conv.lastMessageAt)
+          ) {
+            deliveryState = "read"
+          } else if (
+            otherPart.lastDeliveredAt &&
+            new Date(otherPart.lastDeliveredAt) >= new Date(conv.lastMessageAt)
+          ) {
+            deliveryState = "delivered"
+          } else {
+            deliveryState = "sent"
+          }
+        }
+
+        const role =
+          conv.sellerId === userId
+            ? "SELLER"
+            : conv.buyerId === userId
+            ? "BUYER"
+            : (mePart.role as "BUYER" | "SELLER" | "MEMBER")
+
+        return {
+          id: conv.id,
+          type: (conv.type as "DIRECT" | "LISTING") || "DIRECT",
+          role,
+          isPinned: mePart.isPinned,
+          pinnedAt: mePart.pinnedAt ? mePart.pinnedAt.toISOString() : null,
+          isArchived: mePart.isArchived,
+          isMuted: mePart.isMuted,
+          unreadCount,
+          book: conv.book
+            ? {
+                id: conv.book.id,
+                title: conv.book.title,
+                author: conv.book.author,
+                image: conv.book.images?.[0] || null,
+                price: conv.book.price,
+                condition: conv.book.condition,
+                status: conv.book.status,
+              }
+            : null,
+          otherUser: {
+            id: other.id,
+            name: other.name || other.email?.split("@")[0] || "Reader",
+            username:
+              other.email?.split("@")[0] ||
+              (other.name || "reader").toLowerCase().replace(/\s+/g, ""),
+            image: other.image,
+            location: other.location,
+            isShantiModeActive: other.isShantiModeActive,
+            liveStatus: other.liveStatus,
+            online,
+            lastSeenAt: other.lastSeenAt ? other.lastSeenAt.toISOString() : null,
+          },
+          lastMessage: conv.lastMessageAt
+            ? {
+                id: conv.lastMessageId || conv.id,
+                content: conv.lastMessagePreview || "Started a conversation",
+                createdAt: conv.lastMessageAt.toISOString(),
+                isMine,
+                read: deliveryState === "read",
+                state: deliveryState,
+              }
+            : {
+                id: conv.id,
+                content: conv.book
+                  ? `Inquiry about "${conv.book.title}"`
+                  : "Start a conversation",
+                createdAt: conv.updatedAt.toISOString(),
+                isMine: false,
+                read: true,
+                state: null,
+              },
+          sortTime: conv.lastMessageAt
+            ? conv.lastMessageAt.getTime()
+            : conv.updatedAt.getTime(),
+        }
+      })
+      .filter((x): x is NonNullable<typeof x> => Boolean(x))
+
+    // Sort: Pinned first (by pinnedAt desc), then by lastMessageAt desc
+    items.sort((a, b) => {
+      if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1
+      return b.sortTime - a.sortTime
+    })
+
+    const filtered = items.filter((item) => {
+      if (filter === "archived") {
+        if (!item.isArchived) return false
+      } else {
+        if (item.isArchived) return false
+        if (filter === "unread" && item.unreadCount === 0) return false
+        if (filter === "buying" && item.role !== "BUYER") return false
+        if (filter === "selling" && item.role !== "SELLER") return false
+      }
+
+      if (query) {
+        const matchUser = item.otherUser.name.toLowerCase().includes(query)
+        const matchUsername = item.otherUser.username.toLowerCase().includes(query)
+        const matchMsg = item.lastMessage.content.toLowerCase().includes(query)
+        const matchBook = item.book?.title.toLowerCase().includes(query)
+        return matchUser || matchUsername || matchMsg || Boolean(matchBook)
+      }
+      return true
+    })
+
+    return NextResponse.json(filtered)
   } catch (error) {
-    console.error("Fetch conversations error:", error)
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+    return errorResponse(error)
+  }
+}
+
+// POST /api/conversations — find or create a conversation (ensuring at most 1 per participants + book)
+export async function POST(req: Request) {
+  try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const body = await req.json()
+    const { otherUserId, bookId } = body
+
+    if (!otherUserId || typeof otherUserId !== "string") {
+      return NextResponse.json(
+        { error: "otherUserId is required" },
+        { status: 400 }
+      )
+    }
+
+    const conv = await findOrCreateConversation({
+      initiatorId: session.user.id,
+      otherUserId,
+      bookId: bookId || null,
+    })
+
+    return NextResponse.json({
+      id: conv.id,
+      conversationId: conv.id,
+      key: conv.key,
+      type: conv.type,
+      bookId: conv.bookId,
+    })
+  } catch (error) {
+    return errorResponse(error)
   }
 }

@@ -32,6 +32,7 @@ export default async function ChatPage({
   }
 
   let contextBanner: ChatContextBanner | null = null
+  let initialBookId: string | null = sp.book || null
 
   if (sp.action === "fulfill_request" && sp.reqId) {
     const req = await prisma.communityRequest.findUnique({
@@ -54,6 +55,7 @@ export default async function ChatPage({
         : Promise.resolve(null),
     ])
     if (targetBook) {
+      initialBookId = targetBook.id
       contextBanner = {
         badge: "1-for-1 Book Swap Proposal",
         title: offeredBook
@@ -68,42 +70,20 @@ export default async function ChatPage({
         bookId: targetBook.id,
       }
     }
-  } else if (sp.book) {
-    const targetBook = await prisma.book.findUnique({
-      where: { id: sp.book },
-    })
-    if (targetBook) {
-      const priceLabel =
-        targetBook.price === 0
-          ? targetBook.acceptsExchange
-            ? "1-for-1 Swap"
-            : "Free Donation"
-          : `₹${targetBook.price}`
-      contextBanner = {
-        badge: `Book Inquiry · ${priceLabel}`,
-        title: `${targetBook.title} by ${targetBook.author}`,
-        prefillMessage: `Hi! I'm interested in your listing "${targetBook.title}" (${priceLabel}, ${targetBook.condition.replace(
-          "_",
-          " "
-        )}). Is it still available for ${
-          targetBook.deliveryType === "MEETUP"
-            ? "a local meetup handoff"
-            : "pickup or shipping"
-        }?`,
-        bookId: targetBook.id,
-      }
-    }
   } else if (sp.orderId) {
     const order = await prisma.order.findUnique({
       where: { id: sp.orderId },
       include: { book: true, shipment: true },
     })
     if (order) {
+      initialBookId = order.bookId
       contextBanner = {
         badge: `Order #${order.shipment?.awbCode || order.id.slice(0, 8)}`,
         title: `${order.book.title} · ₹${order.amount}`,
         prefillMessage: `Hi! Reaching out regarding our order for "${order.book.title}" (${
-          order.shipment?.awbCode ? `AWB #${order.shipment.awbCode}` : "Order confirmed"
+          order.shipment?.awbCode
+            ? `AWB #${order.shipment.awbCode}`
+            : "Order confirmed"
         }).`,
         orderId: order.id,
         bookId: order.bookId,
@@ -113,14 +93,20 @@ export default async function ChatPage({
     contextBanner = {
       badge: "Shared Literary Passage",
       title: sp.quoteSource || "E-Library Highlight",
-      prefillMessage: `“${sp.quote}”${sp.quoteSource ? ` — ${sp.quoteSource}` : ""}`,
+      prefillMessage: `“${sp.quote}”${
+        sp.quoteSource ? ` — ${sp.quoteSource}` : ""
+      }`,
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pt-20 pb-6">
-      <div className="container mx-auto max-w-6xl px-4">
-        <ChatThread userId={userId} contextBanner={contextBanner} />
+    <div className="min-h-screen bg-[#f5f5f7] pt-20 pb-4">
+      <div className="container mx-auto max-w-7xl px-3 md:px-6">
+        <ChatThread
+          userId={userId}
+          initialBookId={initialBookId}
+          contextBanner={contextBanner}
+        />
       </div>
     </div>
   )
