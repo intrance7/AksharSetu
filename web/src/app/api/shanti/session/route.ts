@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
-import { checkAndAwardBadges } from "@/services/badgeService"
+import { checkAndAwardBadges, awardUserXP } from "@/services/badgeService"
 
 export async function POST(req: Request) {
   try {
@@ -13,7 +13,8 @@ export async function POST(req: Request) {
     const body = await req.json()
     const { libraryBookId, durationMinutes } = body
 
-    if (!libraryBookId || !durationMinutes) {
+    const cleanMinutes = Math.max(1, Math.min(240, Math.round(Number(durationMinutes) || 0)))
+    if (!libraryBookId || !cleanMinutes) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
       data: {
         userId: session.user.id,
         libraryBookId,
-        durationMinutes: Number(durationMinutes),
+        durationMinutes: cleanMinutes,
       },
     })
 
@@ -40,10 +41,21 @@ export async function POST(req: Request) {
       })
     }
 
+    await awardUserXP({
+      userId: session.user.id,
+      eventType: "READING_SESSION",
+      idempotencyKey: `session:${newSession.id}`,
+      xpAmount: Math.min(120, cleanMinutes * 2),
+      pointsAmount: 10,
+      description: `Completed a ${cleanMinutes}-minute Shanti reading session on "${libraryBook.title}"`,
+      sourceId: newSession.id,
+      activityType: "READING_SESSION",
+    }).catch(() => {})
+
     const unlockedBadges = await checkAndAwardBadges(session.user.id).catch(() => [])
 
     return NextResponse.json({ session: newSession, unlockedBadges }, { status: 201 })
-  } catch (error: any) {
+  } catch {
     return NextResponse.json({ error: "Failed to log reading session" }, { status: 500 })
   }
 }

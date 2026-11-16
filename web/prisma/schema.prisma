@@ -73,6 +73,33 @@ model User {
   reportsMade              UserReport[]              @relation("Reporter")
   reportsReceived          UserReport[]              @relation("Reported")
 
+  // Identity, Progression, Streaks, Privacy & Cosmetics
+  username                 String?                   @unique
+  coverImage               String?
+  profileFrame             String                    @default("classic") // classic, cobalt, saffron, emerald, gold, mythic
+  profileTheme             String                    @default("obsidian") // obsidian, paper, midnight, forest
+  selectedTitle            String?
+  totalXP                  Int                       @default(0)
+  aksharPoints             Int                       @default(50)
+  currentStreak            Int                       @default(0)
+  longestStreak            Int                       @default(0)
+  lastStreakDate           String?
+  lastDailyClaimDate       String?
+  dailyClaimStreak         Int                       @default(0)
+  readingGoalBooks         Int                       @default(12)
+  unlockedCosmetics        String[]                  @default(["frame:classic", "banner:obsidian", "theme:obsidian"])
+  isPublicProfile          Boolean                   @default(true)
+  showOnlineStatus         Boolean                   @default(true)
+  showReadingActivity      Boolean                   @default(true)
+  showContributionGraph    Boolean                   @default(true)
+  leaderboardOptOut        Boolean                   @default(false)
+
+  xpTransactions           XpTransaction[]
+  activities               UserActivity[]
+  questClaims              UserQuestClaim[]
+  followers                UserFollow[]              @relation("UserFollowers")
+  following                UserFollow[]              @relation("UserFollowing")
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -446,16 +473,107 @@ model BookClubPost {
 
 model Badge {
   id                    String      @id @default(uuid())
+  code                  String?     @unique
   name                  String
   description           String
-  category              String      // DONATION, TRUST, COMMUNITY
+  category              String      // READING, REVIEW, MARKETPLACE, DONATION, COMMUNITY, PROGRESSION, SEASONAL, TRUST
+  rarity                String      @default("COMMON") // COMMON, UNCOMMON, RARE, EPIC, LEGENDARY, MYTHIC
   iconUrl               String
   requirementThreshold  Int
+  metricKey             String      @default("MANUAL")
+  xpReward              Int         @default(50)
+  pointsReward          Int         @default(25)
+  isActive              Boolean     @default(true)
+  startsAt              DateTime?
+  endsAt                DateTime?
 
   users                 UserBadge[]
 
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
+
+  @@index([category, isActive])
+}
+
+model XpTransaction {
+  id             String    @id @default(uuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventType      String    // BOOK_COMPLETED, READING_SESSION, REVIEW_PUBLISHED, BOOK_LISTED, BOOK_SOLD, BOOK_PURCHASED, BOOK_DONATED, DAILY_CHECKIN, QUEST_CLAIMED, BADGE_UNLOCKED, CLUB_CONTRIBUTION, ADMIN_ADJUSTMENT, COSMETIC_UNLOCK
+  idempotencyKey String    @unique
+  sourceId       String?
+  xpAmount       Int
+  pointsAmount   Int       @default(0)
+  description    String
+  metadata       Json?
+  reversedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([eventType, createdAt])
+}
+
+model UserActivity {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activityType String   // READING_SESSION, BOOK_COMPLETED, REVIEW_PUBLISHED, BOOK_LISTED, BOOK_SOLD, BOOK_DONATED, BADGE_UNLOCKED, LEVEL_UP, QUEST_COMPLETED, CLUB_POST
+  title        String
+  subtitle     String?
+  sourceId     String?
+  xpEarned     Int      @default(0)
+  visibility   String   @default("PUBLIC") // PUBLIC, PRIVATE
+  dayKey       String   // YYYY-MM-DD
+  occurredAt   DateTime @default(now())
+
+  @@index([userId, dayKey])
+  @@index([userId, occurredAt])
+}
+
+model Quest {
+  id             String           @id @default(uuid())
+  code           String           @unique
+  name           String
+  description    String
+  category       String           // DAILY, WEEKLY, EVENT
+  metricKey      String           // READING_MINUTES_TODAY, LIBRARY_COUNT, REVIEWS_COUNT, CLUB_POSTS_COUNT, BOOKS_COMPLETED_WEEK, READING_SESSIONS_WEEK, DONATIONS_COUNT
+  targetCount    Int
+  rewardXp       Int
+  rewardPoints   Int              @default(25)
+  cosmeticReward String?
+  startsAt       DateTime?
+  endsAt         DateTime?
+  isActive       Boolean          @default(true)
+  claims         UserQuestClaim[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model UserQuestClaim {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questId   String
+  quest     Quest    @relation(fields: [questId], references: [id], onDelete: Cascade)
+  periodKey String   // YYYY-MM-DD for DAILY, YYYY-Www for WEEKLY, "EVENT" for EVENT
+  xpAwarded Int
+  claimedAt DateTime @default(now())
+
+  @@unique([userId, questId, periodKey])
+  @@index([userId, claimedAt])
+}
+
+model UserFollow {
+  id          String   @id @default(uuid())
+  followerId  String
+  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+  @@index([followerId])
 }
 
 model UserBadge {

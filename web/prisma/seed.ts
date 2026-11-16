@@ -221,20 +221,34 @@ async function main() {
     console.log(`Upserted reader profile: ${u.name} (${u.id})`)
   }
 
-  const existingBooks = await prisma.book.count()
-  if (existingBooks === 0) {
-    for (const b of DUMMY_BOOKS) {
-      const { ownerIdx, ...bookData } = b
-      const owner = createdUsers[ownerIdx] || createdUsers[0]
+  for (const b of DUMMY_BOOKS) {
+    const { ownerIdx, ...bookData } = b
+    const owner = createdUsers[ownerIdx] || createdUsers[0]
+    const existingBook = await prisma.book.findFirst({
+      where: { title: bookData.title },
+    })
+    if (!existingBook) {
       await prisma.book.create({
         data: {
           ...bookData,
           ownerId: owner.id,
         },
       })
+    } else {
+      await prisma.book.update({
+        where: { id: existingBook.id },
+        data: {
+          ownerId: owner.id,
+          price: bookData.price,
+          university: bookData.university,
+          course: bookData.course,
+          acceptsExchange: bookData.acceptsExchange,
+          exchangePreferences: bookData.exchangePreferences,
+        },
+      })
     }
-    console.log(`Seeded ${DUMMY_BOOKS.length} catalog books.`)
   }
+  console.log("Ensured catalog books are seeded.")
 
   for (const badge of DUMMY_BADGES) {
     const existingBadge = await prisma.badge.findFirst({

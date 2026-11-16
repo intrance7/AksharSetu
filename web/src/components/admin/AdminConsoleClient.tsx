@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
@@ -15,6 +15,8 @@ import {
   Plus,
   ExternalLink,
   Loader2,
+  Trophy,
+  RotateCcw,
 } from "lucide-react"
 import {
   verifyUser,
@@ -27,7 +29,7 @@ import {
 } from "@/app/actions/admin"
 import { toast } from "sonner"
 
-type AdminTab = "donations" | "campaigns" | "books" | "users"
+type AdminTab = "donations" | "campaigns" | "books" | "users" | "gamification"
 
 const DONATION_STAGES = [
   "DONATED",
@@ -118,6 +120,42 @@ export function AdminConsoleClient({
     }
   }
 
+  const [gamificationData, setGamificationData] = useState<{
+    badges: any[]
+    quests: any[]
+    recentTx: any[]
+    reports: any[]
+  } | null>(null)
+  const [newBadge, setNewBadge] = useState({
+    name: "",
+    description: "",
+    category: "READING",
+    rarity: "RARE",
+    requirementThreshold: 5,
+    xpReward: 100,
+  })
+  const [xpAdjust, setXpAdjust] = useState({
+    targetUserId: users[0]?.id || "",
+    xpDelta: 50,
+    reason: "",
+  })
+
+  const loadGamificationAdmin = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/gamification")
+      if (res.ok) {
+        const data = await res.json()
+        setGamificationData(data)
+      }
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    if (tab === "gamification" && !gamificationData) {
+      loadGamificationAdmin()
+    }
+  }, [tab, gamificationData, loadGamificationAdmin])
+
   const tabs: { id: AdminTab; label: string; count: number; icon: any }[] = [
     {
       id: "donations",
@@ -142,6 +180,12 @@ export function AdminConsoleClient({
       label: "Users & Trust Verification",
       count: users.length,
       icon: Users,
+    },
+    {
+      id: "gamification",
+      label: "Gamification, XP & Audit",
+      count: gamificationData?.badges?.length || 21,
+      icon: Trophy,
     },
   ]
 
@@ -630,6 +674,265 @@ export function AdminConsoleClient({
                 </div>
               )
             })}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: GAMIFICATION, XP & FRAUD AUDIT */}
+      {tab === "gamification" && (
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Create Achievement Form */}
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault()
+                const res = await fetch("/api/admin/gamification", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    action: "create_badge",
+                    ...newBadge,
+                  }),
+                })
+                if (res.ok) {
+                  toast.success("Achievement created!")
+                  setNewBadge({
+                    name: "",
+                    description: "",
+                    category: "READING",
+                    rarity: "RARE",
+                    requirementThreshold: 5,
+                    xpReward: 100,
+                  })
+                  loadGamificationAdmin()
+                } else {
+                  toast.error("Could not create achievement")
+                }
+              }}
+              className="bg-white rounded-3xl p-6 border border-black/5 shadow-sm space-y-4"
+            >
+              <h3 className="text-lg font-black text-[#1d1d1f]">
+                Create Achievement Badge
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input
+                  required
+                  value={newBadge.name}
+                  onChange={(e) =>
+                    setNewBadge((p) => ({ ...p, name: e.target.value }))
+                  }
+                  placeholder="Achievement Name"
+                  className="rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-bold"
+                />
+                <select
+                  value={newBadge.rarity}
+                  onChange={(e) =>
+                    setNewBadge((p) => ({ ...p, rarity: e.target.value }))
+                  }
+                  className="rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-bold"
+                >
+                  {[
+                    "COMMON",
+                    "UNCOMMON",
+                    "RARE",
+                    "EPIC",
+                    "LEGENDARY",
+                    "MYTHIC",
+                  ].map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={newBadge.category}
+                  onChange={(e) =>
+                    setNewBadge((p) => ({ ...p, category: e.target.value }))
+                  }
+                  className="rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-bold"
+                >
+                  {[
+                    "READING",
+                    "REVIEW",
+                    "MARKETPLACE",
+                    "DONATION",
+                    "COMMUNITY",
+                    "PROGRESSION",
+                    "SEASONAL",
+                  ].map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  value={newBadge.xpReward}
+                  onChange={(e) =>
+                    setNewBadge((p) => ({
+                      ...p,
+                      xpReward: Number(e.target.value) || 50,
+                    }))
+                  }
+                  placeholder="XP Reward"
+                  className="rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-bold"
+                />
+              </div>
+              <input
+                required
+                value={newBadge.description}
+                onChange={(e) =>
+                  setNewBadge((p) => ({ ...p, description: e.target.value }))
+                }
+                placeholder="Unlock requirement description..."
+                className="w-full rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-medium"
+              />
+              <button
+                type="submit"
+                className="px-5 py-2.5 rounded-full bg-[#0066cc] text-white text-xs font-bold cursor-pointer"
+              >
+                + Publish Achievement
+              </button>
+            </form>
+
+            {/* Admin XP Override with Mandatory Audit Log */}
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault()
+                const res = await fetch("/api/admin/gamification", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    action: "adjust_xp",
+                    ...xpAdjust,
+                  }),
+                })
+                if (res.ok) {
+                  toast.success("XP adjustment recorded in audit log!")
+                  setXpAdjust((p) => ({ ...p, reason: "" }))
+                  loadGamificationAdmin()
+                } else {
+                  toast.error("Adjustment failed")
+                }
+              }}
+              className="bg-white rounded-3xl p-6 border border-black/5 shadow-sm space-y-4"
+            >
+              <h3 className="text-lg font-black text-[#1d1d1f]">
+                Admin XP Adjustment & Audit Override
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <select
+                  value={xpAdjust.targetUserId}
+                  onChange={(e) =>
+                    setXpAdjust((p) => ({ ...p, targetUserId: e.target.value }))
+                  }
+                  className="rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-bold"
+                >
+                  {users.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name || u.email}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  value={xpAdjust.xpDelta}
+                  onChange={(e) =>
+                    setXpAdjust((p) => ({
+                      ...p,
+                      xpDelta: Number(e.target.value),
+                    }))
+                  }
+                  placeholder="XP Delta (e.g. 50 or -50)"
+                  className="rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-bold"
+                />
+              </div>
+              <input
+                required
+                value={xpAdjust.reason}
+                onChange={(e) =>
+                  setXpAdjust((p) => ({ ...p, reason: e.target.value }))
+                }
+                placeholder="Mandatory audit reason (e.g., Campus Book Drive winner)..."
+                className="w-full rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-medium"
+              />
+              <button
+                type="submit"
+                className="px-5 py-2.5 rounded-full bg-[#1d1d1f] text-white text-xs font-bold cursor-pointer"
+              >
+                Apply Audited XP Adjustment
+              </button>
+            </form>
+          </div>
+
+          {/* Live XP Transaction Audit Log with Reversal */}
+          <div className="bg-white rounded-3xl p-6 border border-black/5 shadow-sm space-y-4">
+            <h3 className="text-lg font-black text-[#1d1d1f]">
+              XP Transaction Audit Ledger (Anti-Abuse & Reversal)
+            </h3>
+            {!gamificationData ? (
+              <div className="py-8 flex justify-center">
+                <Loader2 className="w-5 h-5 animate-spin text-[#86868b]" />
+              </div>
+            ) : gamificationData.recentTx.length === 0 ? (
+              <p className="text-xs text-[#86868b]">
+                No XP transactions recorded yet.
+              </p>
+            ) : (
+              <div className="divide-y divide-black/5 max-h-96 overflow-y-auto">
+                {gamificationData.recentTx.map((tx: any) => (
+                  <div
+                    key={tx.id}
+                    className="py-3 flex items-center justify-between gap-4 text-xs"
+                  >
+                    <div>
+                      <p className="font-bold text-[#1d1d1f]">
+                        {tx.user?.name || tx.user?.email || "Reader"} ·{" "}
+                        <span className="text-[#0066cc]">{tx.eventType}</span>
+                      </p>
+                      <p className="text-[#86868b]">{tx.description}</p>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span
+                        className={`font-black ${
+                          tx.reversedAt
+                            ? "line-through text-[#86868b]"
+                            : "text-[#0066cc]"
+                        }`}
+                      >
+                        {tx.xpAmount >= 0 ? `+${tx.xpAmount}` : tx.xpAmount} XP
+                      </span>
+                      {!tx.reversedAt ? (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const res = await fetch("/api/admin/gamification", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                action: "reverse_tx",
+                                txId: tx.id,
+                              }),
+                            })
+                            if (res.ok) {
+                              toast.success("Transaction reversed!")
+                              loadGamificationAdmin()
+                            }
+                          }}
+                          className="px-3 py-1 rounded-full bg-red-50 text-red-600 hover:bg-red-600 hover:text-white font-bold flex items-center gap-1 cursor-pointer"
+                        >
+                          <RotateCcw className="w-3 h-3" /> Reverse
+                        </button>
+                      ) : (
+                        <span className="text-[10px] font-bold text-red-600 uppercase">
+                          Reversed
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

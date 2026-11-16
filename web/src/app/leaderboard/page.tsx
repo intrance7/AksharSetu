@@ -18,6 +18,9 @@ export default async function LeaderboardPage({
   const resolvedSearch = await searchParams
 
   const rawUsers = await prisma.user.findMany({
+    where: {
+      leaderboardOptOut: false,
+    },
     select: {
       id: true,
       name: true,
@@ -29,8 +32,9 @@ export default async function LeaderboardPage({
       location: true,
       liveStatus: true,
       isShantiModeActive: true,
+      booksSold: true,
       books: {
-        select: { id: true, price: true },
+        select: { id: true, price: true, status: true },
       },
       donations: {
         select: { id: true },
@@ -45,8 +49,22 @@ export default async function LeaderboardPage({
       readingSessions: {
         select: { durationMinutes: true },
       },
-      _count: {
-        select: { libraryBooks: true },
+      libraryBooks: {
+        select: { status: true },
+      },
+      reviewsGiven: {
+        select: { id: true },
+      },
+      clubPosts: {
+        select: { id: true },
+      },
+      orders: {
+        where: { status: "PAID" },
+        select: { id: true },
+      },
+      xpTransactions: {
+        where: { reversedAt: null },
+        select: { xpAmount: true },
       },
     },
   })
@@ -62,20 +80,32 @@ export default async function LeaderboardPage({
 
   const users: LeaderboardUserEntry[] = rawUsers.map((u) => {
     const booksListed = u.books.length
-    const freeBooks = u.books.filter((b) => b.price === 0).length
+    const freeBooks = u.books.filter(
+      (b) => b.price === 0 || b.status === "DONATED"
+    ).length
     const booksDonated = Math.max(u.donations.length, freeBooks)
     const badgesEarned = u.badges.length
     const readingMinutes = u.readingSessions.reduce(
       (acc, s) => acc + s.durationMinutes,
       0
     )
+    const booksCompleted = u.libraryBooks.filter(
+      (lb) => lb.status === "READ"
+    ).length
+    const bonusXP = u.xpTransactions.reduce((acc, t) => acc + t.xpAmount, 0)
 
     const stats = computeUserStats({
       booksListed,
       booksDonated,
       badgesEarned,
       readingMinutes,
-      libraryCount: u._count.libraryBooks,
+      libraryCount: u.libraryBooks.length,
+      booksCompleted,
+      reviewsCount: u.reviewsGiven.length,
+      booksSold: u.booksSold,
+      purchasesCount: u.orders.length,
+      clubPostsCount: u.clubPosts.length,
+      bonusXP,
     })
 
     overview.totalBooksListed += booksListed
