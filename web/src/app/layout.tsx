@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Providers } from "@/components/Providers";
-import { ChatWidget } from "@/components/layout/ChatWidget";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -18,8 +17,37 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Aksharसेतु - Bridge Knowledge Through Books",
-  description: "A platform bridging people through knowledge via book resale and donations.",
+  metadataBase: new URL(
+    process.env.AUTH_URL || "https://aksharsetu-iota.vercel.app"
+  ),
+  title: {
+    default: "Aksharसेतु — Bridge Knowledge Through Books",
+    template: "%s | Aksharसेतु",
+  },
+  description:
+    "India's student & community book exchange, textbook resale, free public-domain E-Library with Shanti Mode, and Vidya Daan NGO book donation platform.",
+  keywords: [
+    "AksharSetu",
+    "book exchange India",
+    "college textbooks",
+    "book donation NGO",
+    "Vidya Daan",
+    "free ebooks India",
+    "Shanti Mode",
+  ],
+  openGraph: {
+    title: "Aksharसेतु — Bridge Knowledge Through Books",
+    description:
+      "Buy, swap, or donate textbooks & novels across Indian campuses, or read 70,000+ free classics in Shanti Mode.",
+    siteName: "Aksharसेतु",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Aksharसेतु — Bridge Knowledge Through Books",
+    description:
+      "Student textbook marketplace, 1-for-1 swaps, Vidya Daan NGO donations, and free E-Library.",
+  },
 };
 
 export default function RootLayout({
@@ -45,7 +73,6 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
-          <ChatWidget />
           <Toaster richColors position="top-center" />
         </Providers>
       </body>

@@ -276,8 +276,12 @@ export function ListBookForm() {
         body: file,
       })
       if (!putRes.ok) throw new Error("Failed to store uploaded cover")
+      const putData = await putRes.json().catch(() => null)
 
-      setFormData((prev) => ({ ...prev, imageUrl: data.publicUrl }))
+      setFormData((prev) => ({
+        ...prev,
+        imageUrl: putData?.publicUrl || data.publicUrl,
+      }))
     } catch (err: any) {
       console.error("Upload failed", err)
       setError(err?.message || "Failed to upload image")

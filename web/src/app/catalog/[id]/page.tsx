@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
@@ -6,6 +7,55 @@ import { SellerReputationCard } from "@/components/catalog/SellerReputationCard"
 import { ProposeSwapModal } from "@/components/catalog/ProposeSwapModal"
 import Link from "next/link"
 import { ArrowLeft, BookOpen, Tag, User, MessageCircle } from "lucide-react"
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const book = await prisma.book.findUnique({
+    where: { id },
+    select: {
+      title: true,
+      author: true,
+      price: true,
+      condition: true,
+      acceptsExchange: true,
+      description: true,
+      images: true,
+    },
+  })
+
+  if (!book) {
+    return { title: "Book Not Found" }
+  }
+
+  const priceTag =
+    book.price === 0
+      ? book.acceptsExchange
+        ? "1-for-1 Swap"
+        : "Free Donation"
+      : `₹${book.price}`
+
+  return {
+    title: `${book.title} by ${book.author} (${priceTag})`,
+    description:
+      book.description ||
+      `${book.title} by ${book.author} — ${book.condition.replace(
+        "_",
+        " "
+      )} condition (${priceTag}) on AksharSetu.`,
+    openGraph: {
+      title: `${book.title} · ${priceTag} | Aksharसेतु`,
+      description: `By ${book.author} · Condition: ${book.condition.replace(
+        "_",
+        " "
+      )}`,
+      images: book.images?.[0] ? [book.images[0]] : undefined,
+    },
+  }
+}
 
 export default async function ListingDetailPage({
   params,

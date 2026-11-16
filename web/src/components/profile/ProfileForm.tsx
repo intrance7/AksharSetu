@@ -79,8 +79,12 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
       if (!putRes.ok) {
         throw new Error("Could not store uploaded image")
       }
+      const putData = await putRes.json().catch(() => null)
 
-      setFormData((prev) => ({ ...prev, image: presignData.publicUrl }))
+      setFormData((prev) => ({
+        ...prev,
+        image: putData?.publicUrl || presignData.publicUrl,
+      }))
       setSuccess(false)
       toast.success("Avatar uploaded! Click Save to update your profile.")
     } catch (err: any) {

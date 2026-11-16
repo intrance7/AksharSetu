@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import path from "path"
 import fs from "fs/promises"
+import sharp from "sharp"
 import { auth } from "@/auth"
 
 const MAX_BYTES = 8 * 1024 * 1024 // 8 MB
@@ -10,19 +11,43 @@ function sanitizeFilename(raw: string): string {
   return base || `${Date.now()}-upload.jpg`
 }
 
-async function saveBufferToUploads(filename: string, buffer: Buffer) {
+async function compressToWebpDataUrl(buffer: Buffer): Promise<string> {
+  try {
+    const optimized = await sharp(buffer)
+      .rotate()
+      .resize({ width: 900, height: 1200, fit: "inside", withoutEnlargement: true })
+      .webp({ quality: 78 })
+      .toBuffer()
+    return `data:image/webp;base64,${optimized.toString("base64")}`
+  } catch {
+    return `data:image/jpeg;base64,${buffer.toString("base64")}`
+  }
+}
+
+async function saveBufferToUploads(filename: string, buffer: Buffer): Promise<string> {
   if (buffer.byteLength === 0) {
     throw new Error("Empty file payload")
   }
   if (buffer.byteLength > MAX_BYTES) {
     throw new Error("Image exceeds 8MB size limit")
   }
-  const safeName = sanitizeFilename(filename)
-  const uploadDir = path.join(process.cwd(), "public", "uploads")
-  await fs.mkdir(uploadDir, { recursive: true })
-  const destPath = path.join(uploadDir, safeName)
-  await fs.writeFile(destPath, buffer)
-  return `/uploads/${safeName}`
+
+  // On Vercel serverless (/var/task is read-only), compress to WebP data URL
+  if (process.env.VERCEL) {
+    return compressToWebpDataUrl(buffer)
+  }
+
+  try {
+    const safeName = sanitizeFilename(filename)
+    const uploadDir = path.join(process.cwd(), "public", "uploads")
+    await fs.mkdir(uploadDir, { recursive: true })
+    const destPath = path.join(uploadDir, safeName)
+    await fs.writeFile(destPath, buffer)
+    return `/uploads/${safeName}`
+  } catch {
+    // Fallback if filesystem is read-only in container/serverless
+    return compressToWebpDataUrl(buffer)
+  }
 }
 
 // PUT /api/upload/local?filename=... — drop-in match for S3 presigned PUT callers
@@ -75,4 +100,3 @@ export async function POST(req: Request) {
     )
   }
 }
-
