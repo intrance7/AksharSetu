@@ -60,6 +60,19 @@ model User {
   clubMemberships   BookClubMember[]
   clubPosts         BookClubPost[]
 
+  // Messaging
+  lastSeenAt               DateTime?
+  notifyMessages           Boolean                   @default(true)
+  notifyOffers             Boolean                   @default(true)
+  conversationParticipants ConversationParticipant[]
+  messageReactions         MessageReaction[]
+  offersMade               BookOffer[]               @relation("OfferBuyer")
+  offersReceived           BookOffer[]               @relation("OfferSeller")
+  blocksMade               UserBlock[]               @relation("Blocker")
+  blocksReceived           UserBlock[]               @relation("Blocked")
+  reportsMade              UserReport[]              @relation("Reporter")
+  reportsReceived          UserReport[]              @relation("Reported")
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -110,6 +123,8 @@ model Book {
   requests      BookRequest[]
   orders        Order[]
   donation      Donation?
+  conversations Conversation[]
+  offers        BookOffer[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -224,8 +239,167 @@ model Message {
   orderId     String?
   order       Order?   @relation(fields: [orderId], references: [id])
 
+  // Conversation-based messaging (v2)
+  conversationId String?
+  conversation   Conversation?       @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  type           String              @default("TEXT") // TEXT, OFFER, SYSTEM
+  clientId       String?             // client-generated id for idempotent optimistic sends
+  replyToId      String?
+  replyTo        Message?            @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies        Message[]           @relation("MessageReplies")
+  offerId        String?             @unique
+  offer          BookOffer?          @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  meta           Json?               // structured payload for SYSTEM events
+  editedAt       DateTime?
+  deletedAt      DateTime?
+  attachments    MessageAttachment[]
+  reactions      MessageReaction[]
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@unique([senderId, clientId])
+  @@index([conversationId, createdAt])
+  @@index([senderId, createdAt])
+}
+
+model Conversation {
+  id                  String    @id @default(uuid())
+  key                 String    @unique // "direct:<a>:<b>" or "listing:<bookId>:<buyerId>"
+  type                String    @default("DIRECT") // DIRECT, LISTING
+  createdById         String?
+
+  bookId              String?
+  book                Book?     @relation(fields: [bookId], references: [id], onDelete: SetNull)
+  buyerId             String?
+  sellerId            String?
+
+  // Denormalised inbox preview (avoids N+1 last-message lookups)
+  lastMessageId       String?
+  lastMessageAt       DateTime?
+  lastMessagePreview  String?
+  lastMessageSenderId String?
+
+  participants        ConversationParticipant[]
+  messages            Message[]
+  offers              BookOffer[]
+  attachments         MessageAttachment[]
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([bookId])
+  @@index([lastMessageAt])
+  @@index([createdById, createdAt])
+}
+
+model ConversationParticipant {
+  id              String       @id @default(uuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role            String       @default("MEMBER") // BUYER, SELLER, MEMBER
+  lastReadAt      DateTime?
+  lastDeliveredAt DateTime?
+  isMuted         Boolean      @default(false)
+  isArchived      Boolean      @default(false)
+  isPinned        Boolean      @default(false)
+  pinnedAt        DateTime?
+  joinedAt        DateTime     @default(now())
+
+  @@unique([conversationId, userId])
+  @@index([userId, isArchived])
+}
+
+model MessageAttachment {
+  id             String       @id @default(uuid())
+  messageId      String?
+  message        Message?     @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  uploaderId     String
+  kind           String       // IMAGE, FILE
+  mimeType       String
+  fileName       String
+  size           Int
+  width          Int?
+  height         Int?
+  data           Bytes        // private blob, only served through membership-checked route
+  createdAt      DateTime     @default(now())
+
+  @@index([messageId])
+  @@index([conversationId, createdAt])
+  @@index([uploaderId, createdAt])
+}
+
+model MessageReaction {
+  id        String   @id @default(uuid())
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emoji     String
+  createdAt DateTime @default(now())
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+}
+
+model BookOffer {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  bookId         String
+  book           Book         @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  buyerId        String
+  buyer          User         @relation("OfferBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  sellerId       String
+  seller         User         @relation("OfferSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  amount         Float
+  listPrice      Float        // listing price snapshot at offer time
+  status         String       @default("PENDING") // PENDING, ACCEPTED, REJECTED, WITHDRAWN, EXPIRED
+  note           String?
+  expiresAt      DateTime
+  respondedAt    DateTime?
+  message        Message?
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([conversationId])
+  @@index([bookId, status])
+  @@index([buyerId, status])
+}
+
+model UserBlock {
+  id        String   @id @default(uuid())
+  blockerId String
+  blocker   User     @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId String
+  blocked   User     @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+  @@index([blockedId])
+}
+
+model UserReport {
+  id             String   @id @default(uuid())
+  reporterId     String
+  reporter       User     @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedId     String
+  reported       User     @relation("Reported", fields: [reportedId], references: [id], onDelete: Cascade)
+  conversationId String?
+  messageId      String?
+  reason         String   // SPAM, SCAM, HARASSMENT, INAPPROPRIATE, OTHER
+  details        String?  @db.Text
+  status         String   @default("OPEN") // OPEN, REVIEWED, ACTIONED, DISMISSED
+  createdAt      DateTime @default(now())
+
+  @@index([reportedId])
+  @@index([status, createdAt])
+  @@index([reporterId, createdAt])
 }
 
 model BookClub {
