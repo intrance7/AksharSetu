@@ -34,7 +34,7 @@ export default async function ProfilePage({
     redirect(`/profile/${session.user.id}`)
   }
 
-  // Resolve by ID or unique @username
+  // Resolve by ID, unique @username, or active session fallback
   let targetUser = await prisma.user.findUnique({
     where: { id: rawParam },
     select: { id: true },
@@ -44,6 +44,16 @@ export default async function ProfilePage({
       where: { username: rawParam.toLowerCase() },
       select: { id: true },
     })
+  }
+  if (!targetUser && session?.user?.id) {
+    // If the user clicked their own profile link with a pre-migration UUID, redirect to their synced session user ID
+    const sessionUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { id: true },
+    })
+    if (sessionUser) {
+      targetUser = sessionUser
+    }
   }
   if (!targetUser) {
     notFound()
