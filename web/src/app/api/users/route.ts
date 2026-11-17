@@ -2,11 +2,13 @@ import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import { computeUserStats } from "@/lib/gamification"
+import { getMutualFollowIds } from "@/lib/shantiVisibility"
 
 export async function GET(req: Request) {
   try {
     const session = await auth()
     const currentUserId = session?.user?.id || null
+    const mutualIds = await getMutualFollowIds(currentUserId)
 
     const { searchParams } = new URL(req.url)
     const query = (searchParams.get("q") || "").trim()
@@ -92,8 +94,8 @@ export async function GET(req: Request) {
         favoriteQuote: u.favoriteQuote,
         quoteAuthor: u.quoteAuthor,
         location: u.location,
-        liveStatus: u.liveStatus,
-        isShantiModeActive: u.isShantiModeActive,
+        liveStatus: mutualIds.has(u.id) ? u.liveStatus : null,
+        isShantiModeActive: mutualIds.has(u.id) ? u.isShantiModeActive : false,
         createdAt: u.createdAt,
         badges: u.badges.map((ub) => ub.badge),
         stats: computed,

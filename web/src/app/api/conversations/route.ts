@@ -9,6 +9,7 @@ import {
 } from "@/lib/messaging/service"
 import { errorResponse } from "@/lib/messaging/http"
 import type { DeliveryState } from "@/lib/messaging/types"
+import { getMutualFollowIds } from "@/lib/shantiVisibility"
 
 // GET /api/conversations — returns all conversations for the logged-in user
 export async function GET(req: Request) {
@@ -19,9 +20,10 @@ export async function GET(req: Request) {
     }
 
     const userId = session.user.id
-    await Promise.all([
+    const [, , mutualIds] = await Promise.all([
       syncLegacyMessagesForUser(userId),
       touchUserPresence(userId),
+      getMutualFollowIds(userId),
     ])
 
     const { searchParams } = new URL(req.url)
@@ -109,7 +111,11 @@ export async function GET(req: Request) {
         if (!otherPart?.user) return null
 
         const other = otherPart.user
-        const online = isUserOnline(other.lastSeenAt, other.isShantiModeActive)
+        const canSeeShanti = mutualIds.has(other.id)
+        const online = isUserOnline(
+          other.lastSeenAt,
+          canSeeShanti ? other.isShantiModeActive : false
+        )
         const unreadCount = unreadCountMap.get(conv.id) || 0
         const isMine = conv.lastMessageSenderId === userId
 
@@ -165,8 +171,8 @@ export async function GET(req: Request) {
               (other.name || "reader").toLowerCase().replace(/\s+/g, ""),
             image: other.image,
             location: other.location,
-            isShantiModeActive: other.isShantiModeActive,
-            liveStatus: other.liveStatus,
+            isShantiModeActive: canSeeShanti ? other.isShantiModeActive : false,
+            liveStatus: canSeeShanti ? other.liveStatus : null,
             online,
             lastSeenAt: other.lastSeenAt ? other.lastSeenAt.toISOString() : null,
           },

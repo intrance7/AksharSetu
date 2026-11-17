@@ -13,6 +13,7 @@ import {
 } from "@/lib/messaging/constants"
 import { isAllowedEmoji } from "@/lib/messaging/emoji"
 import { MessagingError, errorResponse } from "@/lib/messaging/http"
+import { areMutualFollowers } from "@/lib/shantiVisibility"
 import {
   syncLegacyMessagesForUser,
   touchUserPresence,
@@ -232,7 +233,11 @@ export async function GET(
         ? "BUYER"
         : (meParticipant.role as "BUYER" | "SELLER" | "MEMBER")
 
-    const online = isUserOnline(otherRaw.lastSeenAt, otherRaw.isShantiModeActive)
+    const canSeeShanti = await areMutualFollowers(myId, otherRaw.id)
+    const online = isUserOnline(
+      otherRaw.lastSeenAt,
+      canSeeShanti ? otherRaw.isShantiModeActive : false
+    )
     const username =
       otherRaw.email?.split("@")[0] ||
       (otherRaw.name || "reader").toLowerCase().replace(/\s+/g, "")
@@ -298,8 +303,8 @@ export async function GET(
         location: otherRaw.location,
         favoriteQuote: otherRaw.favoriteQuote,
         quoteAuthor: otherRaw.quoteAuthor,
-        isShantiModeActive: otherRaw.isShantiModeActive,
-        liveStatus: otherRaw.liveStatus,
+        isShantiModeActive: canSeeShanti ? otherRaw.isShantiModeActive : false,
+        liveStatus: canSeeShanti ? otherRaw.liveStatus : null,
         online,
         lastSeenAt: otherRaw.lastSeenAt ? otherRaw.lastSeenAt.toISOString() : null,
         lastReadAt: otherParticipant.lastReadAt

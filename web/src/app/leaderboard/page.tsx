@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import { computeUserStats } from "@/lib/gamification"
+import { getMutualFollowIds } from "@/lib/shantiVisibility"
 import {
   LeaderboardClient,
   LeaderboardUserEntry,
@@ -16,6 +17,7 @@ export default async function LeaderboardPage({
 }) {
   const session = await auth()
   const resolvedSearch = await searchParams
+  const mutualIds = await getMutualFollowIds(session?.user?.id)
 
   const rawUsers = await prisma.user.findMany({
     where: {
@@ -122,8 +124,8 @@ export default async function LeaderboardPage({
       favoriteQuote: u.favoriteQuote,
       quoteAuthor: u.quoteAuthor,
       location: u.location,
-      liveStatus: u.liveStatus,
-      isShantiModeActive: u.isShantiModeActive,
+      liveStatus: mutualIds.has(u.id) ? u.liveStatus : null,
+      isShantiModeActive: mutualIds.has(u.id) ? u.isShantiModeActive : false,
       badges: u.badges.map((ub) => ub.badge),
       stats,
     }

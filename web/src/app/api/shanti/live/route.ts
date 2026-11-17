@@ -1,11 +1,31 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import { auth } from "@/auth"
+import { getMutualFollowIds } from "@/lib/shantiVisibility"
 
 export async function GET() {
   try {
+    const session = await auth()
+    const viewerId = session?.user?.id || null
+
+    if (!viewerId) {
+      return NextResponse.json({
+        liveCount: 0,
+        mutualCount: 0,
+        readers: [],
+      })
+    }
+
+    const mutualIds = await getMutualFollowIds(viewerId)
+    const allowedUserIds = Array.from(mutualIds)
+    const mutualCount = Math.max(0, allowedUserIds.length - 1)
+
     const [activeUsers, recentSessions] = await Promise.all([
       prisma.user.findMany({
-        where: { isShantiModeActive: true },
+        where: {
+          id: { in: allowedUserIds },
+          isShantiModeActive: true,
+        },
         select: {
           id: true,
           name: true,
@@ -19,6 +39,9 @@ export async function GET() {
         take: 10,
       }),
       prisma.readingSession.findMany({
+        where: {
+          userId: { in: allowedUserIds },
+        },
         orderBy: { createdAt: "desc" },
         take: 8,
         include: {
@@ -49,7 +72,10 @@ export async function GET() {
       image: u.image,
       isLive: true,
       statusText: u.liveStatus || "Focusing in Shanti Mode",
-      totalMinutes: u.readingSessions.reduce((acc, s) => acc + s.durationMinutes, 0),
+      totalMinutes: u.readingSessions.reduce(
+        (acc, s) => acc + s.durationMinutes,
+        0
+      ),
       ebookId: null as string | null,
     }))
 
@@ -76,11 +102,11 @@ export async function GET() {
 
     return NextResponse.json({
       liveCount: activeFormatted.length,
+      mutualCount,
       readers: [...activeFormatted, ...recentFormatted].slice(0, 8),
     })
   } catch (error) {
     console.error("Live readers fetch error:", error)
-    return NextResponse.json({ liveCount: 0, readers: [] })
+    return NextResponse.json({ liveCount: 0, mutualCount: 0, readers: [] })
   }
 }
-

@@ -94,18 +94,31 @@ export default async function ProfilePage({
 
   const isOwnProfile = session?.user?.id === user.id
 
-  // Check if current viewer follows this user
-  const followRecord =
+  // Check if current viewer follows this user (and if they follow back for Shanti status visibility)
+  const [followRecord, reverseFollowRecord] =
     session?.user?.id && !isOwnProfile
-      ? await prisma.userFollow.findUnique({
-          where: {
-            followerId_followingId: {
-              followerId: session.user.id,
-              followingId: user.id,
+      ? await Promise.all([
+          prisma.userFollow.findUnique({
+            where: {
+              followerId_followingId: {
+                followerId: session.user.id,
+                followingId: user.id,
+              },
             },
-          },
-        })
-      : null
+          }),
+          prisma.userFollow.findUnique({
+            where: {
+              followerId_followingId: {
+                followerId: user.id,
+                followingId: session.user.id,
+              },
+            },
+          }),
+        ])
+      : [null, null]
+
+  const canSeeShantiStatus =
+    isOwnProfile || (Boolean(followRecord) && Boolean(reverseFollowRecord))
 
   const booksRead = user.libraryBooks.filter((b) => b.status === "READ").length
   const booksCurrentlyReading = user.libraryBooks.filter(
@@ -371,9 +384,14 @@ export default async function ProfilePage({
             location: user.location,
             latitude: user.latitude,
             longitude: user.longitude,
-            liveStatus: user.liveStatus,
-            isShantiModeActive: user.isShantiModeActive,
-            online: isUserOnline(user.lastSeenAt, user.isShantiModeActive),
+            liveStatus: canSeeShantiStatus ? user.liveStatus : null,
+            isShantiModeActive: canSeeShantiStatus
+              ? user.isShantiModeActive
+              : false,
+            online: isUserOnline(
+              user.lastSeenAt,
+              canSeeShantiStatus ? user.isShantiModeActive : false
+            ),
             verified:
               Boolean(user.emailVerified) ||
               user.booksSold + user.successfulExchanges + user.donations.length >
