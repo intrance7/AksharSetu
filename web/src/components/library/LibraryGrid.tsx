@@ -1,11 +1,21 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { LibraryBook } from "@prisma/client"
-import { Plus, X, Loader2, Sparkles, BookOpen, Tablet } from "lucide-react"
+import {
+  Plus,
+  X,
+  Loader2,
+  Sparkles,
+  BookOpen,
+  Tablet,
+  ScanBarcode,
+  Search,
+} from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
+import { Html5QrcodeScanner } from "html5-qrcode"
 import { updateLibraryBookStatus } from "@/app/actions/library"
 import { coverUrl } from "@/lib/gutenberg"
 import { GeneratedCover } from "@/components/catalog/GeneratedCover"
@@ -30,7 +40,10 @@ function isDigitalEbook(book: LibraryBook): boolean {
 
 function getEbookRouteId(book: LibraryBook): string | null {
   if (book.gutenbergId !== null) return String(book.gutenbergId)
-  if (book.platformBookId && /^(ia-|ol-|gb-|pg-|\d+)/.test(book.platformBookId)) {
+  if (
+    book.platformBookId &&
+    /^(ia-|ol-|gb-|pg-|\d+)/.test(book.platformBookId)
+  ) {
     return book.platformBookId
   }
   return null
@@ -41,9 +54,14 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
   const [books, setBooks] = useState<LibraryBook[]>(initialBooks)
   const [activeTab, setActiveTab] = useState<FilterTab>("ALL")
   const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const [isbn, setIsbn] = useState("")
   const [title, setTitle] = useState("")
   const [author, setAuthor] = useState("")
-  const [totalPagesInput, setTotalPagesInput] = useState("250")
+  const [previewCover, setPreviewCover] = useState<string | null>(null)
+  const [showScanner, setShowScanner] = useState(false)
+  const [lookingUpIsbn, setLookingUpIsbn] = useState(false)
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [failedCovers, setFailedCovers] = useState<Record<string, boolean>>({})
 
@@ -53,8 +71,112 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
     return book.status === activeTab
   })
 
+  const lookupByIsbn = async (rawIsbn?: string) => {
+    const clean = (rawIsbn ?? isbn).replace(/[^0-9Xx]/g, "").trim()
+    if (!clean) {
+      toast.error("Please enter or scan an ISBN first")
+      return
+    }
+    setLookingUpIsbn(true)
+    try {
+      const gbRes = await fetch(
+        `https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(
+          clean
+        )}`
+      )
+      const gbData = await gbRes.json()
+      if (gbData.items && gbData.items.length > 0) {
+        const info = gbData.items[0].volumeInfo
+        if (info.title) setTitle(info.title)
+        if (Array.isArray(info.authors)) setAuthor(info.authors.join(", "))
+        if (info.imageLinks) {
+          const rawImg =
+            info.imageLinks.thumbnail || info.imageLinks.smallThumbnail || ""
+          if (rawImg) {
+            setPreviewCover(
+              rawImg
+                .replace("http://", "https://")
+                .replace("&edge=curl", "")
+            )
+          }
+        }
+        toast.success(`Found "${info.title || clean}"!`)
+        return
+      }
+
+      // Fallback Open Library ISBN lookup
+      const olRes = await fetch(
+        `https://openlibrary.org/search.json?isbn=${encodeURIComponent(
+          clean
+        )}&limit=1`
+      )
+      const olData = await olRes.json()
+      if (olData.docs && olData.docs.length > 0) {
+        const doc = olData.docs[0]
+        if (doc.title) setTitle(doc.title)
+        if (Array.isArray(doc.author_name)) {
+          setAuthor(doc.author_name.join(", "))
+        }
+        setPreviewCover(
+          doc.cover_i
+            ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`
+            : `https://covers.openlibrary.org/b/isbn/${clean}-L.jpg`
+        )
+        toast.success(`Found "${doc.title || clean}"!`)
+        return
+      }
+
+      toast.info(
+        "ISBN scanned! Enter the title/author or click Add and AI will resolve it."
+      )
+    } catch {
+      toast.error("Could not reach ISBN directory, you can still add manually.")
+    } finally {
+      setLookingUpIsbn(false)
+    }
+  }
+
+  // Camera ISBN Barcode Scanner Hook
+  useEffect(() => {
+    if (!showScanner || !isModalOpen) return
+
+    const scanner = new Html5QrcodeScanner(
+      "library-isbn-reader",
+      {
+        fps: 10,
+        qrbox: { width: 240, height: 140 },
+        videoConstraints: { facingMode: "environment" },
+      },
+      false
+    )
+
+    scanner.render(
+      (decodedText) => {
+        scanner
+          .clear()
+          .then(() => {
+            setShowScanner(false)
+            const cleanIsbn = decodedText.replace(/[^0-9Xx]/g, "")
+            setIsbn(cleanIsbn)
+            lookupByIsbn(cleanIsbn)
+          })
+          .catch(() => {})
+      },
+      () => {}
+    )
+
+    return () => {
+      scanner.clear().catch(() => {})
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showScanner, isModalOpen])
+
   const handleAddBook = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!title.trim() && !isbn.trim()) {
+      toast.error("Please enter a Book Title or scan an ISBN")
+      return
+    }
     setIsSubmitting(true)
 
     try {
@@ -62,24 +184,36 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title,
-          author,
-          totalPages: Number(totalPagesInput) || 250,
+          isbn: isbn.trim() || undefined,
+          title: title.trim(),
+          author: author.trim(),
+          coverImage: previewCover || undefined,
         }),
       })
 
       if (res.ok) {
         const newBook = await res.json()
-        setBooks([newBook, ...books])
+        setBooks((prev) => [
+          newBook,
+          ...prev.filter((b) => b.id !== newBook.id),
+        ])
         setIsModalOpen(false)
+        setShowScanner(false)
+        setIsbn("")
         setTitle("")
         setAuthor("")
-        setTotalPagesInput("250")
-        toast.success(`Added "${newBook.title}" to your Reading Room`)
+        setPreviewCover(null)
+        toast.success(
+          `AI & Search added "${newBook.title}" (${newBook.totalPages} pages) with cover to your Library!`
+        )
         router.refresh()
+      } else {
+        const err = await res.json().catch(() => ({}))
+        toast.error(err.error || "Could not add book to library")
       }
     } catch (error) {
       console.error(error)
+      toast.error("Network error while adding book")
     } finally {
       setIsSubmitting(false)
     }
@@ -87,12 +221,22 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
 
   const handleQuickProgress = async (book: LibraryBook, delta: number) => {
     const total = Math.max(10, book.totalPages || 250)
-    const nextPage = Math.min(total, Math.max(1, (book.currentPage || 1) + delta))
-    const nextStatus = nextPage >= total ? "READ" : book.status === "WANT_TO_READ" ? "READING" : book.status
+    const nextPage = Math.min(
+      total,
+      Math.max(1, (book.currentPage || 1) + delta)
+    )
+    const nextStatus =
+      nextPage >= total
+        ? "READ"
+        : book.status === "WANT_TO_READ"
+        ? "READING"
+        : book.status
 
     setBooks((prev) =>
       prev.map((b) =>
-        b.id === book.id ? { ...b, currentPage: nextPage, status: nextStatus } : b
+        b.id === book.id
+          ? { ...b, currentPage: nextPage, status: nextStatus }
+          : b
       )
     )
 
@@ -148,7 +292,7 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
               Add Physical Book
             </span>
             <span className="text-xs font-medium text-[#86868b] mt-1 block">
-              Track page progress & Shanti focus
+              Scan ISBN or enter title · AI fetches cover & pages
             </span>
           </div>
         </button>
@@ -163,7 +307,10 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
 
           const current = book.currentPage || 1
           const total = Math.max(current, book.totalPages || 250)
-          const pct = book.status === "READ" ? 100 : Math.min(100, Math.round((current / total) * 100))
+          const pct =
+            book.status === "READ"
+              ? 100
+              : Math.min(100, Math.round((current / total) * 100))
 
           return (
             <div
@@ -189,7 +336,11 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
                   value={book.status}
                   onChange={async (e) => {
                     const newStatus = e.target.value
-                    setBooks(books.map((b) => (b.id === book.id ? { ...b, status: newStatus } : b)))
+                    setBooks(
+                      books.map((b) =>
+                        b.id === book.id ? { ...b, status: newStatus } : b
+                      )
+                    )
                     await updateLibraryBookStatus(book.id, newStatus)
                   }}
                 >
@@ -226,7 +377,10 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
                         src={imgSrc}
                         alt={book.title}
                         onError={() =>
-                          setFailedCovers((prev) => ({ ...prev, [book.id]: true }))
+                          setFailedCovers((prev) => ({
+                            ...prev,
+                            [book.id]: true,
+                          }))
                         }
                         className="absolute inset-0 w-full h-full object-cover z-10"
                       />
@@ -251,10 +405,16 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
                 <div className="mb-3">
                   <div className="flex items-center justify-between text-[11px] text-[#86868b] mb-1">
                     <span>
-                      Page <strong className="text-[#1d1d1f]">{book.status === "READ" ? total : current}</strong> / {total}
+                      Page{" "}
+                      <strong className="text-[#1d1d1f]">
+                        {book.status === "READ" ? total : current}
+                      </strong>{" "}
+                      / {total}
                     </span>
                     <div className="flex items-center gap-1.5">
-                      <span className="font-semibold text-[#0066cc]">{pct}%</span>
+                      <span className="font-semibold text-[#0066cc]">
+                        {pct}%
+                      </span>
                       {!digital && book.status !== "READ" && (
                         <button
                           type="button"
@@ -287,7 +447,9 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
 
                   {ebookRouteId && (
                     <Link
-                      href={`/ebooks/${encodeURIComponent(ebookRouteId)}?view=book`}
+                      href={`/ebooks/${encodeURIComponent(
+                        ebookRouteId
+                      )}?view=book`}
                       className="inline-flex items-center gap-1 bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] text-xs font-semibold px-3.5 py-2 rounded-full transition-colors"
                     >
                       <BookOpen className="w-3.5 h-3.5 text-[#0066cc]" />
@@ -301,7 +463,7 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
         })}
       </div>
 
-      {/* Add Book Modal */}
+      {/* Add Book Modal with ISBN Scanner + AI Auto-Cover & Page Resolution */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -309,7 +471,10 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setIsModalOpen(false)}
+              onClick={() => {
+                setShowScanner(false)
+                setIsModalOpen(false)
+              }}
               className="absolute inset-0 bg-black/60 backdrop-blur-xs"
             />
             <motion.div
@@ -317,28 +482,99 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 16 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-md bg-white rounded-2xl p-8 shadow-2xl"
+              className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-3xl p-7 sm:p-8 shadow-2xl"
             >
               <button
                 type="button"
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  setShowScanner(false)
+                  setIsModalOpen(false)
+                }}
                 className="absolute top-6 right-6 w-8 h-8 rounded-full bg-[#f5f5f7] flex items-center justify-center hover:bg-[#e8e8ed] transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4 text-[#1d1d1f]" />
               </button>
 
-              <h2 className="text-2xl font-bold text-[#1d1d1f] tracking-tight mb-2">Add to Library</h2>
-              <p className="text-[#86868b] text-sm mb-6">
-                Track a physical book on your shelf, or{" "}
-                <Link href="/ebooks" className="text-[#0066cc] font-semibold hover:underline">
-                  browse the E-Library
-                </Link>{" "}
-                for instant digital editions.
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#0066cc] mb-1">
+                <Sparkles className="w-3.5 h-3.5" /> AI-Powered Shelf Builder
+              </div>
+              <h2 className="text-2xl font-bold text-[#1d1d1f] tracking-tight mb-1.5">
+                Add to Library
+              </h2>
+              <p className="text-[#86868b] text-xs sm:text-sm mb-5">
+                Scan the ISBN barcode or enter the title, ISBN, and author—our
+                AI search automatically finds the official cover image and page
+                count.
               </p>
 
+              {/* Camera Barcode Scanner Viewport */}
+              {showScanner && (
+                <div className="mb-5 rounded-2xl overflow-hidden border border-black/10 bg-[#f5f5f7] p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-[#1d1d1f]">
+                      Point camera at book ISBN barcode
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowScanner(false)}
+                      className="text-xs font-bold text-rose-600 hover:underline cursor-pointer"
+                    >
+                      Close Camera
+                    </button>
+                  </div>
+                  <div
+                    id="library-isbn-reader"
+                    className="w-full rounded-xl overflow-hidden bg-black"
+                  />
+                </div>
+              )}
+
               <form onSubmit={handleAddBook} className="flex flex-col gap-4">
+                {/* 1. ISBN + Barcode Scanner */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-[#1d1d1f]">Book Title</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold uppercase tracking-wider text-[#1d1d1f]">
+                      ISBN Number (Scan or Type)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowScanner((v) => !v)}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-[#0066cc] hover:underline cursor-pointer"
+                    >
+                      <ScanBarcode className="w-3.5 h-3.5" />
+                      {showScanner ? "Hide Scanner" : "Scan ISBN Barcode"}
+                    </button>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={isbn}
+                      onChange={(e) => setIsbn(e.target.value)}
+                      className="flex-1 bg-[#f5f5f7] border border-transparent focus:border-[#0066cc] focus:bg-white text-[#1d1d1f] rounded-xl px-4 py-3 text-sm font-mono outline-none transition-all"
+                      placeholder="e.g. 9780143442295"
+                    />
+                    <button
+                      type="button"
+                      disabled={lookingUpIsbn || !isbn.trim()}
+                      onClick={() => lookupByIsbn()}
+                      className="px-3.5 rounded-xl bg-[#1d1d1f] hover:bg-[#0066cc] disabled:opacity-40 text-white text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                      title="Auto-fill book details from ISBN"
+                    >
+                      {lookingUpIsbn ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Search className="w-3.5 h-3.5" />
+                      )}
+                      Fetch
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. Book Title */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#1d1d1f]">
+                    Book Title *
+                  </label>
                   <input
                     type="text"
                     required
@@ -348,8 +584,12 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
                     placeholder="e.g. Gitanjali or Atomic Habits"
                   />
                 </div>
+
+                {/* 3. Author Name */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-[#1d1d1f]">Author Name</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#1d1d1f]">
+                    Author Name *
+                  </label>
                   <input
                     type="text"
                     required
@@ -359,24 +599,43 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
                     placeholder="e.g. Rabindranath Tagore"
                   />
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-[#1d1d1f]">Total Pages</label>
-                  <input
-                    type="number"
-                    min={10}
-                    max={5000}
-                    value={totalPagesInput}
-                    onChange={(e) => setTotalPagesInput(e.target.value)}
-                    className="w-full bg-[#f5f5f7] border border-transparent focus:border-[#0066cc] focus:bg-white text-[#1d1d1f] rounded-xl px-4 py-3 text-sm outline-none transition-all"
-                  />
-                </div>
+
+                {/* Live Cover Preview if fetched via ISBN */}
+                {previewCover && (
+                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f5f5f7] border border-black/5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={previewCover}
+                      alt="Cover preview"
+                      className="w-11 h-16 object-cover rounded-md shadow-xs shrink-0"
+                    />
+                    <div className="min-w-0 text-xs">
+                      <p className="font-bold text-[#1d1d1f] truncate">
+                        {title || "Cover Detected"}
+                      </p>
+                      <p className="text-[#86868b] truncate">
+                        {author || "Official edition cover matched"}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full mt-2 bg-[#0066cc] hover:bg-[#0071e3] text-white rounded-full py-3.5 font-semibold text-sm transition-colors shadow-sm flex items-center justify-center cursor-pointer"
+                  className="w-full mt-2 bg-[#0066cc] hover:bg-[#0071e3] text-white rounded-full py-3.5 font-bold text-sm transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Add to My Library"}
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      AI Searching Cover & Adding Book...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      Add to My Library
+                    </>
+                  )}
                 </button>
               </form>
             </motion.div>
