@@ -8,32 +8,37 @@ export async function POST(req: Request) {
     const rawBody = await req.text()
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET
 
-    // Enforce HMAC-SHA256 verification whenever RAZORPAY_WEBHOOK_SECRET is configured
-    if (webhookSecret && !webhookSecret.startsWith("mock")) {
-      const signature = req.headers.get("x-razorpay-signature")
-      if (!signature) {
-        return NextResponse.json(
-          { error: "Missing webhook signature header" },
-          { status: 401 }
-        )
-      }
+    // Strictly require webhook secret and valid HMAC-SHA256 signature
+    if (!webhookSecret || webhookSecret === "placeholder" || webhookSecret.startsWith("mock")) {
+      return NextResponse.json(
+        { error: "Webhook secret is not configured on this server." },
+        { status: 503 }
+      )
+    }
 
-      const expected = crypto
-        .createHmac("sha256", webhookSecret)
-        .update(rawBody)
-        .digest("hex")
+    const signature = req.headers.get("x-razorpay-signature")
+    if (!signature) {
+      return NextResponse.json(
+        { error: "Missing webhook signature header" },
+        { status: 401 }
+      )
+    }
 
-      const sigBuf = Buffer.from(signature)
-      const expBuf = Buffer.from(expected)
-      if (
-        sigBuf.length !== expBuf.length ||
-        !crypto.timingSafeEqual(sigBuf, expBuf)
-      ) {
-        return NextResponse.json(
-          { error: "Invalid webhook signature" },
-          { status: 401 }
-        )
-      }
+    const expected = crypto
+      .createHmac("sha256", webhookSecret)
+      .update(rawBody)
+      .digest("hex")
+
+    const sigBuf = Buffer.from(signature)
+    const expBuf = Buffer.from(expected)
+    if (
+      sigBuf.length !== expBuf.length ||
+      !crypto.timingSafeEqual(sigBuf, expBuf)
+    ) {
+      return NextResponse.json(
+        { error: "Invalid webhook signature" },
+        { status: 401 }
+      )
     }
 
     const body = JSON.parse(rawBody)
@@ -136,7 +141,11 @@ export async function POST(req: Request) {
         ],
       })
 
-      return { order: updatedOrder, sellerId: order.book.ownerId, buyerId: order.buyerId }
+      return {
+        order: updatedOrder,
+        sellerId: order.book.ownerId,
+        buyerId: order.buyerId,
+      }
     })
 
     if ("sellerId" in result && result.sellerId) {
@@ -144,7 +153,10 @@ export async function POST(req: Request) {
       checkAndAwardBadges(result.buyerId).catch(() => {})
     }
 
-    return NextResponse.json({ message: "Webhook processed successfully", result })
+    return NextResponse.json({
+      message: "Webhook processed successfully",
+      result,
+    })
   } catch (error: any) {
     console.error("Payment webhook error:", error)
     return NextResponse.json(

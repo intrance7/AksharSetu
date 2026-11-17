@@ -1,51 +1,44 @@
-import { Search, Loader2 } from "lucide-react"
-import { MascotLoadingAnimation } from "@/components/catalog/MascotLoadingAnimation"
-
 export default function Loading() {
   return (
     <div className="min-h-screen bg-[#F2EBE1]">
       {/* Hero Section Skeleton */}
-      <div className="bg-[#1D1D1F] pt-28 pb-16 px-4 md:px-8">
-        <div className="container mx-auto max-w-6xl">
-          <div className="flex flex-col items-center text-center gap-6 animate-pulse">
-            <div className="h-4 w-32 bg-white/10 rounded-md"></div>
-            <div className="h-16 w-3/4 max-w-2xl bg-white/10 rounded-2xl mt-4"></div>
-            <div className="h-6 w-1/2 max-w-lg bg-white/10 rounded-md mt-4"></div>
+      <div className="bg-[#1D1D1F] pt-24 pb-32 px-4 md:px-8">
+        <div className="container mx-auto max-w-[1200px] grid grid-cols-1 md:grid-cols-2 gap-8 items-center animate-pulse">
+          <div className="space-y-5">
+            <div className="h-24 w-4/5 bg-white/10 rounded-2xl" />
+            <div className="h-6 w-3/4 bg-white/10 rounded-lg" />
+            <div className="h-14 w-full bg-white/10 rounded-2xl" />
           </div>
+          <div className="hidden md:block h-[360px] bg-white/5 rounded-3xl" />
         </div>
       </div>
 
-      {/* Content Skeleton & Animation */}
-      <div className="container mx-auto max-w-6xl px-4 md:px-8 -mt-8">
-        {/* Stub for filters to maintain layout during load */}
-        <div className="flex flex-col gap-6 animate-pulse">
-          <div className="relative w-full">
-            <div className="bg-white rounded-2xl shadow-lg border border-[#1D1D1F]/5 flex items-center p-2 h-[72px]">
-              <div className="pl-4">
-                <Search className="h-5 w-5 text-[#1D1D1F]/10" />
-              </div>
-            </div>
+      {/* Catalog Grid Skeleton */}
+      <div className="container mx-auto max-w-[1400px] px-4 md:px-8 py-8">
+        <div className="h-12 w-full bg-white/60 rounded-2xl mb-6 animate-pulse" />
+        <div className="flex gap-7">
+          <div className="hidden md:block w-[270px] space-y-4 shrink-0">
+            <div className="h-56 bg-white/70 rounded-2xl animate-pulse" />
+            <div className="h-40 bg-white/70 rounded-2xl animate-pulse" />
+            <div className="h-40 bg-white/70 rounded-2xl animate-pulse" />
           </div>
-          <div className="flex flex-wrap gap-2">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-10 w-24 bg-[#1D1D1F]/10 rounded-full"></div>
+          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div
+                key={i}
+                className="h-[440px] bg-white/80 rounded-3xl p-5 border border-black/5 animate-pulse flex flex-col justify-between"
+              >
+                <div className="h-56 bg-[#FAF6F0] rounded-2xl" />
+                <div className="space-y-3">
+                  <div className="h-5 w-3/4 bg-black/10 rounded-md" />
+                  <div className="h-4 w-1/2 bg-black/5 rounded-md" />
+                  <div className="h-10 w-full bg-black/5 rounded-xl" />
+                </div>
+              </div>
             ))}
           </div>
-        </div>
-
-        {/* Loading Animation Section */}
-        <div className="w-full flex flex-col items-center justify-center py-16">
-           <div className="flex items-center justify-center gap-3 mb-6 text-[#1D1D1F]/60">
-             <Loader2 className="h-6 w-6 animate-spin" />
-             <span className="font-bold tracking-tight text-lg">Fetching library...</span>
-           </div>
-           <div className="w-full max-w-md border border-[#1D1D1F]/10 rounded-3xl bg-[#E8E4DF]/50 overflow-hidden shadow-sm backdrop-blur-sm">
-             <MascotLoadingAnimation radius={100} speed={4.5} />
-           </div>
         </div>
       </div>
     </div>
   )
 }
-
-

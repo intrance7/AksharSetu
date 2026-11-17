@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
+import { checkAndAwardBadges } from "@/services/badgeService"
 
 export async function PATCH(
   req: Request,
@@ -16,7 +17,10 @@ export async function PATCH(
     const { status } = await req.json()
 
     if (!["READY_TO_SHIP", "SHIPPED", "DELIVERED"].includes(status)) {
-      return NextResponse.json({ error: "Invalid shipment status" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Invalid shipment status" },
+        { status: 400 }
+      )
     }
 
     const order = await prisma.order.findUnique({
@@ -32,24 +36,55 @@ export async function PATCH(
     const isBuyerConfirmingDelivery =
       order.buyerId === session.user.id && status === "DELIVERED"
 
-    if (!isSeller && !isBuyerConfirmingDelivery && session.user.role !== "ADMIN") {
+    if (
+      !isSeller &&
+      !isBuyerConfirmingDelivery &&
+      session.user.role !== "ADMIN"
+    ) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const updatedShipment = order.shipment
-      ? await prisma.shipment.update({
-          where: { orderId },
-          data: { status },
+    const updatedShipment = await prisma.$transaction(async (tx) => {
+      const shipment = order.shipment
+        ? await tx.shipment.update({
+            where: { orderId },
+            data: { status },
+          })
+        : await tx.shipment.create({
+            data: {
+              orderId,
+              awbCode: `AKS${Math.floor(100000000 + Math.random() * 900000000)}`,
+              courierName: "AksharSetu Express (Delhivery)",
+              status,
+              trackingUrl: "/orders",
+            },
+          })
+
+      // If a RESERVED meetup order is confirmed DELIVERED, transition order to PAID and book to SOLD
+      if (status === "DELIVERED" && order.status === "RESERVED") {
+        await tx.order.update({
+          where: { id: order.id },
+          data: { status: "PAID" },
         })
-      : await prisma.shipment.create({
-          data: {
-            orderId,
-            awbCode: `AKS${Math.floor(100000000 + Math.random() * 900000000)}`,
-            courierName: "AksharSetu Express (Delhivery)",
-            status,
-            trackingUrl: "/orders",
-          },
+        await tx.book.update({
+          where: { id: order.bookId },
+          data: { status: "SOLD" },
         })
+        await tx.user.update({
+          where: { id: order.book.ownerId },
+          data: { booksSold: { increment: 1 } },
+        })
+      }
+
+      return shipment
+    })
+
+    if (status === "DELIVERED") {
+      Promise.allSettled([
+        checkAndAwardBadges(order.buyerId),
+        checkAndAwardBadges(order.book.ownerId),
+      ]).catch(() => {})
+    }
 
     const recipientId = isSeller ? order.buyerId : order.book.ownerId
     await prisma.notification
@@ -61,8 +96,8 @@ export async function PATCH(
             status === "SHIPPED"
               ? `"${order.book.title}" has been shipped (AWB #${updatedShipment.awbCode})!`
               : status === "DELIVERED"
-                ? `"${order.book.title}" was marked delivered! Leave a verified seller review.`
-                : `Shipment updated for "${order.book.title}".`,
+              ? `"${order.book.title}" handoff/delivery confirmed! Leave a verified seller review.`
+              : `Shipment updated for "${order.book.title}".`,
           link: "/orders",
         },
       })
@@ -71,7 +106,9 @@ export async function PATCH(
     return NextResponse.json(updatedShipment)
   } catch (error) {
     console.error("Update shipment error:", error)
-    return NextResponse.json({ error: "Failed to update shipment" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to update shipment" },
+      { status: 500 }
+    )
   }
 }
-

@@ -14,7 +14,12 @@ interface RazorpayButtonProps {
   deliveryPincode?: string
 }
 
-export function RazorpayButton({ book, user, amount, deliveryPincode }: RazorpayButtonProps) {
+export function RazorpayButton({
+  book,
+  user,
+  amount,
+  deliveryPincode,
+}: RazorpayButtonProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -27,21 +32,17 @@ export function RazorpayButton({ book, user, amount, deliveryPincode }: Razorpay
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookId: book.id, deliveryPincode }),
+        body: JSON.stringify({
+          bookId: book.id,
+          deliveryPincode,
+          fulfillmentMode: "SHIPPING",
+        }),
       })
 
       const data = await res.json()
 
       if (!res.ok) {
         throw new Error(data.error || "Failed to initiate checkout")
-      }
-
-      // Sandbox Escrow Instant Completion
-      if (data.sandboxPaid) {
-        toast.success(`Order Confirmed! Shipment AWB #${data.awbCode} generated.`)
-        router.push(`/checkout/success?orderId=${data.orderId}&awb=${data.awbCode}`)
-        router.refresh()
-        return
       }
 
       const options = {
@@ -81,7 +82,7 @@ export function RazorpayButton({ book, user, amount, deliveryPincode }: Razorpay
           email: user.email || "",
         },
         theme: {
-          color: "#0066cc",
+          color: "#C84200",
         },
       }
 
@@ -99,7 +100,10 @@ export function RazorpayButton({ book, user, amount, deliveryPincode }: Razorpay
 
   return (
     <>
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="lazyOnload"
+      />
       <div className="flex flex-col gap-3 mt-6">
         <button
           type="button"
@@ -108,20 +112,24 @@ export function RazorpayButton({ book, user, amount, deliveryPincode }: Razorpay
           className={`w-full py-4 px-6 rounded-full font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer ${
             loading
               ? "bg-[#1d1d1f]/20 text-[#1d1d1f]/60 cursor-not-allowed"
-              : "bg-[#0066cc] hover:bg-[#0071e3] text-white shadow-sm"
+              : "bg-[#C84200] hover:bg-[#A33500] text-white shadow-sm"
           }`}
         >
           {loading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" /> Processing Escrow...
+              <Loader2 className="w-4 h-4 animate-spin" /> Initializing Gateway...
             </>
           ) : (
             <>
-              <ShieldCheck className="w-4 h-4" /> Pay ₹{amount} Securely
+              <ShieldCheck className="w-4 h-4" /> Pay ₹{amount} via Razorpay
             </>
           )}
         </button>
-        {error && <p className="text-red-500 text-xs font-semibold text-center">{error}</p>}
+        {error && (
+          <p className="text-red-600 text-xs font-semibold text-center leading-relaxed">
+            {error}
+          </p>
+        )}
       </div>
     </>
   )

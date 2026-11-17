@@ -2,22 +2,34 @@
 
 import { useRouter, useSearchParams } from "next/navigation"
 import { useTransition } from "react"
-import { SlidersHorizontal, Map as MapIcon, LayoutGrid, Package } from "lucide-react"
+import {
+  SlidersHorizontal,
+  Map as MapIcon,
+  LayoutGrid,
+  List as ListIcon,
+  Package,
+  Gift,
+  Tag,
+} from "lucide-react"
 
 interface CatalogTopBarProps {
   showFilters: boolean
   onToggleFilters: () => void
+  onOpenMobileFilters: () => void
   resultCount: number
-  viewMode: "grid" | "map"
-  onToggleViewMode: () => void
+  viewMode: "grid" | "list" | "map"
+  onChangeViewMode: (mode: "grid" | "list" | "map") => void
+  activeFilterCount: number
 }
 
 export function CatalogTopBar({
   showFilters,
   onToggleFilters,
+  onOpenMobileFilters,
   resultCount,
   viewMode,
-  onToggleViewMode,
+  onChangeViewMode,
+  activeFilterCount,
 }: CatalogTopBarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -25,6 +37,7 @@ export function CatalogTopBar({
 
   const currentSort = searchParams.get("sort") || "new"
   const bundlesOnly = searchParams.get("bundles") === "true"
+  const currentPrice = searchParams.get("price") || "all"
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -33,110 +46,155 @@ export function CatalogTopBar({
     startTransition(() => router.push(`/catalog?${params.toString()}`))
   }
 
-  const toggleBundles = () => {
+  const toggleParam = (key: string, val: string) => {
     const params = new URLSearchParams(searchParams.toString())
-    if (bundlesOnly) {
-      params.delete("bundles")
+    if (params.get(key) === val) {
+      params.delete(key)
     } else {
-      params.set("bundles", "true")
+      params.set(key, val)
     }
     params.delete("page")
     startTransition(() => router.push(`/catalog?${params.toString()}`))
   }
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 mb-4 border-b border-[#1D1D1F]/10 sticky top-[68px] bg-[#F2EBE1]/95 backdrop-blur-md z-30">
-      {/* Title / Stats */}
-      <div className="flex items-center flex-wrap gap-3">
-        <h2 className="text-xl sm:text-2xl font-black text-[#1D1D1F] tracking-tight flex items-center gap-2">
-          Books{" "}
-          <span className="text-[#1D1D1F]/40 text-lg font-bold">
-            ({resultCount})
-          </span>
-        </h2>
+    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 py-4 mb-5 border-b border-[#1D1D1F]/10 sticky top-16 bg-[#F2EBE1]/95 backdrop-blur-md z-30">
+      {/* Left: Section Heading, Live Count & Quick Shelf Pills */}
+      <div className="flex items-center flex-wrap gap-2.5">
+        <div className="mr-2">
+          <h2 className="text-xl sm:text-2xl font-black text-[#1D1D1F] tracking-tight flex items-baseline gap-2">
+            <span>Catalog</span>
+            <span className="text-sm font-bold text-[#1D1D1F]/50">
+              {resultCount} {resultCount === 1 ? "book" : "books"}
+            </span>
+          </h2>
+        </div>
 
-        {/* Map / List Toggle */}
-        <div className="hidden sm:flex bg-[#1D1D1F]/5 rounded-full p-1 border border-black/5 ml-2">
+        {/* 3-Way View Mode Toggle (Grid / List / Map) */}
+        <div className="inline-flex bg-white/80 rounded-full p-1 border border-[#1D1D1F]/10 shadow-xs">
           <button
-            onClick={() => viewMode !== "grid" && onToggleViewMode()}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black tracking-wider uppercase transition-all duration-300 ${
+            type="button"
+            onClick={() => onChangeViewMode("grid")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
               viewMode === "grid"
-                ? "bg-white text-[#1D1D1F] shadow-sm"
-                : "text-[#1D1D1F]/50 hover:text-[#1D1D1F]"
+                ? "bg-[#1D1D1F] text-white shadow-xs"
+                : "text-[#1D1D1F]/65 hover:text-[#1D1D1F]"
             }`}
           >
-            <LayoutGrid className="w-3.5 h-3.5" /> List
+            <LayoutGrid className="w-3.5 h-3.5" />
+            <span>Grid</span>
           </button>
           <button
-            onClick={() => viewMode !== "map" && onToggleViewMode()}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black tracking-wider uppercase transition-all duration-300 ${
-              viewMode === "map"
-                ? "bg-[#C84200] text-white shadow-sm"
-                : "text-[#1D1D1F]/50 hover:text-[#1D1D1F]"
+            type="button"
+            onClick={() => onChangeViewMode("list")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              viewMode === "list"
+                ? "bg-[#1D1D1F] text-white shadow-xs"
+                : "text-[#1D1D1F]/65 hover:text-[#1D1D1F]"
             }`}
           >
-            <MapIcon className="w-3.5 h-3.5" /> Map
+            <ListIcon className="w-3.5 h-3.5" />
+            <span>List</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onChangeViewMode("map")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              viewMode === "map"
+                ? "bg-[#C84200] text-white shadow-xs"
+                : "text-[#1D1D1F]/65 hover:text-[#1D1D1F]"
+            }`}
+          >
+            <MapIcon className="w-3.5 h-3.5" />
+            <span>Map</span>
           </button>
         </div>
 
-        {/* Bundles Quick Filter */}
+        {/* Quick Shelf Pills */}
         <button
           type="button"
-          onClick={toggleBundles}
-          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border ${
+          onClick={() => toggleParam("bundles", "true")}
+          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border cursor-pointer ${
             bundlesOnly
-              ? "bg-[#C84200] text-white border-[#C84200] shadow-sm"
-              : "bg-white/70 text-[#1D1D1F]/80 border-black/10 hover:bg-white"
+              ? "bg-[#C84200] text-white border-[#C84200] shadow-xs"
+              : "bg-white/80 text-[#1D1D1F]/80 border-[#1D1D1F]/10 hover:bg-white"
           }`}
         >
           <Package className="w-3.5 h-3.5" /> Semester Bundles
         </button>
+
+        <button
+          type="button"
+          onClick={() => toggleParam("price", "free")}
+          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border cursor-pointer ${
+            currentPrice === "free"
+              ? "bg-emerald-700 text-white border-emerald-700 shadow-xs"
+              : "bg-white/80 text-[#1D1D1F]/80 border-[#1D1D1F]/10 hover:bg-white"
+          }`}
+        >
+          <Gift className="w-3.5 h-3.5" /> Free Donations
+        </button>
+
+        <button
+          type="button"
+          onClick={() => toggleParam("price", "under250")}
+          className={`hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border cursor-pointer ${
+            currentPrice === "under250"
+              ? "bg-[#1D1D1F] text-white border-[#1D1D1F] shadow-xs"
+              : "bg-white/80 text-[#1D1D1F]/80 border-[#1D1D1F]/10 hover:bg-white"
+          }`}
+        >
+          <Tag className="w-3.5 h-3.5" /> Under ₹250
+        </button>
       </div>
 
-      {/* Controls */}
-      <div className="flex items-center gap-4 sm:gap-6 self-end sm:self-auto">
-        {/* Mobile View Toggle */}
+      {/* Right: Filter Toggle & Sort Dropdown */}
+      <div className="flex items-center justify-between sm:justify-end gap-3">
+        {/* Desktop Filter Sidebar Toggle */}
         <button
-          onClick={onToggleViewMode}
-          className="sm:hidden flex items-center justify-center p-2 rounded-full bg-[#1D1D1F]/5 text-[#1D1D1F]"
-          title="Toggle View"
+          type="button"
+          onClick={onToggleFilters}
+          className="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#1D1D1F]/10 text-xs font-bold text-[#1D1D1F] hover:border-[#C84200] transition-colors cursor-pointer"
         >
-          {viewMode === "grid" ? (
-            <MapIcon className="w-4 h-4" />
-          ) : (
-            <LayoutGrid className="w-4 h-4" />
+          <SlidersHorizontal className="w-3.5 h-3.5 text-[#C84200]" />
+          <span>{showFilters ? "Hide Filters" : "Show Filters"}</span>
+          {activeFilterCount > 0 && (
+            <span className="px-2 py-0.5 rounded-full bg-[#C84200] text-white text-[10px] font-black">
+              {activeFilterCount}
+            </span>
           )}
         </button>
 
-        {/* Toggle Filters Button */}
+        {/* Mobile Filter Drawer Button */}
         <button
-          onClick={onToggleFilters}
-          className="flex items-center gap-2 text-[14.5px] font-bold text-[#1D1D1F] hover:text-[#C84200] transition-colors"
+          type="button"
+          onClick={onOpenMobileFilters}
+          className="md:hidden inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#1D1D1F]/10 text-xs font-bold text-[#1D1D1F] cursor-pointer"
         >
-          {showFilters ? "Hide Filters" : "Show Filters"}
-          <SlidersHorizontal className="w-4 h-4" />
+          <SlidersHorizontal className="w-3.5 h-3.5 text-[#C84200]" />
+          <span>Filters</span>
+          {activeFilterCount > 0 && (
+            <span className="px-2 py-0.5 rounded-full bg-[#C84200] text-white text-[10px] font-black">
+              {activeFilterCount}
+            </span>
+          )}
         </button>
 
-        {/* Sort Dropdown */}
-        <div className="flex items-center gap-2">
-          <span className="hidden md:inline text-[14.5px] font-bold text-[#1D1D1F]/60">
-            Sort By
-          </span>
+        {/* Sort Control */}
+        <div className="inline-flex items-center gap-2 bg-white border border-[#1D1D1F]/10 rounded-full px-4 py-2">
+          <span className="text-xs font-bold text-[#1D1D1F]/50">Sort:</span>
           <select
             value={currentSort}
             onChange={handleSortChange}
-            className="bg-transparent text-[14.5px] font-bold text-[#1D1D1F] outline-none cursor-pointer hover:text-[#C84200] transition-colors appearance-none pr-4"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%231D1D1F' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E")`,
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "right center",
-            }}
+            aria-label="Sort books"
+            className="bg-transparent text-xs font-bold text-[#1D1D1F] outline-none cursor-pointer pr-2"
           >
             <option value="new">Newest Arrivals</option>
             <option value="popular">Most Popular</option>
             <option value="low">Price: Low to High</option>
+            <option value="high">Price: High to Low</option>
             <option value="az">Title: A to Z</option>
-            <option value="distance">Nearest to me</option>
+            <option value="distance">Nearest to Me</option>
           </select>
         </div>
       </div>

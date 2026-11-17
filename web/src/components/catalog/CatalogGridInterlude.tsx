@@ -55,7 +55,7 @@ export function CatalogGridInterlude() {
       {/* CTA Button */}
       <div className="pb-8 md:pb-0 text-center md:text-right">
         <Link 
-          href="/catalog" 
+          href="/catalog/new" 
           className="inline-flex items-center justify-center bg-[#1D1B26] text-[#FBF6E8] hover:bg-black font-bold px-6 py-3.5 rounded-full transition-colors shadow-lg"
         >
           List a book

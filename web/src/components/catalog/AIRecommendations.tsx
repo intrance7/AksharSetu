@@ -106,10 +106,10 @@ export function AIRecommendations() {
                       <div className="mt-auto">
                         {rec.availableBookId ? (
                           <Link 
-                            href={`/book/${rec.availableBookId}`}
-                            className="w-full flex justify-center items-center gap-2 bg-[#0066cc] hover:bg-[#0071e3] text-white py-2 rounded-full text-xs font-bold transition-colors"
+                            href={`/catalog/${rec.availableBookId}`}
+                            className="w-full flex justify-center items-center gap-2 bg-[#C84200] hover:bg-[#A33500] text-white py-2 rounded-full text-xs font-bold transition-colors"
                           >
-                            <ShoppingBag className="w-3.5 h-3.5" /> View in Store
+                            <ShoppingBag className="w-3.5 h-3.5" /> View in Catalog
                           </Link>
                         ) : (
                           <button
