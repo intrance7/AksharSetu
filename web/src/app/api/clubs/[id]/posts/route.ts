@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
+import { checkAndAwardBadges } from "@/services/badgeService"
 
 export async function POST(
   req: Request,
@@ -22,14 +23,37 @@ export async function POST(
       )
     }
 
-    // Auto-enroll poster as member if not already in the circle
-    await prisma.bookClubMember.upsert({
+    const club = await prisma.bookClub.findUnique({
+      where: { id: clubId },
+      select: { id: true, isPrivate: true, creatorId: true },
+    })
+
+    if (!club) {
+      return NextResponse.json({ error: "Sabha Team not found" }, { status: 404 })
+    }
+
+    const membership = await prisma.bookClubMember.findUnique({
       where: {
         clubId_userId: { clubId, userId: session.user.id },
       },
-      update: {},
-      create: { clubId, userId: session.user.id },
     })
+
+    if (club.isPrivate && !membership && club.creatorId !== session.user.id) {
+      return NextResponse.json(
+        { error: "You must join this private Sabha Team with its invite code before posting." },
+        { status: 403 }
+      )
+    }
+
+    if (!membership) {
+      await prisma.bookClubMember.create({
+        data: {
+          clubId,
+          userId: session.user.id,
+          role: club.creatorId === session.user.id ? "LEADER" : "MEMBER",
+        },
+      })
+    }
 
     const post = await prisma.bookClubPost.create({
       data: {
@@ -43,10 +67,14 @@ export async function POST(
       },
     })
 
+    checkAndAwardBadges(session.user.id).catch(() => {})
+
     return NextResponse.json(post, { status: 201 })
   } catch (error) {
     console.error("Create club post error:", error)
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    )
   }
 }
-

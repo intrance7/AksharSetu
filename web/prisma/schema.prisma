@@ -439,6 +439,9 @@ model BookClub {
   ebookKey     String?
   coverImage   String?
   scheduleText String?
+  inviteCode   String?          @unique
+  isPrivate    Boolean          @default(false)
+  maxMembers   Int              @default(25)
 
   creatorId    String
   creator      User             @relation("ClubCreator", fields: [creatorId], references: [id], onDelete: Cascade)
@@ -456,6 +459,7 @@ model BookClubMember {
   club     BookClub @relation(fields: [clubId], references: [id], onDelete: Cascade)
   userId   String
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     String   @default("MEMBER") // LEADER, MEMBER
   joinedAt DateTime @default(now())
 
   @@unique([clubId, userId])

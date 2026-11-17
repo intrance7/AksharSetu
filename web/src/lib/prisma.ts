@@ -25,10 +25,10 @@ const createFreshPrismaClient = (): PrismaClient => {
 }
 
 declare const globalThis: {
-  prismaGlobalV9?: PrismaClient
+  prismaGlobalV10?: PrismaClient
 } & typeof global
 
-const existing = globalThis.prismaGlobalV9
+const existing = globalThis.prismaGlobalV10
 const prisma: PrismaClient =
   existing &&
   "bookNote" in existing &&
@@ -44,5 +44,5 @@ const prisma: PrismaClient =
 export default prisma
 
 if (process.env.NODE_ENV !== "production") {
-  globalThis.prismaGlobalV9 = prisma
+  globalThis.prismaGlobalV10 = prisma
 }
