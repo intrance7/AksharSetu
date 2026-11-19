@@ -72,6 +72,26 @@ export default async function ChatPage({
         bookId: targetBook.id,
       }
     }
+  } else if (
+    (sp.action === "request_book" || !sp.action) &&
+    sp.book &&
+    !sp.orderId
+  ) {
+    const targetBook = await prisma.book.findUnique({ where: { id: sp.book } })
+    if (targetBook) {
+      initialBookId = targetBook.id
+      const isFreeDonation =
+        targetBook.price === 0 && !targetBook.acceptsExchange
+      const condLabel = targetBook.condition.replace("_", " ")
+      contextBanner = {
+        badge: isFreeDonation ? "Vidya Daan Book Request" : "Book Request",
+        title: `Requesting "${targetBook.title}" by ${targetBook.author}`,
+        prefillMessage: isFreeDonation
+          ? `Hi! I'd love to request your Vidya Daan donated copy of "${targetBook.title}" by ${targetBook.author} (${condLabel} condition). Is it still available for pickup or courier handoff?`
+          : `Hi! I'd like to request your copy of "${targetBook.title}" by ${targetBook.author} (${condLabel} condition, ₹${targetBook.price}). Is it still available?`,
+        bookId: targetBook.id,
+      }
+    }
   } else if (sp.orderId) {
     const order = await prisma.order.findUnique({
       where: { id: sp.orderId },

@@ -234,13 +234,24 @@ export function ChatThread({
   const [sidebarSearch, setSidebarSearch] = useState("")
 
   // Composer & Actions State
-  const [newMessage, setNewMessage] = useState("")
+  const [newMessage, setNewMessage] = useState(
+    () => contextBanner?.prefillMessage || ""
+  )
   const [sending, setSending] = useState(false)
   const [replyTarget, setReplyTarget] = useState<MessageDTO | null>(null)
   const [editingMessage, setEditingMessage] = useState<MessageDTO | null>(null)
   const [activeContext, setActiveContext] = useState<ChatContextBanner | null>(
     contextBanner
   )
+
+  useEffect(() => {
+    if (contextBanner) {
+      setActiveContext(contextBanner)
+      if (contextBanner.prefillMessage) {
+        setNewMessage((prev) => prev || contextBanner.prefillMessage)
+      }
+    }
+  }, [contextBanner])
   const [pendingAttachments, setPendingAttachments] = useState<
     MessageAttachmentDTO[]
   >([])

@@ -87,7 +87,14 @@ export async function POST(req: Request) {
     })
 
     if (existingRequest) {
-      return NextResponse.json({ error: "You already have an active request for this book" }, { status: 400 })
+      return NextResponse.json(
+        {
+          ...existingRequest,
+          ownerId: book.ownerId,
+          alreadyRequested: true,
+        },
+        { status: 200 }
+      )
     }
 
     let offeredBookTitle: string | null = null
@@ -119,12 +126,15 @@ export async function POST(req: Request) {
           userId: book.ownerId,
           type: "BOOK_REQUEST",
           message: notifMsg,
-          link: "/orders",
+          link: `/messages/${session.user.id}?action=request_book&book=${book.id}`,
         },
       })
       .catch(() => {})
 
-    return NextResponse.json(bookRequest, { status: 201 })
+    return NextResponse.json(
+      { ...bookRequest, ownerId: book.ownerId },
+      { status: 201 }
+    )
   } catch (error: any) {
     console.error("Book request creation error:", error)
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })

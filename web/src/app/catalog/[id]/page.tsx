@@ -527,7 +527,11 @@ export default async function ListingDetailPage({
                       Currently {book.status.toLowerCase()}
                     </div>
                   ) : isDonation ? (
-                    <RequestBookButton bookId={book.id} isOwner={isOwner} />
+                    <RequestBookButton
+                      bookId={book.id}
+                      isOwner={isOwner}
+                      ownerId={book.owner.id}
+                    />
                   ) : isExchange && book.price === 0 ? (
                     <ProposeSwapModal
                       targetBook={{
