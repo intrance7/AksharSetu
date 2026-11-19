@@ -2,6 +2,7 @@ import { Suspense } from "react"
 import Link from "next/link"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
+import { cached } from "@/lib/fastCache"
 import { CreateClubModal } from "@/components/clubs/CreateClubModal"
 import { JoinClubByCodeBar } from "@/components/clubs/JoinClubByCodeBar"
 import { generateSabhaCode } from "@/lib/sabha"
@@ -19,7 +20,10 @@ import {
 
 export const dynamic = "force-dynamic"
 
+let clubsBootstrapped = false
+
 async function ensureDefaultClubsAndCodes() {
+  if (clubsBootstrapped) return
   const existingClubs = await prisma.bookClub.findMany({
     select: { id: true, name: true, inviteCode: true },
   })
@@ -100,35 +104,40 @@ async function ensureDefaultClubsAndCodes() {
         })
     }
   }
+  clubsBootstrapped = true
 }
 
 export default async function SabhaClubsPage() {
-  await ensureDefaultClubsAndCodes()
-  const session = await auth()
+  const [, session] = await Promise.all([
+    ensureDefaultClubsAndCodes(),
+    auth(),
+  ])
   const userId = session?.user?.id || null
 
-  const clubs = await prisma.bookClub.findMany({
-    where: userId
-      ? {
-          OR: [
-            { isPrivate: false },
-            { members: { some: { userId } } },
-            { creatorId: userId },
-          ],
-        }
-      : { isPrivate: false },
-    orderBy: { createdAt: "desc" },
-    include: {
-      creator: { select: { id: true, name: true, image: true } },
-      members: userId
+  const clubs = await cached(`clubs:${userId || "public"}`, 15_000, () =>
+    prisma.bookClub.findMany({
+      where: userId
         ? {
-            where: { userId },
-            select: { userId: true, role: true },
+            OR: [
+              { isPrivate: false },
+              { members: { some: { userId } } },
+              { creatorId: userId },
+            ],
           }
-        : false,
-      _count: { select: { members: true, posts: true } },
-    },
-  })
+        : { isPrivate: false },
+      orderBy: { createdAt: "desc" },
+      include: {
+        creator: { select: { id: true, name: true, image: true } },
+        members: userId
+          ? {
+              where: { userId },
+              select: { userId: true, role: true },
+            }
+          : false,
+        _count: { select: { members: true, posts: true } },
+      },
+    })
+  )
 
   const myTeams = userId
     ? clubs.filter(

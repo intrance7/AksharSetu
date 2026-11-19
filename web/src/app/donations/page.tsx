@@ -1,6 +1,7 @@
 import Link from "next/link"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
+import { cached } from "@/lib/fastCache"
 import { CampaignCard } from "@/components/donations/CampaignCard"
 import { ImpactDashboard } from "@/components/donations/ImpactDashboard"
 import { TrackingLookupForm } from "@/components/donations/TrackingLookupForm"
@@ -9,13 +10,20 @@ import { HeartHandshake, BookOpen, Building2, Award } from "lucide-react"
 export const dynamic = "force-dynamic"
 
 export default async function DonationsPage() {
-  const session = await auth()
-  const [campaigns, totalDonationsCount] = await Promise.all([
-    prisma.campaign.findMany({
-      orderBy: { createdAt: "desc" },
+  const [session, publicStats] = await Promise.all([
+    auth(),
+    cached("donations:public", 20_000, async () => {
+      const [campaigns, totalDonationsCount] = await Promise.all([
+        prisma.campaign.findMany({
+          orderBy: { createdAt: "desc" },
+        }),
+        prisma.donation.count(),
+      ])
+      return { campaigns, totalDonationsCount }
     }),
-    prisma.donation.count(),
   ])
+
+  const { campaigns, totalDonationsCount } = publicStats
 
   let userDonations: any[] = []
   if (session?.user?.id) {

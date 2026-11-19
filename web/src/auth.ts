@@ -1,6 +1,7 @@
 import NextAuth from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import prisma from "@/lib/prisma"
+import { cached } from "@/lib/fastCache"
 import Google from "next-auth/providers/google"
 import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
@@ -78,38 +79,42 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const email = session.user.email?.trim().toLowerCase() || null
 
         try {
-          let dbUser = await prisma.user.findUnique({
-            where: { id: userId },
-            select: { id: true, role: true, name: true, image: true },
-          })
+          const dbUser = await cached(
+            `session-user:${userId}`,
+            60_000,
+            async () => {
+              let found = await prisma.user.findUnique({
+                where: { id: userId },
+                select: { id: true, role: true, name: true, image: true },
+              })
 
-          if (!dbUser && email) {
-            const byEmail = await prisma.user.findUnique({
-              where: { email },
-              select: { id: true, role: true, name: true, image: true },
-            })
-            if (byEmail) {
-              dbUser = byEmail
-              userId = byEmail.id
+              if (!found && email) {
+                const byEmail = await prisma.user.findUnique({
+                  where: { email },
+                  select: { id: true, role: true, name: true, image: true },
+                })
+                if (byEmail) found = byEmail
+              }
+
+              // Auto-provision user in active DB if JWT session came from local/previous DB instance
+              if (!found) {
+                const fallbackEmail =
+                  email || `${userId.slice(0, 8)}@aksharsetu.local`
+                found = await prisma.user.create({
+                  data: {
+                    id: userId,
+                    name: session.user.name || "Reader",
+                    email: fallbackEmail,
+                    image: session.user.image || null,
+                    role: (token.role as string) || "USER",
+                  },
+                  select: { id: true, role: true, name: true, image: true },
+                })
+              }
+
+              return found
             }
-          }
-
-          // Auto-provision user in active DB if JWT session came from local/previous DB instance
-          if (!dbUser) {
-            const fallbackEmail =
-              email || `${userId.slice(0, 8)}@aksharsetu.local`
-            const created = await prisma.user.create({
-              data: {
-                id: userId,
-                name: session.user.name || "Reader",
-                email: fallbackEmail,
-                image: session.user.image || null,
-                role: (token.role as string) || "USER",
-              },
-              select: { id: true, role: true, name: true, image: true },
-            })
-            dbUser = created
-          }
+          )
 
           session.user.id = dbUser.id
           session.user.role = dbUser.role || (token.role as string) || "USER"

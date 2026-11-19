@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 import type { Metadata } from "next"
 import prisma from "@/lib/prisma"
+import { cached } from "@/lib/fastCache"
 import { CatalogHero } from "@/components/catalog/CatalogHero"
 import { CatalogLayoutClient } from "@/components/catalog/CatalogLayoutClient"
 import { Prisma } from "@prisma/client"
@@ -181,22 +182,6 @@ export default async function CatalogPage({
     ]
   }
 
-  const session = await auth()
-  let userLocation: {
-    latitude: number | null
-    longitude: number | null
-  } | null = null
-
-  if (session?.user?.id) {
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { latitude: true, longitude: true },
-    })
-    if (user?.latitude && user?.longitude) {
-      userLocation = { latitude: user.latitude, longitude: user.longitude }
-    }
-  }
-
   let orderBy:
     | Prisma.BookOrderByWithRelationInput
     | Prisma.BookOrderByWithRelationInput[] = { createdAt: "desc" }
@@ -214,40 +199,75 @@ export default async function CatalogPage({
     ]
   }
 
-  const totalCount = await prisma.book.count({ where: whereClause })
+  const cacheKey = `catalog:${JSON.stringify({
+    whereClause,
+    orderBy,
+    page: currentPage,
+    distance: sort === "distance",
+  })}`
+
+  const [session, catalogResult] = await Promise.all([
+    auth(),
+    cached(cacheKey, 15_000, async () => {
+      const [totalCount, books] = await Promise.all([
+        prisma.book.count({ where: whereClause }),
+        prisma.book.findMany({
+          where: whereClause,
+          orderBy,
+          ...(sort === "distance"
+            ? {}
+            : {
+                skip: (currentPage - 1) * PAGE_SIZE,
+                take: PAGE_SIZE,
+              }),
+          include: {
+            owner: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                sellerRating: true,
+                booksSold: true,
+                successfulExchanges: true,
+                latitude: true,
+                longitude: true,
+                location: true,
+              },
+            },
+            _count: {
+              select: { requests: true },
+            },
+          },
+        }),
+      ])
+      return { totalCount, books }
+    }),
+  ])
+
+  let userLocation: {
+    latitude: number | null
+    longitude: number | null
+  } | null = null
+
+  if (session?.user?.id) {
+    const user = await cached(
+      `user-loc:${session.user.id}`,
+      60_000,
+      () =>
+        prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { latitude: true, longitude: true },
+        })
+    )
+    if (user?.latitude && user?.longitude) {
+      userLocation = { latitude: user.latitude, longitude: user.longitude }
+    }
+  }
+
+  const { totalCount, books } = catalogResult
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
   const safePage = Math.min(currentPage, totalPages)
-
   const isDistanceSort = sort === "distance" && Boolean(userLocation)
-
-  const books = await prisma.book.findMany({
-    where: whereClause,
-    orderBy,
-    ...(isDistanceSort
-      ? {}
-      : {
-          skip: (safePage - 1) * PAGE_SIZE,
-          take: PAGE_SIZE,
-        }),
-    include: {
-      owner: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-          sellerRating: true,
-          booksSold: true,
-          successfulExchanges: true,
-          latitude: true,
-          longitude: true,
-          location: true,
-        },
-      },
-      _count: {
-        select: { requests: true },
-      },
-    },
-  })
 
   let finalBooks = books
   if (isDistanceSort && userLocation) {

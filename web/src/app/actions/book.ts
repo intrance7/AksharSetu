@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { invalidateCache } from "@/lib/fastCache"
 import { notifyWishlistMatches } from "@/lib/wishlistAlerts"
 import { checkAndAwardBadges } from "@/services/badgeService"
 
@@ -213,6 +214,11 @@ export async function createBook(formData: FormData) {
     })
   }
   checkAndAwardBadges(userId).catch(() => {})
+
+  invalidateCache("catalog:")
+  invalidateCache("donations:")
+  invalidateCache("leaderboard:")
+  invalidateCache(`user-loc:${userId}`)
 
   revalidatePath("/catalog")
   revalidatePath("/campus")
