@@ -255,7 +255,7 @@ export default async function ListingDetailPage({
   ]
 
   return (
-    <div className="min-h-screen bg-[#F2EBE1] pt-8 sm:pt-12 pb-24">
+    <div className="min-h-screen bg-[#F2EBE1] pt-6 sm:pt-10 pb-24">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(bookJsonLd) }}
@@ -265,36 +265,54 @@ export default async function ListingDetailPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      <div className="container mx-auto max-w-6xl px-4 md:px-8">
-        {/* Breadcrumb Navigation */}
-        <nav
-          aria-label="Breadcrumb"
-          className="flex flex-wrap items-center gap-2 text-[13px] font-bold text-[#6e6e73] mb-6"
-        >
-          <Link
-            href="/catalog"
-            className="inline-flex items-center gap-1.5 text-[#1D1D1F] hover:text-[#C84200] transition-colors"
+      <div className="container mx-auto max-w-6xl px-4 md:px-6">
+        {/* Top Breadcrumb + Status Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+          <nav
+            aria-label="Breadcrumb"
+            className="flex flex-wrap items-center gap-2 text-sm font-bold text-[#6e6e73]"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to Catalog
-          </Link>
-          <ChevronRight className="w-4 h-4 opacity-40" />
-          <Link
-            href={`/catalog?category=${encodeURIComponent(
-              book.category.toLowerCase()
-            )}`}
-            className="hover:text-[#C84200] capitalize transition-colors"
-          >
-            {book.category}
-          </Link>
-          <ChevronRight className="w-4 h-4 opacity-40" />
-          <span className="text-[#1D1D1F] truncate max-w-[180px] sm:max-w-[340px]">
-            {book.title}
-          </span>
-        </nav>
+            <Link
+              href="/catalog"
+              className="inline-flex items-center gap-1.5 text-[#1D1D1F] hover:text-[#C84200] transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to Catalog
+            </Link>
+            <ChevronRight className="w-4 h-4 opacity-40" />
+            <Link
+              href={`/catalog?category=${encodeURIComponent(
+                book.category.toLowerCase()
+              )}`}
+              className="hover:text-[#C84200] capitalize transition-colors"
+            >
+              {book.category}
+            </Link>
+            <ChevronRight className="w-4 h-4 opacity-40" />
+            <span className="text-[#1D1D1F] truncate max-w-[200px] sm:max-w-[360px]">
+              {book.title}
+            </span>
+          </nav>
 
-        <div className="bg-white rounded-3xl shadow-[0_12px_48px_-18px_rgba(29,29,31,0.12)] border border-[#1D1D1F]/[0.07] overflow-hidden flex flex-col md:flex-row">
-          {/* Left Column: Museum-Grade Editorial Cover Stage */}
-          <div className="w-full md:w-5/12 lg:w-[44%] shrink-0">
+          <span
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+              book.status === "AVAILABLE"
+                ? "bg-[#0A7D4F]/12 text-[#0A7D4F] border border-[#0A7D4F]/25"
+                : "bg-amber-100 text-amber-900 border border-amber-300"
+            }`}
+          >
+            <span
+              className={`w-2 h-2 rounded-full ${
+                book.status === "AVAILABLE" ? "bg-[#0A7D4F]" : "bg-amber-600"
+              }`}
+            />
+            {book.status}
+          </span>
+        </div>
+
+        {/* 12-Column Balanced Showroom Grid (items-start so left cover stage never stretches!) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
+          {/* LEFT COLUMN (Sticky Cover Stage + Quick Edition Specs) */}
+          <div className="lg:col-span-5 lg:sticky lg:top-20 space-y-4">
             <BookGallery
               images={book.images || []}
               title={book.title}
@@ -303,13 +321,46 @@ export default async function ListingDetailPage({
               isbn={book.isbn}
               showWishlist={!isOwner}
             />
+
+            {/* Compact Edition Specs Strip under Cover */}
+            <div className="grid grid-cols-3 gap-2.5">
+              <div className="bg-white rounded-2xl p-3.5 border border-[#1D1D1F]/[0.07] text-center shadow-2xs">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#86868b]">
+                  Condition
+                </p>
+                <p className="text-sm font-black text-[#1D1D1F] mt-0.5">
+                  {book.condition.replace("_", " ")}
+                </p>
+              </div>
+              <div className="bg-white rounded-2xl p-3.5 border border-[#1D1D1F]/[0.07] text-center shadow-2xs">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#86868b]">
+                  Integrity
+                </p>
+                <p className="text-sm font-black text-[#0A7D4F] font-mono mt-0.5">
+                  {avgCondition} / 5.0 ★
+                </p>
+              </div>
+              <div className="bg-white rounded-2xl p-3.5 border border-[#1D1D1F]/[0.07] text-center shadow-2xs">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#86868b]">
+                  Handoff
+                </p>
+                <p className="text-sm font-black text-[#1D1D1F] mt-0.5 truncate">
+                  {book.deliveryType === "BOTH"
+                    ? "Meetup / Ship"
+                    : book.deliveryType === "MEETUP"
+                      ? "Campus Meetup"
+                      : "Courier"}
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* Right Column: Editorial Book Specification & Action Dock */}
-          <div className="w-full md:w-7/12 lg:w-[56%] p-6 sm:p-9 lg:p-11 flex flex-col">
-            <div className="flex-1">
+          {/* RIGHT COLUMN (Above-the-Fold Title + Price/CTA Card -> Synopsis -> Radar & Seller) */}
+          <div className="lg:col-span-7 space-y-6">
+            {/* CARD 1: HERO TITLE, PRICE & PRIMARY ACTION DOCK (Visible Immediately Above the Fold!) */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-[0_14px_40px_-18px_rgba(29,29,31,0.10)] border border-[#1D1D1F]/[0.07] space-y-6">
               {/* Tag Strip */}
-              <div className="flex flex-wrap items-center gap-2 mb-5">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="bg-[#C84200]/10 text-[#C84200] text-xs font-bold uppercase tracking-wider px-3.5 py-1 rounded-full">
                   {book.category}
                 </span>
@@ -340,78 +391,219 @@ export default async function ListingDetailPage({
               </div>
 
               {/* Headline & Literary Author Credit */}
-              <h1 className="text-3xl sm:text-4xl lg:text-[2.6rem] font-black text-[#1D1D1F] leading-[1.08] tracking-tight mb-3">
-                {book.title}
-              </h1>
+              <div>
+                <h1 className="text-3xl sm:text-4xl lg:text-[2.65rem] font-black text-[#1D1D1F] leading-[1.08] tracking-tight mb-2.5">
+                  {book.title}
+                </h1>
 
-              <p className="text-lg text-[#4a4a4f] mb-4 flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-[#C84200] shrink-0" />
-                <span>
-                  by{" "}
-                  <span className="font-serif italic font-medium text-[#1D1D1F]">
-                    {book.author}
+                <p className="text-lg sm:text-xl text-[#4a4a4f] flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-[#C84200] shrink-0" />
+                  <span>
+                    by{" "}
+                    <span className="font-serif italic font-semibold text-[#1D1D1F]">
+                      {book.author}
+                    </span>
                   </span>
-                </span>
-              </p>
-
-              {/* Academic & Metadata Row */}
-              <div className="flex flex-wrap items-center gap-2.5 text-[13px] font-semibold text-[#6e6e73] mb-6">
-                {book.isbn && (
-                  <span className="font-mono text-xs bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] text-[#1D1D1F]/80 px-3 py-1 rounded-full">
-                    ISBN {book.isbn}
-                  </span>
-                )}
-                {book.owner.location && (
-                  <span className="inline-flex items-center gap-1.5 bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] text-[#1D1D1F]/80 px-3 py-1 rounded-full">
-                    <MapPin className="w-3.5 h-3.5 text-[#C84200]" />
-                    {book.owner.location}
-                  </span>
-                )}
-                {book.university && (
-                  <span className="bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] text-[#1D1D1F] px-3 py-1 rounded-full">
-                    {book.university}
-                  </span>
-                )}
-                {book.course && (
-                  <span className="bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] text-[#1D1D1F] px-3 py-1 rounded-full">
-                    {book.course}
-                  </span>
-                )}
-                {book.semester && (
-                  <span className="bg-[#FAF6F0] border border-[#C84200]/20 text-[#C84200] font-mono px-3 py-1 rounded-full">
-                    Semester {book.semester}
-                  </span>
-                )}
+                </p>
               </div>
 
-              <div className="my-6 h-px w-full bg-[#1D1D1F]/[0.08]" />
+              {/* Academic & Metadata Chips */}
+              {(book.isbn ||
+                book.owner.location ||
+                book.university ||
+                book.course ||
+                book.semester) && (
+                <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#6e6e73]">
+                  {book.isbn && (
+                    <span className="font-mono bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] text-[#1D1D1F]/85 px-3 py-1.5 rounded-full">
+                      ISBN {book.isbn}
+                    </span>
+                  )}
+                  {book.owner.location && (
+                    <span className="inline-flex items-center gap-1.5 bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] text-[#1D1D1F]/85 px-3 py-1.5 rounded-full">
+                      <MapPin className="w-3.5 h-3.5 text-[#C84200]" />
+                      {book.owner.location}
+                    </span>
+                  )}
+                  {book.university && (
+                    <span className="bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] text-[#1D1D1F] px-3 py-1.5 rounded-full">
+                      {book.university}
+                    </span>
+                  )}
+                  {book.course && (
+                    <span className="bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] text-[#1D1D1F] px-3 py-1.5 rounded-full">
+                      {book.course}
+                    </span>
+                  )}
+                  {book.semester && (
+                    <span className="bg-[#FAF6F0] border border-[#C84200]/20 text-[#C84200] font-mono px-3 py-1.5 rounded-full">
+                      Semester {book.semester}
+                    </span>
+                  )}
+                </div>
+              )}
 
-              {/* Seller Notes */}
-              <div className="mb-7">
-                <h2 className="text-xs font-black uppercase tracking-[0.14em] text-[#86868b] mb-2.5">
-                  Reader Notes &amp; Edition Details
-                </h2>
-                <p className="text-[#1D1D1F]/85 leading-relaxed text-[15px] whitespace-pre-wrap">
-                  {book.description ||
-                    "No additional notes provided by the reader. Message them directly to inspect spine photos or meetup times."}
-                </p>
-                {book.isBundle && book.bundleDescription && (
-                  <div className="mt-4 p-5 bg-[#FAF6F0] rounded-2xl border border-[#1D1D1F]/[0.08]">
-                    <p className="text-xs font-black uppercase tracking-[0.12em] text-[#C84200] mb-1.5 flex items-center gap-1.5">
-                      <Package className="w-3.5 h-3.5" /> Books Included in
-                      Semester Pack
+              {/* HIGH-IMPACT PRICE & ACTION BOX (ABOVE THE FOLD) */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-[#86868b] mb-1">
+                      {isDonation
+                        ? "Vidya Daan Community Gift"
+                        : isExchange && book.price === 0
+                          ? "1-for-1 Reader Swap"
+                          : "Campus Listing Price"}
                     </p>
-                    <p className="text-[#1D1D1F] text-sm sm:text-[15px] leading-relaxed whitespace-pre-wrap">
-                      {book.bundleDescription}
+                    <div className="font-mono text-3xl sm:text-4xl font-black tracking-tight text-[#1D1D1F]">
+                      {isDonation ? (
+                        <span className="text-[#0A7D4F] inline-flex items-center gap-2">
+                          Free <Tag className="w-6 h-6" />
+                        </span>
+                      ) : isExchange && book.price === 0 ? (
+                        <span className="text-[#0066cc]">1-for-1 Swap</span>
+                      ) : (
+                        `₹${book.price}`
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Quick Seller Attribution Pill */}
+                  <div className="flex items-center gap-3 bg-white px-3.5 py-2 rounded-2xl border border-[#1D1D1F]/[0.06]">
+                    <Link href={`/profile/${ownerHandle}`} className="shrink-0">
+                      {book.owner.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={book.owner.image}
+                          alt={book.owner.name || "Owner"}
+                          className="w-9 h-9 rounded-full object-cover border border-[#1D1D1F]/10"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full bg-[#FAF6F0] border border-[#1D1D1F]/10 flex items-center justify-center">
+                          <User className="w-4 h-4 text-[#C84200]" />
+                        </div>
+                      )}
+                    </Link>
+                    <div className="min-w-0">
+                      <Link
+                        href={`/profile/${ownerHandle}`}
+                        className="font-bold text-xs text-[#1D1D1F] hover:text-[#C84200] transition-colors truncate block"
+                      >
+                        {book.owner.name || "Community Reader"}
+                      </Link>
+                      {book.owner.username && (
+                        <span className="font-mono text-[11px] text-[#86868b] block">
+                          @{book.owner.username}
+                        </span>
+                      )}
+                    </div>
+                    {!isOwner && session && (
+                      <Link
+                        href={`/messages/${book.owner.id}?book=${book.id}`}
+                        className="inline-flex items-center gap-1.5 bg-[#1D1D1F] hover:bg-[#C84200] text-white text-xs font-bold px-3.5 py-2 rounded-full transition-colors shrink-0"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        Chat
+                      </Link>
+                    )}
+                  </div>
+                </div>
+
+                {isExchange && book.exchangePreferences && (
+                  <div className="p-3.5 bg-[#0066cc]/[0.06] rounded-xl border border-[#0066cc]/20">
+                    <p className="text-[11px] font-black uppercase tracking-[0.12em] text-[#0066cc] mb-0.5">
+                      Looking to Swap For
+                    </p>
+                    <p className="text-sm font-medium text-[#1D1D1F]">
+                      {book.exchangePreferences}
                     </p>
                   </div>
                 )}
-              </div>
 
-              {/* 5-Point Condition Radar */}
-              <div className="mb-7 p-5 sm:p-6 bg-[#FAF6F0] rounded-3xl border border-[#1D1D1F]/[0.07]">
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-                  <h2 className="text-xs font-black uppercase tracking-[0.14em] text-[#1D1D1F]/70 flex items-center gap-2">
+                {session ? (
+                  isOwner ? (
+                    <OwnerListingControls book={book} />
+                  ) : book.status !== "AVAILABLE" ? (
+                    <div className="w-full py-3.5 px-6 bg-white text-[#6e6e73] border border-[#1D1D1F]/[0.08] rounded-full text-sm font-bold flex items-center justify-center">
+                      Currently {book.status.toLowerCase()}
+                    </div>
+                  ) : isDonation ? (
+                    <RequestBookButton bookId={book.id} isOwner={isOwner} />
+                  ) : isExchange && book.price === 0 ? (
+                    <ProposeSwapModal
+                      targetBook={{
+                        id: book.id,
+                        title: book.title,
+                        author: book.author,
+                        exchangePreferences: book.exchangePreferences,
+                      }}
+                      ownerId={book.owner.id}
+                      myBooks={myAvailableBooks}
+                    />
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <Link
+                        href={`/checkout/${book.id}`}
+                        className="w-full py-3.5 px-6 bg-[#C84200] hover:bg-[#A33500] text-white rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-colors text-center shadow-sm"
+                      >
+                        Buy or Reserve ·{" "}
+                        <span className="font-mono">₹{book.price}</span>
+                      </Link>
+                      <ProposeSwapModal
+                        targetBook={{
+                          id: book.id,
+                          title: book.title,
+                          author: book.author,
+                          exchangePreferences: book.exchangePreferences,
+                        }}
+                        ownerId={book.owner.id}
+                        myBooks={myAvailableBooks}
+                        secondary
+                      />
+                    </div>
+                  )
+                ) : (
+                  <Link
+                    href={`/login?callbackUrl=/catalog/${book.id}`}
+                    className="w-full py-3.5 px-6 bg-[#1D1D1F] hover:bg-[#C84200] text-white rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-colors text-center shadow-sm"
+                  >
+                    Sign In to{" "}
+                    {isDonation
+                      ? "Request Free Book"
+                      : isExchange
+                        ? "Propose 1-for-1 Swap"
+                        : "Buy or Reserve Meetup"}
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {/* CARD 2: READER NOTES & EDITION SYNOPSIS */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xs border border-[#1D1D1F]/[0.07] space-y-4">
+              <h2 className="text-xs font-black uppercase tracking-[0.16em] text-[#C84200]">
+                Reader Notes &amp; Edition Synopsis
+              </h2>
+              <p className="text-[#1D1D1F]/85 leading-relaxed text-[15px] sm:text-base whitespace-pre-wrap">
+                {book.description ||
+                  "No additional notes provided by the reader. Message them directly to inspect spine photos or arrange a campus meetup."}
+              </p>
+              {book.isBundle && book.bundleDescription && (
+                <div className="mt-3 p-5 bg-[#FAF6F0] rounded-2xl border border-[#1D1D1F]/[0.08]">
+                  <p className="text-xs font-black uppercase tracking-[0.12em] text-[#C84200] mb-1.5 flex items-center gap-1.5">
+                    <Package className="w-3.5 h-3.5" /> Books Included in
+                    Semester Pack
+                  </p>
+                  <p className="text-[#1D1D1F] text-sm sm:text-[15px] leading-relaxed whitespace-pre-wrap">
+                    {book.bundleDescription}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* CARD 3: 5-POINT CONDITION RADAR + SELLER REPUTATION */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+              <div className="bg-white rounded-3xl p-6 shadow-2xs border border-[#1D1D1F]/[0.07] flex flex-col justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-5">
+                  <h2 className="text-xs font-black uppercase tracking-[0.14em] text-[#1D1D1F]/80 flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-[#C84200]" />
                     5-Point Condition Radar
                   </h2>
@@ -420,18 +612,18 @@ export default async function ListingDetailPage({
                   </span>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-3.5">
                   {conditionMetrics.map((item) => {
                     const pct = Math.max(0, Math.min(100, (item.score / 5) * 100))
                     return (
                       <div
                         key={item.label}
-                        className="grid grid-cols-[128px_1fr_auto] sm:grid-cols-[150px_1fr_auto] items-center gap-3 text-[13px]"
+                        className="grid grid-cols-[120px_1fr_auto] items-center gap-3 text-[13px]"
                       >
                         <span className="font-semibold text-[#1D1D1F]/80 truncate">
                           {item.label}
                         </span>
-                        <div className="h-2 rounded-full bg-white border border-[#1D1D1F]/[0.06] overflow-hidden">
+                        <div className="h-2 rounded-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.06] overflow-hidden">
                           <div
                             className="h-full rounded-full bg-gradient-to-r from-[#C84200] to-[#FF7F45]"
                             style={{ width: `${pct}%` }}
@@ -446,151 +638,9 @@ export default async function ListingDetailPage({
                 </div>
               </div>
 
-              {/* Seller Header Strip */}
-              <div className="mb-5 p-4 sm:p-5 rounded-3xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] flex flex-wrap sm:flex-nowrap items-center gap-3.5">
-                <Link href={`/profile/${ownerHandle}`} className="shrink-0">
-                  {book.owner.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={book.owner.image}
-                      alt={book.owner.name || "Owner"}
-                      className="w-12 h-12 rounded-full object-cover border border-[#1D1D1F]/10"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-white border border-[#1D1D1F]/10 flex items-center justify-center">
-                      <User className="w-5 h-5 text-[#C84200]" />
-                    </div>
-                  )}
-                </Link>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-[#6e6e73]">
-                    Listed by
-                  </p>
-                  <Link
-                    href={`/profile/${ownerHandle}`}
-                    className="font-black text-base text-[#1D1D1F] hover:text-[#C84200] transition-colors truncate block"
-                  >
-                    {book.owner.name || "Community Reader"}
-                  </Link>
-                  {book.owner.username && (
-                    <span className="font-mono text-xs text-[#86868b]">
-                      @{book.owner.username}
-                    </span>
-                  )}
-                </div>
-                {!isOwner && session && (
-                  <Link
-                    href={`/messages/${book.owner.id}?book=${book.id}`}
-                    className="inline-flex items-center gap-2 bg-[#1D1D1F] hover:bg-[#C84200] text-white text-[13px] font-bold px-5 py-2.5 rounded-full transition-colors shrink-0"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    Message Seller
-                  </Link>
-                )}
-              </div>
-
-              {/* Reputation Card */}
-              <div className="mb-7">
+              <div className="flex flex-col">
                 <SellerReputationCard user={book.owner as any} />
               </div>
-            </div>
-
-            {/* Primary Action Dock */}
-            <div className="mt-auto pt-6 border-t border-[#1D1D1F]/[0.09]">
-              <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.14em] text-[#86868b] mb-1.5">
-                    {isDonation
-                      ? "Vidya Daan Gift"
-                      : isExchange && book.price === 0
-                      ? "1-for-1 Barter Exchange"
-                      : "Listing Price"}
-                  </p>
-                  <div className="font-mono text-3xl sm:text-4xl font-black tracking-tight text-[#1D1D1F]">
-                    {isDonation ? (
-                      <span className="text-[#0A7D4F] inline-flex items-center gap-2.5">
-                        Free <Tag className="w-6 h-6" />
-                      </span>
-                    ) : isExchange && book.price === 0 ? (
-                      <span className="text-[#0066cc]">1-for-1 Swap</span>
-                    ) : (
-                      `₹${book.price}`
-                    )}
-                  </div>
-                </div>
-                {book.status !== "AVAILABLE" && (
-                  <span className="px-4 py-1.5 rounded-full bg-amber-100 text-amber-900 font-mono text-xs font-bold uppercase">
-                    {book.status}
-                  </span>
-                )}
-              </div>
-
-              {isExchange && book.exchangePreferences && (
-                <div className="mb-5 p-4 bg-[#0066cc]/[0.06] rounded-2xl border border-[#0066cc]/20">
-                  <p className="text-xs font-black uppercase tracking-[0.12em] text-[#0066cc] mb-1">
-                    Reader Is Looking To Swap For
-                  </p>
-                  <p className="text-sm font-medium text-[#1D1D1F] leading-relaxed">
-                    {book.exchangePreferences}
-                  </p>
-                </div>
-              )}
-
-              {session ? (
-                isOwner ? (
-                  <OwnerListingControls book={book} />
-                ) : book.status !== "AVAILABLE" ? (
-                  <div className="w-full py-4 px-6 bg-[#FAF6F0] text-[#6e6e73] border border-[#1D1D1F]/[0.08] rounded-full text-sm font-bold flex items-center justify-center">
-                    Currently {book.status.toLowerCase()}
-                  </div>
-                ) : isDonation ? (
-                  <RequestBookButton bookId={book.id} isOwner={isOwner} />
-                ) : isExchange && book.price === 0 ? (
-                  <ProposeSwapModal
-                    targetBook={{
-                      id: book.id,
-                      title: book.title,
-                      author: book.author,
-                      exchangePreferences: book.exchangePreferences,
-                    }}
-                    ownerId={book.owner.id}
-                    myBooks={myAvailableBooks}
-                  />
-                ) : (
-                  <div className="space-y-3">
-                    <Link
-                      href={`/checkout/${book.id}`}
-                      className="w-full py-4 px-6 bg-[#C84200] hover:bg-[#A33500] text-white rounded-full text-[15px] font-bold flex items-center justify-center gap-2 transition-colors text-center shadow-sm"
-                    >
-                      Buy or Reserve Meetup for{" "}
-                      <span className="font-mono">₹{book.price}</span>
-                    </Link>
-                    <ProposeSwapModal
-                      targetBook={{
-                        id: book.id,
-                        title: book.title,
-                        author: book.author,
-                        exchangePreferences: book.exchangePreferences,
-                      }}
-                      ownerId={book.owner.id}
-                      myBooks={myAvailableBooks}
-                      secondary
-                    />
-                  </div>
-                )
-              ) : (
-                <Link
-                  href={`/login?callbackUrl=/catalog/${book.id}`}
-                  className="w-full py-4 px-6 bg-[#1D1D1F] hover:bg-[#C84200] text-white rounded-full text-[15px] font-bold flex items-center justify-center gap-2 transition-colors text-center shadow-sm"
-                >
-                  Sign In to{" "}
-                  {isDonation
-                    ? "Request Free Book"
-                    : isExchange
-                    ? "Propose 1-for-1 Swap"
-                    : "Buy or Reserve Meetup"}
-                </Link>
-              )}
             </div>
           </div>
         </div>
