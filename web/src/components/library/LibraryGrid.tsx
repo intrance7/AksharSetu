@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { LibraryBook } from "@prisma/client"
 import {
   Plus,
@@ -15,7 +15,7 @@ import {
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { Html5QrcodeScanner } from "html5-qrcode"
+import { IsbnCameraScanner } from "@/components/catalog/IsbnCameraScanner"
 import { updateLibraryBookStatus } from "@/app/actions/library"
 import { coverUrl } from "@/lib/gutenberg"
 import { GeneratedCover } from "@/components/catalog/GeneratedCover"
@@ -135,41 +135,6 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
       setLookingUpIsbn(false)
     }
   }
-
-  // Camera ISBN Barcode Scanner Hook
-  useEffect(() => {
-    if (!showScanner || !isModalOpen) return
-
-    const scanner = new Html5QrcodeScanner(
-      "library-isbn-reader",
-      {
-        fps: 10,
-        qrbox: { width: 240, height: 140 },
-        videoConstraints: { facingMode: "environment" },
-      },
-      false
-    )
-
-    scanner.render(
-      (decodedText) => {
-        scanner
-          .clear()
-          .then(() => {
-            setShowScanner(false)
-            const cleanIsbn = decodedText.replace(/[^0-9Xx]/g, "")
-            setIsbn(cleanIsbn)
-            lookupByIsbn(cleanIsbn)
-          })
-          .catch(() => {})
-      },
-      () => {}
-    )
-
-    return () => {
-      scanner.clear().catch(() => {})
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showScanner, isModalOpen])
 
   const handleAddBook = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -509,22 +474,14 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
 
               {/* Camera Barcode Scanner Viewport */}
               {showScanner && (
-                <div className="mb-5 rounded-2xl overflow-hidden border border-black/10 bg-[#f5f5f7] p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-[#1d1d1f]">
-                      Point camera at book ISBN barcode
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setShowScanner(false)}
-                      className="text-xs font-bold text-rose-600 hover:underline cursor-pointer"
-                    >
-                      Close Camera
-                    </button>
-                  </div>
-                  <div
-                    id="library-isbn-reader"
-                    className="w-full rounded-xl overflow-hidden bg-black"
+                <div className="mb-5">
+                  <IsbnCameraScanner
+                    onScan={(cleanIsbn) => {
+                      setShowScanner(false)
+                      setIsbn(cleanIsbn)
+                      lookupByIsbn(cleanIsbn)
+                    }}
+                    onClose={() => setShowScanner(false)}
                   />
                 </div>
               )}

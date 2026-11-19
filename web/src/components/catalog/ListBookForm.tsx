@@ -16,7 +16,7 @@ import {
   Check,
 } from "lucide-react"
 import { createBook } from "@/app/actions/book"
-import { Html5QrcodeScanner } from "html5-qrcode"
+import { IsbnCameraScanner } from "./IsbnCameraScanner"
 import { GeneratedCover } from "./GeneratedCover"
 import { PixelMascot } from "./PixelMascot"
 
@@ -87,40 +87,6 @@ export function ListBookForm() {
       }))
     }
   }, [])
-
-  // Scanner Hook
-  useEffect(() => {
-    if (!showScanner) return
-
-    const scanner = new Html5QrcodeScanner(
-      "reader",
-      {
-        fps: 10,
-        qrbox: { width: 250, height: 150 },
-        videoConstraints: { facingMode: "environment" },
-      },
-      false
-    )
-
-    scanner.render(
-      (decodedText) => {
-        scanner
-          .clear()
-          .then(() => {
-            setShowScanner(false)
-            const cleanIsbn = decodedText.replace(/[- ]/g, "")
-            setIsbn(cleanIsbn)
-            fetchBookData(cleanIsbn)
-          })
-          .catch(console.error)
-      },
-      () => {}
-    )
-
-    return () => {
-      scanner.clear().catch(console.error)
-    }
-  }, [showScanner])
 
   const updateDimensionScore = (
     key: (typeof CONDITION_DIMENSIONS)[number]["key"],
@@ -480,9 +446,14 @@ export function ListBookForm() {
               exit={{ opacity: 0, height: 0 }}
               className="overflow-hidden mb-6 relative z-10"
             >
-              <div className="bg-white rounded-xl p-4 border border-black/[0.04]">
-                <div id="reader" className="w-full text-[#1d1d1f]"></div>
-              </div>
+              <IsbnCameraScanner
+                onScan={(cleanIsbn) => {
+                  setShowScanner(false)
+                  setIsbn(cleanIsbn)
+                  fetchBookData(cleanIsbn)
+                }}
+                onClose={() => setShowScanner(false)}
+              />
             </motion.div>
           )}
         </AnimatePresence>
