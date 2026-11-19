@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { LibraryGrid } from "@/components/library/LibraryGrid"
 import { LiveReadersStrip } from "@/components/library/LiveReadersStrip"
-import { BookOpen, Tablet, Sparkles, Clock, Highlighter } from "lucide-react"
+import { BookOpen, Tablet, Bookmark, Clock, Highlighter } from "lucide-react"
 import Link from "next/link"
 
 export const dynamic = "force-dynamic"
@@ -46,14 +46,14 @@ export default async function LibraryPage() {
       <section className="bg-black text-[#f5f5f7] py-12 md:py-14 border-b border-white/10">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-[#FF8A4C] text-xs font-semibold tracking-wide mb-4">
-              <Sparkles className="w-3.5 h-3.5" /> Personal Reading Room
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-[#FF8A4C] text-xs font-bold uppercase tracking-widest mb-4">
+              <BookOpen className="w-3.5 h-3.5" /> Bookshelf · Shanti Desk
             </div>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tighter leading-none mb-3">
-              My Library.
+              My Bookshelf.
             </h1>
             <p className="text-[#86868b] text-base md:text-lg max-w-2xl">
-              Synced reading progress across physical books, open digital editions, Shanti focus timers, and your saved literary highlights.
+              Your shelf across print copies, open-archive editions, quiet Shanti timers, and every line you underlined along the way.
             </p>
           </div>
 
@@ -86,7 +86,7 @@ export default async function LibraryPage() {
           </div>
           <div className="bg-white rounded-2xl p-5 border border-black/5 shadow-sm">
             <span className="text-xs font-bold uppercase tracking-wider text-[#86868b] flex items-center gap-1.5 mb-1">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Reading
+              <Bookmark className="w-3.5 h-3.5 text-amber-500" /> Reading Now
             </span>
             <p className="text-3xl font-bold text-[#1d1d1f]">{readingCount}</p>
           </div>
@@ -123,10 +123,10 @@ export default async function LibraryPage() {
           <section className="space-y-4">
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-[#0066cc]">
-                Literary Notebook
+                Marginalia &amp; Notes
               </p>
               <h2 className="text-xl font-bold tracking-tight text-[#1d1d1f]">
-                Recent Highlights & Margin Notes
+                Underlined Passages &amp; Margin Notes
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

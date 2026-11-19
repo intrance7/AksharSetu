@@ -1,7 +1,11 @@
-import { Star, ShieldCheck, Zap, Activity } from "lucide-react"
+import Link from "next/link"
+import { Star, ShieldCheck, Zap, Activity, ArrowUpRight } from "lucide-react"
 
 interface SellerReputationProps {
   user: {
+    id?: string
+    name?: string | null
+    username?: string | null
     sellerRating?: number | null
     booksSold?: number | null
     successfulExchanges?: number | null
@@ -16,13 +20,25 @@ export function SellerReputationCard({ user }: SellerReputationProps) {
   const sold = user.booksSold ?? 0
   const exchanges = user.successfulExchanges ?? 0
   const responseTime = user.responseTime || "Fast"
+  const profileHandle = user.username || user.id
 
   return (
     <div className="bg-[#FAF6F0] rounded-2xl border border-[#1D1D1F]/[0.08] p-5 w-full">
-      <h3 className="text-xs font-black uppercase tracking-widest text-[#1D1D1F]/60 mb-4 flex items-center gap-2">
-        <ShieldCheck className="w-4 h-4 text-[#C84200]" />
-        Seller Reputation
-      </h3>
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <h3 className="text-xs font-black uppercase tracking-widest text-[#1D1D1F]/60 flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-[#C84200]" />
+          Seller Reputation
+        </h3>
+        {profileHandle && (
+          <Link
+            href={`/profile/${profileHandle}`}
+            className="inline-flex items-center gap-1 text-xs font-bold text-[#0066cc] hover:text-[#0071e3] transition-colors truncate max-w-[160px]"
+          >
+            {user.username ? `@${user.username}` : "View Profile"}
+            <ArrowUpRight className="w-3.5 h-3.5 shrink-0" />
+          </Link>
+        )}
+      </div>
 
       {/* Top Stats (responsive 3-col grid so 375px never overflows) */}
       <div className="grid grid-cols-3 divide-x divide-[#1D1D1F]/10 mb-5">

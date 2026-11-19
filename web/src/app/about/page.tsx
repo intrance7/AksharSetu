@@ -4,7 +4,6 @@ import {
   BookOpen,
   HeartHandshake,
   ShieldCheck,
-  Sparkles,
   GraduationCap,
   Lock,
   FileText,
@@ -27,27 +26,27 @@ export default async function AboutPage() {
       {/* Hero Section */}
       <section className="bg-[#000000] text-[#F5F5F7] py-20 md:py-28 px-4 border-b border-white/10">
         <div className="container mx-auto max-w-5xl text-center">
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-xs font-bold uppercase tracking-widest text-[#F5F5F7]/80 mb-6">
-            <BookOpen className="w-3.5 h-3.5 text-[#C84200]" /> Aksharसेतु —
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-xs font-bold uppercase tracking-widest text-[#F5F5F7]/85 mb-6">
+            <BookOpen className="w-3.5 h-3.5 text-[#C84200]" /> Aksharसेतु ·
             Bridge of Letters
           </span>
           <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-[1.05] mb-6">
-            No book should gather dust while a reader is searching for it.
+            A good book deserves more than one reader.
           </h1>
           <p className="text-lg md:text-xl text-[#86868b] max-w-3xl mx-auto leading-relaxed mb-10">
-            AksharSetu connects students, lifelong readers, and verified Indian
-            NGOs—combining peer-to-peer textbook sharing, 1-for-1 book swaps,
-            verifiable <strong className="text-white">Vidya Daan</strong>{" "}
-            literacy drives, and a multi-archive Free Legal E-Library with
-            mindful <strong className="text-white">Shanti Mode</strong> focus
-            sessions.
+            AksharSetu links Indian college shelves, neighborhood readers, and
+            verified classroom NGOs—making it simple to pass down textbooks,
+            trade novels 1-for-1, track{" "}
+            <strong className="text-white">Vidya Daan</strong> pledges, and read
+            unabridged classics in{" "}
+            <strong className="text-white">Shanti Mode</strong> without noise.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link
               href="/catalog"
               className="px-7 py-3.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white font-bold text-sm inline-flex items-center gap-2 transition-colors"
             >
-              Explore Marketplace <ArrowRight className="w-4 h-4" />
+              Browse the Stacks <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/donations"
@@ -87,11 +86,11 @@ export default async function AboutPage() {
       <section className="container mx-auto max-w-6xl px-4 py-16 md:py-20">
         <div className="mb-10">
           <h2 className="text-3xl md:text-4xl font-black tracking-tight">
-            How the Ecosystem Works
+            How Books Move Here
           </h2>
           <p className="text-[#86868b] font-medium mt-2">
-            Four interconnected pillars engineered for affordability, trust, and
-            deep reading.
+            Four practical ways AksharSetu keeps good editions circulating
+            instead of sitting idle.
           </p>
         </div>
 
@@ -149,22 +148,22 @@ export default async function AboutPage() {
 
           <div className="bg-white rounded-2xl p-8 shadow-sm border border-black/5">
             <div className="w-11 h-11 rounded-xl bg-[#ECFDF5] text-[#0A7D4F] flex items-center justify-center mb-5">
-              <Sparkles className="w-6 h-6" />
+              <BookOpen className="w-6 h-6" />
             </div>
             <h3 className="text-xl font-black mb-2">
-              4-Archive Legal E-Library & Shanti Mode
+              Open Classics &amp; Shanti Reading Room
             </h3>
             <p className="text-sm text-[#86868b] leading-relaxed mb-4">
-              Read 70,000+ public-domain works across Project Gutenberg,
-              Internet Archive, Open Library, and Google Books in realistic
-              2-page Book Spread or Classic Scroll—paired with Web Audio rain,
-              forest, and fireplace focus soundscapes.
+              Read 70,000+ unabridged public-domain works from Project
+              Gutenberg, Internet Archive, Open Library, and Google Books in a
+              two-page Book Spread or Classic Scroll—paired with quiet rain,
+              forest, and study-room soundscapes.
             </p>
             <Link
               href="/ebooks"
               className="text-sm font-bold text-[#0A7D4F] hover:underline"
             >
-              Enter Free E-Library →
+              Open the Archives →
             </Link>
           </div>
 
@@ -176,7 +175,7 @@ export default async function AboutPage() {
               <ShieldCheck className="w-6 h-6" />
             </div>
             <h3 className="text-xl font-black mb-2">
-              Escrow Trust, 5-Point Grading & AWB Tracking
+              5-Point Condition Grades &amp; Tracked Handoffs
             </h3>
             <p className="text-sm text-[#86868b] leading-relaxed mb-4">
               Listings include structured 1–5 scores for cover, pages,

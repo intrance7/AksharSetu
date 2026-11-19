@@ -11,7 +11,6 @@ import {
   BookOpen,
   MessageSquare,
   Calendar,
-  Sparkles,
   ArrowRight,
   KeyRound,
   Lock,
@@ -154,21 +153,21 @@ export default async function SabhaClubsPage() {
       <section className="bg-black text-[#F5F5F7] py-16 px-4 border-b border-white/10">
         <div className="container mx-auto max-w-6xl flex flex-col lg:flex-row lg:items-end justify-between gap-8">
           <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 text-xs font-bold uppercase tracking-widest text-[#F5F5F7]/80 mb-4">
-              <Sparkles className="w-3.5 h-3.5 text-[#C84200]" /> Sabha Teams &
-              Reading Squads
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 text-xs font-bold uppercase tracking-widest text-[#F5F5F7]/85 mb-4">
+              <Users className="w-3.5 h-3.5 text-[#C84200]" /> Reading Sabhas ·
+              Study Squads
             </div>
             <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-[1.04] mb-4 max-w-2xl">
-              Create a Reading Team or Join with a Code.
+              Read Together. Show Up for the Chapter.
             </h1>
             <p className="text-[#86868b] text-base md:text-lg max-w-2xl">
-              Form private campus study squads or open literary circles. Share
-              your unique{" "}
+              Start a hostel exam prep squad or an evening poetry circle. Share
+              your{" "}
               <span className="text-white font-mono font-bold">
                 SABHA-XXXXXX
               </span>{" "}
-              invite code with friends to co-read in Shanti Mode and exchange
-              chapter reflections.
+              code with friends to co-read in Shanti Mode and trade notes
+              chapter by chapter.
             </p>
           </div>
 
@@ -188,10 +187,10 @@ export default async function SabhaClubsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-xs font-black uppercase tracking-widest text-[#C84200]">
-                  Active Memberships
+                  Your Circles
                 </span>
                 <h2 className="text-2xl font-black text-[#1D1D1F] tracking-tight">
-                  My Sabha Teams ({myTeams.length})
+                  My Reading Sabhas ({myTeams.length})
                 </h2>
               </div>
             </div>
@@ -213,10 +212,10 @@ export default async function SabhaClubsPage() {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
             <div>
               <span className="text-xs font-black uppercase tracking-widest text-[#1D1D1F]/50">
-                Open Directory
+                Open Circles
               </span>
               <h2 className="text-2xl font-black text-[#1D1D1F] tracking-tight">
-                Public Sabha Teams ({publicTeams.length})
+                Public Reading Sabhas ({publicTeams.length})
               </h2>
             </div>
             <p className="text-xs font-semibold text-[#86868b]">

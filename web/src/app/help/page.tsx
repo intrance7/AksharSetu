@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma"
 import { HelpCenterClient } from "@/components/help/HelpCenterClient"
+import { MascotCalloutCard } from "@/components/mascots/AksharSetuMascots"
 
 export const dynamic = "force-dynamic"
 
@@ -25,5 +26,14 @@ export default async function HelpCenterPage() {
     updatedAt: c.updatedAt.toISOString(),
   }))
 
-  return <HelpCenterClient customArticles={customArticles} />
+  return (
+    <>
+      <HelpCenterClient customArticles={customArticles} />
+      <section className="bg-[#F2EBE1] -mt-14 pb-16 px-4 sm:px-6">
+        <div className="mx-auto max-w-6xl">
+          <MascotCalloutCard variant="help" />
+        </div>
+      </section>
+    </>
+  )
 }

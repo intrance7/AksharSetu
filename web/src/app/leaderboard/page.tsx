@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import { cached } from "@/lib/fastCache"
 import { computeUserStats } from "@/lib/gamification"
 import { getMutualFollowIds } from "@/lib/shantiVisibility"
+import { ensureAllUsersHaveUsernames } from "@/lib/username"
 import {
   LeaderboardClient,
   LeaderboardUserEntry,
@@ -16,6 +17,8 @@ export default async function LeaderboardPage({
 }: {
   searchParams: Promise<{ tab?: string }>
 }) {
+  await ensureAllUsersHaveUsernames()
+
   const [session, resolvedSearch, baseData] = await Promise.all([
     auth(),
     searchParams,
@@ -27,6 +30,7 @@ export default async function LeaderboardPage({
         select: {
           id: true,
           name: true,
+          username: true,
           email: true,
           image: true,
           bio: true,
@@ -115,6 +119,7 @@ export default async function LeaderboardPage({
         return {
           id: u.id,
           name: u.name || u.email?.split("@")[0] || "Reader",
+          username: u.username || null,
           image: u.image,
           bio: u.bio,
           favoriteQuote: u.favoriteQuote,
@@ -136,6 +141,7 @@ export default async function LeaderboardPage({
   const users: LeaderboardUserEntry[] = baseData.entries.map((entry) => ({
     id: entry.id,
     name: entry.name,
+    username: entry.username,
     image: entry.image,
     bio: entry.bio,
     favoriteQuote: entry.favoriteQuote,
@@ -152,6 +158,7 @@ export default async function LeaderboardPage({
       users={users}
       overview={baseData.overview}
       currentUserId={session?.user?.id || null}
+      currentUsername={session?.user?.username || null}
       initialTab={resolvedSearch.tab}
     />
   )

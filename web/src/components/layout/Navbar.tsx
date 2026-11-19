@@ -221,13 +221,15 @@ export function Navbar() {
                         </Link>
                         <NotificationBell userId={session.user?.id || ""} />
                         <Link
-                          href={`/profile/${session.user?.id || "me"}`}
+                          href={`/profile/${session.user?.username || session.user?.id || "me"}`}
                           className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                         >
-                          <span className="hidden xl:inline text-sm font-bold text-[#C84200] max-w-[100px] truncate">
-                            {session.user?.name?.split(" ")[0] ||
-                              session.user?.email?.split("@")[0] ||
-                              "Reader"}
+                          <span className="hidden xl:inline text-sm font-bold text-[#C84200] max-w-[120px] truncate">
+                            {session.user?.username
+                              ? `@${session.user.username}`
+                              : session.user?.name?.split(" ")[0] ||
+                                session.user?.email?.split("@")[0] ||
+                                "Reader"}
                           </span>
                           <div className="h-8 w-8 bg-[#C84200]/10 rounded-full flex items-center justify-center shrink-0 overflow-hidden border border-[#C84200]/20">
                             {session.user?.image ? (
@@ -479,11 +481,11 @@ export function Navbar() {
                 {session ? (
                   <div className="mt-2 pt-3 border-t border-[#C84200]/15 flex items-center justify-between">
                     <Link
-                      href={`/profile/${session.user?.id || "me"}`}
+                      href={`/profile/${session.user?.username || session.user?.id || "me"}`}
                       onClick={() => setMobileOpen(false)}
-                      className="flex items-center gap-2.5 font-bold text-sm text-[#1D1D1F]"
+                      className="flex items-center gap-2.5 font-bold text-sm text-[#1D1D1F] min-w-0"
                     >
-                      <div className="w-8 h-8 rounded-full bg-[#C84200]/15 flex items-center justify-center text-[#C84200] overflow-hidden">
+                      <div className="w-8 h-8 rounded-full bg-[#C84200]/15 flex items-center justify-center text-[#C84200] overflow-hidden shrink-0">
                         {session.user?.image ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
@@ -495,11 +497,18 @@ export function Navbar() {
                           <User className="w-4 h-4" />
                         )}
                       </div>
-                      <span>
-                        {session.user?.name ||
-                          session.user?.email?.split("@")[0] ||
-                          "My Profile"}
-                      </span>
+                      <div className="min-w-0">
+                        <span className="block truncate">
+                          {session.user?.name ||
+                            session.user?.email?.split("@")[0] ||
+                            "My Profile"}
+                        </span>
+                        {session.user?.username && (
+                          <span className="block text-xs font-semibold text-[#C84200] truncate">
+                            @{session.user.username}
+                          </span>
+                        )}
+                      </div>
                     </Link>
 
                     <div className="flex items-center gap-3">

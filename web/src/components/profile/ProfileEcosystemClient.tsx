@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { formatDistanceToNow, format } from "date-fns"
 import { motion, AnimatePresence } from "framer-motion"
 import { toast } from "sonner"
@@ -35,6 +36,10 @@ import {
   Ban,
   ShieldAlert,
   ChevronRight,
+  AtSign,
+  Loader2,
+  Check,
+  Link2,
 } from "lucide-react"
 import {
   RARITY_CONFIG,
@@ -67,6 +72,17 @@ const BANNER_STYLES: Record<string, string> = {
   cobalt_grid: "bg-[#061224]",
   library_dawn: "bg-[#1A0E08]",
   emerald_grove: "bg-[#071912]",
+}
+
+function sanitizeHandlePreview(raw: string): string {
+  return String(raw || "")
+    .trim()
+    .toLowerCase()
+    .replace(/^@+/, "")
+    .replace(/[^a-z0-9_]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 24)
+    .replace(/_+$/g, "")
 }
 
 export function ProfileEcosystemClient({
@@ -156,6 +172,7 @@ export function ProfileEcosystemClient({
   initialTab?: string
 }) {
   const router = useRouter()
+  const { update: updateSession } = useSession()
   const validInitialTab = ["overview", "reading", "achievements", "quests", "activity"].includes(
     initialTab
   )
@@ -164,6 +181,11 @@ export function ProfileEcosystemClient({
 
   const [activeTab, setActiveTab] = useState<MainTab>(validInitialTab)
   const [isEditing, setIsEditing] = useState(false)
+  const [handleDraft, setHandleDraft] = useState<string>(
+    profileUser.username || ""
+  )
+  const [savingHandle, setSavingHandle] = useState(false)
+  const [handleError, setHandleError] = useState<string | null>(null)
   const [following, setFollowing] = useState(initialFollowing)
   const [followersCount, setFollowersCount] = useState(
     detailedMetrics.followersCount
@@ -333,6 +355,77 @@ export function ProfileEcosystemClient({
     toast.success("Public profile link copied to clipboard!")
   }
 
+  const openProfileSettings = () => {
+    setHandleDraft(profileUser.username || "")
+    setHandleError(null)
+    setIsEditing(true)
+  }
+
+  const previewHandle = sanitizeHandlePreview(handleDraft)
+
+  const handleSaveUsername = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (savingHandle) return
+    const clean = sanitizeHandlePreview(handleDraft)
+    if (clean.length < 3 || clean.length > 24) {
+      setHandleError(
+        "Username must be 3–24 characters using letters, numbers, or underscores."
+      )
+      return
+    }
+    if (clean === profileUser.username) {
+      toast.info(`You already own @${clean}`)
+      return
+    }
+
+    setSavingHandle(true)
+    setHandleError(null)
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: clean }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        const msg = data?.error || "Could not update @username"
+        setHandleError(msg)
+        toast.error(msg)
+        return
+      }
+      await updateSession().catch(() => {})
+      toast.success(`Profile URL updated to /profile/${data.username}`)
+      setIsEditing(false)
+      if (data?.username && data.username !== profileUser.username) {
+        router.replace(`/profile/${data.username}`)
+      }
+      router.refresh()
+    } catch (err: any) {
+      const msg = err?.message || "Could not update @username"
+      setHandleError(msg)
+      toast.error(msg)
+    } finally {
+      setSavingHandle(false)
+    }
+  }
+
+  const handleProfileFormSuccess = async () => {
+    setIsEditing(false)
+    try {
+      const res = await fetch("/api/profile", { cache: "no-store" })
+      if (res.ok) {
+        const latest = await res.json()
+        await updateSession().catch(() => {})
+        if (latest?.username && latest.username !== profileUser.username) {
+          setHandleDraft(latest.username)
+          router.replace(`/profile/${latest.username}`)
+          return
+        }
+      }
+    } catch {}
+    router.refresh()
+  }
+
   const filteredAchievements = allAchievements.filter((a) => {
     if (badgeCategory !== "ALL" && a.category !== badgeCategory) return false
     if (badgeRarity !== "ALL" && a.rarity !== badgeRarity) return false
@@ -447,13 +540,18 @@ export function ProfileEcosystemClient({
                   )}
                 </div>
 
-                <div className="flex flex-wrap items-baseline gap-2.5">
+                <div className="flex flex-wrap items-center gap-2.5">
                   <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white">
                     {profileUser.name}
                   </h1>
-                  <span className="text-sm font-medium text-[#86868b]">
+                  <button
+                    type="button"
+                    onClick={handleCopyProfileLink}
+                    title="Copy public profile URL"
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/10 hover:bg-white/15 text-xs font-semibold text-[#66b3ff] transition-colors cursor-pointer"
+                  >
                     @{profileUser.username}
-                  </span>
+                  </button>
                   {profileUser.verified && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
                       <ShieldCheck className="w-3 h-3" /> Verified
@@ -529,7 +627,7 @@ export function ProfileEcosystemClient({
                   </button>
                   <button
                     type="button"
-                    onClick={() => setIsEditing(true)}
+                    onClick={openProfileSettings}
                     className="px-4 py-2 rounded-full bg-white text-[#1d1d1f] hover:bg-[#e8e8ed] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Pencil className="w-3.5 h-3.5" /> Customize Profile
@@ -1794,14 +1892,93 @@ export function ProfileEcosystemClient({
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="p-2 rounded-full bg-[#f5f5f7]"
+                  className="p-2 rounded-full bg-[#f5f5f7] cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
+
+              {/* Prominent @username Handle & Live Profile URL Settings */}
+              <form
+                onSubmit={handleSaveUsername}
+                className="mb-6 p-4 sm:p-5 rounded-2xl bg-[#f5f5f7] border border-black/5 space-y-3"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label
+                    htmlFor="profile-handle-input"
+                    className="text-xs font-bold uppercase tracking-wider text-[#1d1d1f] flex items-center gap-1.5"
+                  >
+                    <AtSign className="w-3.5 h-3.5 text-[#0066cc]" /> Public
+                    @username Handle
+                  </label>
+                  <span className="text-[11px] font-semibold text-[#86868b]">
+                    3–24 chars · letters, numbers & _
+                  </span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2.5">
+                  <div className="relative flex-1">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-[#86868b]">
+                      @
+                    </span>
+                    <input
+                      id="profile-handle-input"
+                      type="text"
+                      value={handleDraft}
+                      onChange={(e) => {
+                        setHandleDraft(e.target.value)
+                        setHandleError(null)
+                      }}
+                      maxLength={24}
+                      placeholder="your_username"
+                      className="w-full bg-white border border-black/10 focus:border-[#0066cc] rounded-full pl-8 pr-4 py-2.5 text-sm font-bold text-[#1d1d1f] outline-none transition-colors"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={
+                      savingHandle ||
+                      previewHandle.length < 3 ||
+                      previewHandle === profileUser.username
+                    }
+                    className="px-5 py-2.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-45 shrink-0"
+                  >
+                    {savingHandle ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />{" "}
+                        Updating...
+                      </>
+                    ) : previewHandle === profileUser.username ? (
+                      <>
+                        <Check className="w-3.5 h-3.5" /> Active Handle
+                      </>
+                    ) : (
+                      "Save @username"
+                    )}
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <div className="inline-flex items-center gap-1.5 text-[#86868b] font-medium min-w-0">
+                    <Link2 className="w-3.5 h-3.5 text-[#0066cc] shrink-0" />
+                    <span className="truncate">
+                      Live URL:{" "}
+                      <strong className="text-[#1d1d1f] font-mono">
+                        aksharsetu/profile/{previewHandle || "your_username"}
+                      </strong>
+                    </span>
+                  </div>
+                  {handleError && (
+                    <p className="text-xs font-bold text-rose-600">
+                      {handleError}
+                    </p>
+                  )}
+                </div>
+              </form>
+
               <ProfileForm
                 user={profileUser}
-                onSuccess={() => setIsEditing(false)}
+                onSuccess={handleProfileFormSuccess}
               />
             </motion.div>
           </div>

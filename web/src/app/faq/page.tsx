@@ -11,6 +11,7 @@ import {
   LifeBuoy,
   BookOpen,
 } from "lucide-react"
+import { MascotCalloutCard } from "@/components/mascots/AksharSetuMascots"
 
 const FAQ_CATEGORIES: { id: "ALL" | FaqItem["category"]; label: string }[] = [
   { id: "ALL", label: "All Questions" },
@@ -100,6 +101,9 @@ export default function FaqPage() {
             </button>
           ))}
         </div>
+
+        {/* Akshar & Setu Editorial Greeting */}
+        <MascotCalloutCard variant="faq" className="mb-6" />
 
         {/* FAQ Accordion List */}
         <div className="space-y-3">

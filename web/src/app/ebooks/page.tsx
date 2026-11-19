@@ -6,7 +6,6 @@ import { LiveReadersStrip } from "@/components/library/LiveReadersStrip"
 import {
   BookOpen,
   Search,
-  Sparkles,
   Flame,
   Feather,
   Compass,
@@ -96,26 +95,26 @@ export default async function EbooksPage({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-16 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             <div className="lg:col-span-7 space-y-5 min-w-0">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-semibold tracking-wide text-[#FF8A4C] max-w-full">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-bold uppercase tracking-widest text-[#FF8A4C] max-w-full">
                 <Globe className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">Unified Open E-Library · Gutenberg + Archive + Open Library + Google</span>
+                <span className="truncate">Open Archives · Public Domain &amp; Classic Editions</span>
               </div>
 
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter leading-none">
-                Every Free Library.{" "}
+                70,000+ Classics.{" "}
                 <span className="bg-gradient-to-r from-[#FF8A4C] via-amber-200 to-sky-300 bg-clip-text text-transparent">
-                  Read Like a Real Book.
+                  Open Like Paper.
                 </span>
               </h1>
 
               <p className="text-base sm:text-lg text-[#86868b] max-w-2xl leading-relaxed">
-                Search millions of legal public-domain and open-access books across{" "}
+                Browse unabridged public-domain works from{" "}
                 <span className="text-white font-medium">Project Gutenberg</span>,{" "}
                 <span className="text-white font-medium">Internet Archive</span>,{" "}
                 <span className="text-white font-medium">Open Library</span>, and{" "}
-                <span className="text-white font-medium">Google Books</span>. Switch effortlessly
-                between <span className="text-white font-medium">Book Read</span> (realistic 2-page spread)
-                and <span className="text-white font-medium">Classic Read</span>.
+                <span className="text-white font-medium">Google Books</span>—formatted
+                for a calm two-page <span className="text-white font-medium">Book Spread</span>{" "}
+                or clean <span className="text-white font-medium">Classic Scroll</span>.
               </p>
 
               {/* Search Bar */}
@@ -208,7 +207,7 @@ export default async function EbooksPage({
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold bg-[#1d1d1f] text-white hover:bg-[#0066cc] transition shrink-0"
           >
             <Library className="w-3.5 h-3.5 text-amber-400" />
-            My Reading Room
+            Open My Shelf
           </Link>
         </div>
 
@@ -245,17 +244,17 @@ export default async function EbooksPage({
             <div className="flex items-end justify-between">
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-[#0066cc]">
-                  Featured Shelf
+                  Curated Stack
                 </p>
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1d1d1f]">
-                  Timeless Indian Classics
+                  Indian Classics Worth Keeping
                 </h2>
               </div>
               <Link
                 href="/ebooks?q=india"
                 className="text-xs font-semibold text-[#0066cc] hover:underline"
               >
-                Explore all Indian Heritage →
+                Browse Indian Heritage →
               </Link>
             </div>
             <EbookGrid books={CURATED_INDIAN_CLASSICS.slice(0, 5)} />
@@ -267,7 +266,7 @@ export default async function EbooksPage({
           <div className="flex flex-wrap items-end justify-between gap-2">
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-[#86868b]">
-                {activeQuery ? "Multi-Library Search Results" : "Global Open Catalog"}
+                {activeQuery ? "Archive Results" : "Open Stacks"}
               </p>
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1d1d1f]">
                 {activeQuery ? (
@@ -278,7 +277,7 @@ export default async function EbooksPage({
                     </span>
                   </>
                 ) : (
-                  "Trending Free E-Books Across All Libraries"
+                  "Most-Read Open Editions"
                 )}
               </h2>
             </div>
@@ -326,23 +325,23 @@ export default async function EbooksPage({
         <section className="bg-black text-white rounded-2xl p-8 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-2 max-w-xl">
             <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-400">
-              <Sparkles className="w-4 h-4" /> Book Read Mode + Shanti Focus
+              <BookOpen className="w-4 h-4" /> Two-Page Spread · Shanti Audio
             </div>
             <h3 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              Read like a real two-page hardcover book.
+              Turn pages like a quiet midnight library.
             </h3>
             <p className="text-sm text-[#86868b] leading-relaxed">
-              Every book in our E-Library features <strong className="text-white">Book Read</strong>{" "}
-              (a realistic two-page open spread with spine depth and page turns),{" "}
-              <strong className="text-white">Classic Read</strong> (clean continuous view), and{" "}
-              <strong className="text-white">Shanti Mode</strong> with ambient soundscapes.
+              Every edition supports <strong className="text-white">Book Read</strong>{" "}
+              (a two-page hardcover spread with natural gutter depth),{" "}
+              <strong className="text-white">Classic Scroll</strong>, and{" "}
+              <strong className="text-white">Shanti Mode</strong> with rain and study-room soundscapes.
             </p>
           </div>
           <Link
             href="/library"
             className="px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider bg-[#0066cc] hover:bg-[#0071e3] text-white transition shrink-0"
           >
-            Go to My Reading Room →
+            Open My Shelf →
           </Link>
         </section>
       </div>

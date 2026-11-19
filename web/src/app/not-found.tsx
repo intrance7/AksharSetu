@@ -1,14 +1,15 @@
 import Link from "next/link"
 import { ArrowLeft, BookOpen, Search, HelpCircle } from "lucide-react"
+import { MascotCalloutCard } from "@/components/mascots/AksharSetuMascots"
 
 export default function NotFound() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[78vh] bg-[#F2EBE1] px-4 py-16 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-[#1D1D1F] text-[#F2EBE1] flex items-center justify-center mb-6 shadow-md">
+      <div className="w-16 h-16 rounded-2xl bg-[#1D1D1F] text-[#F2EBE1] flex items-center justify-center mb-5 shadow-md">
         <BookOpen className="w-8 h-8 text-[#C84200]" />
       </div>
 
-      <span className="text-xs font-black uppercase tracking-widest text-[#C84200] mb-2">
+      <span className="font-silkscreen text-[11px] uppercase tracking-widest text-[#C84200] mb-2">
         Error 404 · Shelf Not Found
       </span>
 
@@ -16,10 +17,15 @@ export default function NotFound() {
         This page has left the library.
       </h1>
 
-      <p className="text-[#1D1D1F]/65 text-base max-w-[46ch] font-medium mb-8">
+      <p className="text-[#1D1D1F]/65 text-base max-w-[46ch] font-medium mb-7">
         The book listing, profile, or guide you requested could not be found or
         may have been archived.
       </p>
+
+      <MascotCalloutCard
+        variant="not-found"
+        className="w-full max-w-xl mb-8"
+      />
 
       <div className="flex flex-wrap items-center justify-center gap-3">
         <Link

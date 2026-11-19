@@ -2,6 +2,12 @@ import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import { invalidateCache } from "@/lib/fastCache"
+import {
+  ensureUserUsername,
+  hasLegacyUuidSuffix,
+  isReservedUsername,
+  sanitizeUsername,
+} from "@/lib/username"
 import { checkAndAwardBadges } from "@/services/badgeService"
 import {
   COSMETIC_CATALOG,
@@ -56,6 +62,15 @@ export async function GET() {
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
+    }
+
+    if (!user.username || hasLegacyUuidSuffix(user.username, user.id)) {
+      const cleanUsername = await ensureUserUsername(
+        user.id,
+        user.name,
+        user.email
+      )
+      return NextResponse.json({ ...user, username: cleanUsername })
     }
 
     return NextResponse.json(user)
@@ -277,15 +292,24 @@ export async function PATCH(req: Request) {
     if (liveStatus !== undefined)
       updateData.liveStatus = String(liveStatus).trim().slice(0, 80)
 
-    if (username !== undefined && String(username).trim()) {
-      const cleanUsername = String(username)
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9_]/g, "")
-        .slice(0, 24)
-      if (cleanUsername.length < 3) {
+    if (username !== undefined) {
+      const rawUsername = String(username).trim()
+      if (!rawUsername) {
         return NextResponse.json(
-          { error: "Username must be at least 3 alphanumeric characters." },
+          { error: "Username cannot be empty." },
+          { status: 400 }
+        )
+      }
+      const cleanUsername = sanitizeUsername(rawUsername)
+      if (cleanUsername.length < 3 || cleanUsername.length > 24) {
+        return NextResponse.json(
+          { error: "Username must be 3–24 characters using letters, numbers, or underscores." },
+          { status: 400 }
+        )
+      }
+      if (isReservedUsername(cleanUsername)) {
+        return NextResponse.json(
+          { error: "That @username is reserved. Please pick another handle." },
           { status: 400 }
         )
       }
@@ -295,8 +319,8 @@ export async function PATCH(req: Request) {
       })
       if (conflict) {
         return NextResponse.json(
-          { error: "That @username is already taken." },
-          { status: 409 }
+          { error: "That @username is already taken" },
+          { status: 400 }
         )
       }
       updateData.username = cleanUsername
@@ -345,7 +369,13 @@ export async function PATCH(req: Request) {
     checkAndAwardBadges(userId).catch(() => {})
 
     return NextResponse.json(updatedUser)
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.code === "P2002") {
+      return NextResponse.json(
+        { error: "That @username is already taken" },
+        { status: 400 }
+      )
+    }
     console.error("Profile update error:", error)
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
   }

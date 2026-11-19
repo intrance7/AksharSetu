@@ -46,28 +46,28 @@ export default async function DonationsPage() {
         <div className="max-w-6xl mx-auto flex flex-col items-center text-center">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-bold uppercase tracking-widest text-[#F5F5F7]/90 mb-5">
             <HeartHandshake className="w-3.5 h-3.5 text-[#C84200]" /> Vidya Daan
-            Literacy Network
+            · Classroom Book Drives
           </div>
           <h1 className="text-4xl sm:text-6xl md:text-7xl tracking-tighter font-black leading-[1.02] mb-6">
-            Give a Book. <br className="hidden sm:block" /> Give a Future.
+            Pass a Book <br className="hidden sm:block" /> to a Classroom.
           </h1>
           <p className="text-[#86868b] text-base sm:text-lg md:text-xl max-w-2xl mb-10">
-            Join the AksharSetu community in supporting NGOs and students across
-            India. Track every donated book across 6 verified stages from your
-            hands to theirs.
+            Pledge outgrown textbooks and storybooks straight to verified Indian
+            NGO drives—and follow every parcel across six checkpoints until a
+            student opens it.
           </p>
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
             <Link
               href="/catalog/new?type=donation"
               className="bg-[#C84200] hover:bg-[#A33500] text-white px-7 py-3.5 rounded-full font-bold text-sm transition-colors shadow-sm"
             >
-              Donate a Book Now
+              Pledge a Book
             </Link>
             <a
               href="#campaigns"
               className="bg-white/10 hover:bg-white/20 text-[#F5F5F7] border border-white/15 px-7 py-3.5 rounded-full font-bold text-sm transition-colors"
             >
-              Explore NGO Campaigns
+              Browse Classroom Drives
             </a>
           </div>
 
@@ -121,18 +121,18 @@ export default async function DonationsPage() {
           <div className="flex flex-wrap justify-between items-end gap-3 mb-8">
             <div>
               <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-[#1D1D1F]">
-                Active NGO Campaigns
+                Active Classroom &amp; NGO Drives
               </h2>
               <p className="text-sm font-medium text-[#86868b] mt-1">
-                Pick a partner literacy drive below to pledge textbooks or
-                storybooks directly.
+                Choose a verified partner drive below to pledge textbooks, exam
+                guides, or storybooks directly.
               </p>
             </div>
             <Link
               href="/catalog/new?type=donation"
               className="text-xs font-bold text-[#C84200] hover:underline"
             >
-              Or donate to the General Literacy Pool →
+              Or pledge to the General Student Pool →
             </Link>
           </div>
           {campaigns.length === 0 ? (

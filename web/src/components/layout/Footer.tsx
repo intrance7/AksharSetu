@@ -1,9 +1,11 @@
 import Link from "next/link"
 import { BookOpen } from "lucide-react"
+import { FooterMascotRunway } from "@/components/mascots/AksharSetuMascots"
 
 export function Footer() {
   return (
     <footer className="relative z-10 w-full border-t border-black/10 bg-white">
+      <FooterMascotRunway />
       <div className="container mx-auto px-4 py-14 md:px-8">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5">
           {/* Brand Column */}

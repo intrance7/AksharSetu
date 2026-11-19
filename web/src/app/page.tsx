@@ -1,15 +1,20 @@
 "use client"
 
 import Link from "next/link"
-import { motion, useScroll, useSpring, useTransform } from "framer-motion"
+import {
+  motion,
+  useScroll,
+  useSpring,
+  useTransform,
+  type MotionValue,
+} from "framer-motion"
 import {
   MapPin,
   HeartHandshake,
   BookOpen,
   GraduationCap,
-  Users,
   ArrowUpRight,
-  Sparkles,
+  Compass,
 } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useEffect, useRef } from "react"
@@ -26,8 +31,222 @@ const WordUniverse = dynamic(
   { ssr: false }
 )
 
+type PlayingCardData = {
+  indexTag: string
+  title: string
+  subtitle: string
+  letter: string
+  href: string
+  cta: string
+  items: string[]
+}
+
+const cards: PlayingCardData[] = [
+  {
+    indexTag: "INDEX 01 · CATALOG",
+    title: "DISCOVER",
+    subtitle: "Campus & Neighborhood Stacks",
+    letter: "D",
+    href: "/catalog",
+    cta: "Browse the Stacks",
+    items: [
+      "Search by title, author, or 13-digit ISBN",
+      "Filter by university, course & semester",
+      "Spot books within walking distance on the map",
+      "Instant ping when a wishlisted title drops",
+      "Verified 5-point condition grades & trust scores",
+    ],
+  },
+  {
+    indexTag: "INDEX 02 · EXCHANGE",
+    title: "SELL & SWAP",
+    subtitle: "Peer-to-Peer Book Studio",
+    letter: "S",
+    href: "/catalog/new",
+    cta: "List a Book",
+    items: [
+      "Barcode scan pulls cover & edition in 0.2s",
+      "Honest 5-point spine, page & margin grading",
+      "Fair campus resale estimate by condition",
+      "Bundle full-semester syllabi or trade 1-for-1",
+      "Zero-commission hostel gate or courier handoff",
+    ],
+  },
+  {
+    indexTag: "INDEX 03 · VIDYA DAAN",
+    title: "DONATE",
+    subtitle: "Verifiable Literacy Drives",
+    letter: "V",
+    href: "/donations",
+    cta: "Pledge via Vidya Daan",
+    items: [
+      "Vidya Daan — pass books to classrooms",
+      "Direct pledges to verified Indian NGO drives",
+      "6-stage chain-of-custody tracking ID",
+      "Printable literacy impact certificate",
+      "Community donor milestones & recognition",
+    ],
+  },
+  {
+    indexTag: "INDEX 04 · SABHA & SHANTI",
+    title: "CONNECT",
+    subtitle: "Reading Circles & Open Classics",
+    letter: "C",
+    href: "/clubs",
+    cta: "Enter the Sabhas",
+    items: [
+      "Direct reader chat & 1-for-1 swap offers",
+      "Sabha reading squads with SABHA-XXXXXX codes",
+      "Shanti Mode focus timer with rain & library audio",
+      "70,000+ free classics in realistic 2-page spread",
+      "Shared margin notes & daily reading streaks",
+    ],
+  },
+]
+
+const ecosystemLinks = [
+  {
+    routeTag: "ROUTE 01 · /campus",
+    title: "Campus Semester Desk",
+    desc: "Pick up exact semester syllabi and multi-book packs from seniors at your college—or pass your stack to the incoming batch.",
+    href: "/campus",
+    label: "Campus Desk",
+    icon: GraduationCap,
+  },
+  {
+    routeTag: "ROUTE 02 · /map",
+    title: "Neighborhood Book Radar",
+    desc: "Spot textbooks, 1-for-1 swaps, and free Vidya Daan pickups pinned within walking distance of your hostel or metro stop.",
+    href: "/map",
+    label: "Book Map",
+    icon: MapPin,
+  },
+  {
+    routeTag: "ROUTE 03 · /donations",
+    title: "Vidya Daan Chain of Custody",
+    desc: "Pledge books to active Indian NGO literacy drives and follow every parcel across six verified checkpoints from shelf to classroom.",
+    href: "/donations",
+    label: "Vidya Daan",
+    icon: HeartHandshake,
+  },
+  {
+    routeTag: "ROUTE 04 · /ebooks",
+    title: "Open Archives & Reading Sabhas",
+    desc: "Open 70,000+ unabridged public-domain works in a two-page hardcover spread, start a Shanti timer, and co-read with your squad.",
+    href: "/ebooks",
+    label: "Open Archives",
+    icon: BookOpen,
+  },
+]
+
+function EditorialPlayingCard({
+  card,
+  index,
+  progress,
+}: {
+  card: PlayingCardData
+  index: number
+  progress: MotionValue<number>
+}) {
+  const initialRotate =
+    index === 0 ? -4.5 : index === 1 ? -1.5 : index === 2 ? 1.5 : 4.5
+  const y = useTransform(progress, [0, 1], [110 + index * 28, 0])
+  const rotate = useTransform(progress, [0, 1], [initialRotate, 0])
+  const scale = useTransform(progress, [0, 1], [0.93, 1])
+  const opacity = useTransform(progress, [0, 1], [0.15, 1])
+
+  return (
+    <motion.div
+      style={{ y, rotate, scale, opacity }}
+      className="w-full will-change-transform"
+    >
+      <Link
+        href={card.href}
+        className="group relative bg-white text-[#1D1D1F] rounded-[26px] p-6 md:p-7 flex flex-col justify-between min-h-[430px] md:min-h-[470px] shadow-[0_16px_38px_-14px_rgba(29,29,31,0.08)] border border-[#1D1D1F]/[0.08] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_28px_56px_-14px_rgba(200,66,0,0.16)] hover:border-[#C84200]/35 overflow-hidden"
+      >
+        {/* Subtle Index Card Inner Frame */}
+        <div className="pointer-events-none absolute inset-2.5 rounded-[18px] border border-[#1D1D1F]/[0.04] group-hover:border-[#C84200]/15 transition-colors" />
+
+        {/* Top Header */}
+        <div className="relative z-10">
+          <div className="flex items-start justify-between gap-2 mb-1.5">
+            <div>
+              <span className="block text-[10px] font-black uppercase tracking-[0.18em] text-[#86868b] mb-1">
+                {card.indexTag}
+              </span>
+              <h3 className="text-xl md:text-2xl font-black tracking-tight uppercase text-[#1D1D1F] group-hover:text-[#C84200] transition-colors">
+                {card.title}
+              </h3>
+            </div>
+            <span
+              style={{
+                fontFamily: "var(--font-silkscreen), 'Silkscreen', monospace",
+              }}
+              className="font-[family-name:var(--font-silkscreen)] text-[#C84200] font-bold text-2xl md:text-3xl leading-none select-none shrink-0 pt-0.5"
+            >
+              {card.letter}
+            </span>
+          </div>
+          <p className="text-xs font-semibold text-[#86868b]">
+            {card.subtitle}
+          </p>
+        </div>
+
+        {/* List Items with archival dotted ledger rules */}
+        <div className="relative z-10 flex flex-col justify-center flex-1 my-6 space-y-3">
+          {card.items.map((item, idx) => (
+            <div key={idx} className="flex flex-col">
+              <div className="flex items-baseline gap-2.5 pb-2.5">
+                <span className="text-[10px] font-mono font-bold text-[#C84200]/70 select-none">
+                  0{idx + 1}
+                </span>
+                <span className="text-[14.5px] md:text-[15.5px] text-[#1D1D1F]/90 font-medium leading-snug">
+                  {item}
+                </span>
+              </div>
+              {idx < card.items.length - 1 && (
+                <div className="w-full border-b border-dotted border-[#1D1D1F]/15 group-hover:border-[#C84200]/25 transition-colors" />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom Header (Rotated Playing Card Corner + CTA cue) */}
+        <div className="relative z-10 flex items-center justify-between pt-3 border-t border-[#1D1D1F]/[0.06]">
+          <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-[#C84200]">
+            {card.cta}
+            <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+          </span>
+          <div className="flex items-center gap-2 rotate-180">
+            <span
+              style={{
+                fontFamily: "var(--font-silkscreen), 'Silkscreen', monospace",
+              }}
+              className="font-[family-name:var(--font-silkscreen)] text-[#C84200] font-bold text-xl md:text-2xl leading-none select-none"
+            >
+              {card.letter}
+            </span>
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  )
+}
+
 export default function Home() {
   const lenisRef = useRef<Lenis | null>(null)
+  const cardsSectionRef = useRef<HTMLElement | null>(null)
+
+  const { scrollYProgress: cardsScrollProgress } = useScroll({
+    target: cardsSectionRef,
+    offset: ["start 95%", "start 25%"],
+  })
+
+  const smoothCardsProgress = useSpring(cardsScrollProgress, {
+    stiffness: 85,
+    damping: 24,
+    mass: 0.7,
+  })
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -118,13 +337,6 @@ export default function Home() {
     }
   }, [])
 
-  const { scrollYProgress } = useScroll()
-  const scaleX = useSpring(useTransform(scrollYProgress, [0, 0.4], [0, 1]), {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001,
-  })
-
   return (
     <div className="flex flex-col min-h-screen bg-[#F2EBE1] text-[#1D1D1F] overflow-x-clip">
       {/* Scroll-Driven Hero Section */}
@@ -156,21 +368,21 @@ export default function Home() {
                 Zero distance.
               </motion.h1>
               <p className="text-base sm:text-lg md:text-2xl text-[#1D1D1F] max-w-2xl font-medium tracking-tight mb-8 sm:mb-10">
-                The smartest way to buy, sell, swap, and donate used books across
-                Indian campuses.
+                Pass down semester textbooks, swap novels 1-for-1, or pledge
+                books to classrooms across India.
               </p>
               <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-4 sm:gap-6">
                 <Link
                   href="/catalog"
                   className="bg-[#C84200] text-[#F2EBE1] px-8 py-3.5 rounded-full font-bold text-base sm:text-lg hover:bg-[#A33500] transition-colors shadow-lg shadow-[#C84200]/20 pointer-events-auto"
                 >
-                  Browse Books
+                  Browse the Stacks
                 </Link>
                 <Link
                   href="/donations"
                   className="text-[#C84200] font-bold text-base sm:text-lg hover:underline underline-offset-4 flex items-center group pointer-events-auto"
                 >
-                  Learn more about donating{" "}
+                  Explore Vidya Daan{" "}
                   <span className="ml-1 group-hover:translate-x-1 transition-transform">
                     ›
                   </span>
@@ -191,8 +403,8 @@ export default function Home() {
               Akshar<span className="font-serif">सेतु</span>
             </h2>
             <p className="text-base sm:text-lg md:text-2xl text-black/80 max-w-xl font-medium tracking-tight mb-8 sm:mb-10">
-              Buy, swap 1-for-1, read 70,000+ free classics, or gift books
-              through Vidya Daan.
+              Buy used textbooks at hostel prices, trade 1-for-1, read 70,000+
+              unabridged classics, or donate through Vidya Daan.
             </p>
             <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center md:justify-start gap-4 sm:gap-6">
               <Link
@@ -222,19 +434,20 @@ export default function Home() {
                 "radial-gradient(ellipse, rgba(253,251,247,0.9) 0%, rgba(253,251,247,0.6) 35%, rgba(253,251,247,0) 70%)",
             }}
           />
+
+          {/* Seamless vertical gradient melt into the warm #F2EBE1 editorial canvas */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-32 md:h-44 bg-gradient-to-b from-transparent via-[#F2EBE1]/60 to-[#F2EBE1] z-20"
+          />
         </div>
       </section>
 
-      {/* Scroll Synced Animated Divider */}
-      <div className="w-full bg-[#F2EBE1] flex items-center justify-center relative z-20">
-        <motion.div
-          className="h-2.5 bg-[#1D1D1F] w-full origin-center"
-          style={{ scaleX }}
-        />
-      </div>
-
-      {/* Features Section - Editorial Playing Card Style */}
-      <section className="relative z-10 w-full bg-[#F2EBE1] py-20 md:py-28 overflow-hidden">
+      {/* Features Section - Seamless Scroll-Driven Editorial Playing Cards */}
+      <section
+        ref={cardsSectionRef}
+        className="relative z-20 w-full bg-[#F2EBE1] pt-10 pb-24 md:pt-14 md:pb-32 overflow-hidden"
+      >
         {/* Background Decorations - Left */}
         <div className="hidden xl:block absolute -left-12 top-32 w-[340px] pointer-events-none z-0 opacity-80">
           <div className="relative transform -rotate-3">
@@ -260,104 +473,63 @@ export default function Home() {
         </div>
 
         <div className="container mx-auto px-4 md:px-8 lg:px-12 w-full max-w-[1520px] relative z-10">
-          <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16">
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#C84200]/10 text-[#C84200] text-xs font-black uppercase tracking-widest mb-3">
-              <Sparkles className="w-3.5 h-3.5" /> Built for Indian Readers
+          <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1D1D1F]/[0.06] border border-[#1D1D1F]/10 text-[#C84200] text-[11px] font-black uppercase tracking-[0.22em] mb-4">
+              CHAPTER I · THE AKSHARSETU WAY
             </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter text-[#1D1D1F] leading-tight">
-              Four Pillars of Aksharसेतु.
+            <h2 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tighter text-[#1D1D1F] leading-[1.03] mb-4">
+              Books shouldn&apos;t gather dust on a hostel shelf.
             </h2>
+            <p className="text-base sm:text-lg md:text-xl text-[#1D1D1F]/75 font-medium max-w-2xl mx-auto leading-relaxed">
+              Pass textbooks to the next batch, trade novels 1-for-1, or send
+              books to classrooms that need them.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {cards.map((card, i) => (
-              <motion.div
+              <EditorialPlayingCard
                 key={card.title}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{
-                  duration: 0.65,
-                  delay: i * 0.1,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                className="w-full"
-              >
-                <Link
-                  href={card.href}
-                  className="group bg-white text-[#1D1D1F] rounded-[24px] p-6 md:p-7 flex flex-col justify-between min-h-[410px] md:min-h-[450px] shadow-[0_14px_34px_-12px_rgba(0,0,0,0.07)] border border-[#1D1D1F]/[0.06] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.12)] hover:border-[#C84200]/25"
-                >
-                  {/* Top Header */}
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xl md:text-2xl font-black tracking-tight uppercase text-[#1D1D1F] group-hover:text-[#C84200] transition-colors">
-                      {card.title}
-                    </h3>
-                    <span
-                      style={{
-                        fontFamily: "'Silkscreen', cursive, sans-serif",
-                      }}
-                      className="text-[#C84200] font-bold text-2xl md:text-3xl leading-none select-none"
-                    >
-                      {card.letter}
-                    </span>
-                  </div>
-
-                  {/* List Items with dotted dividers */}
-                  <div className="flex flex-col justify-center flex-1 my-6 space-y-3">
-                    {card.items.map((item, idx) => (
-                      <div key={idx} className="flex flex-col">
-                        <span className="text-[15px] md:text-[16px] text-[#1D1D1F]/85 font-medium pb-2.5">
-                          {item}
-                        </span>
-                        {idx < card.items.length - 1 && (
-                          <div className="w-full border-b border-dotted border-[#0066cc]/30" />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Bottom Header (Rotated Playing Card Style + CTA cue) */}
-                  <div className="flex items-center justify-between pt-2">
-                    <span className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider text-[#C84200]">
-                      {card.cta}
-                      <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </span>
-                    <div className="flex items-center gap-2 rotate-180">
-                      <span
-                        style={{
-                          fontFamily: "'Silkscreen', cursive, sans-serif",
-                        }}
-                        className="text-[#C84200] font-bold text-xl md:text-2xl leading-none select-none"
-                      >
-                        {card.letter}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
+                card={card}
+                index={i}
+                progress={smoothCardsProgress}
+              />
             ))}
           </div>
         </div>
       </section>
 
-      {/* High-Contrast Dark Editorial Ecosystem Strip */}
-      <section className="w-full bg-black text-[#F5F5F7] py-20 md:py-24 px-4 md:px-8 border-t border-white/10">
+      {/* High-Contrast Dark Editorial Showcase */}
+      <section className="w-full bg-black text-[#F5F5F7] py-20 md:py-28 px-4 md:px-8 border-t border-white/10">
         <div className="container mx-auto max-w-7xl">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-[#C84200] mb-3">
-                Complete Reading Ecosystem
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-14">
+            <div className="max-w-2xl">
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-[#C84200] mb-3 flex items-center gap-2">
+                <Compass className="w-3.5 h-3.5" /> CHAPTER II · FIELD ROUTES
               </p>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter leading-none">
-                Every Way Knowledge Moves.
+              <h2 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tighter leading-[1.02] mb-3">
+                From Hostel Desk to Next Reader.
               </h2>
+              <p className="text-sm sm:text-base text-[#86868b] font-medium leading-relaxed">
+                Four direct corridors across the AksharSetu network—whether you
+                are clearing out last semester&apos;s stack or opening a classic
+                at midnight.
+              </p>
             </div>
-            <Link
-              href="/catalog/new"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white font-bold text-sm transition-colors w-fit"
-            >
-              List or Donate a Book <ArrowUpRight className="w-4 h-4" />
-            </Link>
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <Link
+                href="/catalog"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 text-[#F5F5F7] font-bold text-sm transition-colors"
+              >
+                Explore Catalog
+              </Link>
+              <Link
+                href="/catalog/new"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white font-bold text-sm transition-colors shadow-lg shadow-[#C84200]/20"
+              >
+                List or Donate a Book <ArrowUpRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -367,23 +539,30 @@ export default function Home() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="group rounded-2xl bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 hover:border-white/20 p-6 transition-all flex flex-col justify-between gap-4"
+                  className="group rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-[#C84200]/45 p-6 transition-all duration-300 flex flex-col justify-between gap-6 hover:-translate-y-1"
                 >
                   <div>
-                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-4 text-[#FF6B2B]">
-                      <Icon className="w-5 h-5" />
+                    <div className="flex items-center justify-between gap-2 mb-5">
+                      <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-[#FF6B2B] group-hover:bg-[#C84200] group-hover:text-white transition-colors">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#86868b] group-hover:text-[#F5F5F7]/80 transition-colors">
+                        {item.routeTag}
+                      </span>
                     </div>
-                    <h3 className="text-lg font-bold tracking-tight text-[#F5F5F7] mb-1.5">
+                    <h3 className="text-lg font-bold tracking-tight text-[#F5F5F7] mb-2 group-hover:text-white">
                       {item.title}
                     </h3>
                     <p className="text-sm text-[#86868b] leading-relaxed">
                       {item.desc}
                     </p>
                   </div>
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-[#F5F5F7]/80 group-hover:text-white">
-                    Open {item.label}{" "}
-                    <ArrowUpRight className="w-3.5 h-3.5 text-[#FF6B2B] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                  </span>
+                  <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#F5F5F7]/85 group-hover:text-white">
+                      Open {item.label}
+                    </span>
+                    <ArrowUpRight className="w-4 h-4 text-[#FF6B2B] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </div>
                 </Link>
               )
             })}
@@ -393,89 +572,3 @@ export default function Home() {
     </div>
   )
 }
-
-const cards = [
-  {
-    title: "DISCOVER",
-    letter: "D",
-    href: "/catalog",
-    cta: "Explore Catalog",
-    items: [
-      "Search by title, author or ISBN",
-      "Browse by subject & category",
-      "Find books near you on the map",
-      "Get real-time wishlist alerts",
-      "See verified seller ratings",
-    ],
-  },
-  {
-    title: "SELL & SWAP",
-    letter: "S",
-    href: "/catalog/new",
-    cta: "List a Book",
-    items: [
-      "AI fair campus price estimator",
-      "Auto-fill via ISBN camera scan",
-      "5-point condition grading",
-      "Semester bundles & 1-for-1 swaps",
-      "Zero-fee campus meetups",
-    ],
-  },
-  {
-    title: "DONATE",
-    letter: "V",
-    href: "/donations",
-    cta: "Vidya Daan",
-    items: [
-      "Vidya Daan: gift of knowledge",
-      "Verified NGO partner campaigns",
-      "6-stage chain-of-custody tracking",
-      "Printable literacy certificates",
-      "Earn community impact badges",
-    ],
-  },
-  {
-    title: "CONNECT",
-    letter: "C",
-    href: "/clubs",
-    cta: "Join Community",
-    items: [
-      "Direct chat & price offers",
-      "Sabha book clubs & discussions",
-      "Shanti Mode distraction-free timer",
-      "70,000+ free public-domain e-books",
-      "Gamified XP, streaks & leaderboards",
-    ],
-  },
-]
-
-const ecosystemLinks = [
-  {
-    title: "Campus Textbook Hub",
-    desc: "Filter exact semester syllabi and multi-book packs from seniors at your university.",
-    href: "/campus",
-    label: "Campus Hub",
-    icon: GraduationCap,
-  },
-  {
-    title: "Hyperlocal Book Map",
-    desc: "Locate books, free donations, and swaps within walking distance of your hostel.",
-    href: "/map",
-    label: "Book Map",
-    icon: MapPin,
-  },
-  {
-    title: "Vidya Daan Impact",
-    desc: "Support active NGO drives and verify every donated book from pledge to student.",
-    href: "/donations",
-    label: "Donations",
-    icon: HeartHandshake,
-  },
-  {
-    title: "Free E-Library & Clubs",
-    desc: "Read 70,000+ free legal classics in Shanti Mode and join reader Sabhas.",
-    href: "/ebooks",
-    label: "E-Library",
-    icon: BookOpen,
-  },
-]

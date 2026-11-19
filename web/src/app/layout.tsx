@@ -1,8 +1,15 @@
 import type { Metadata, Viewport } from "next"
-import { Geist, Geist_Mono, Bricolage_Grotesque } from "next/font/google"
+import {
+  Geist,
+  Geist_Mono,
+  Bricolage_Grotesque,
+  Caveat,
+  Silkscreen,
+} from "next/font/google"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { Providers } from "@/components/Providers"
+import { MascotCompanion } from "@/components/mascots/AksharSetuMascots"
 import { Toaster } from "sonner"
 import "./globals.css"
 
@@ -21,6 +28,20 @@ const geistMono = Geist_Mono({
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
   subsets: ["latin"],
+  display: "swap",
+})
+
+const caveat = Caveat({
+  variable: "--font-caveat",
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  display: "swap",
+})
+
+const silkscreen = Silkscreen({
+  variable: "--font-silkscreen",
+  subsets: ["latin"],
+  weight: ["400", "700"],
   display: "swap",
 })
 
@@ -109,7 +130,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable} ${caveat.variable} ${silkscreen.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans bg-[#F2EBE1] text-[#1D1D1F]">
         <script
@@ -120,6 +141,7 @@ export default function RootLayout({
           <Navbar />
           <main className="flex-1 flex flex-col">{children}</main>
           <Footer />
+          <MascotCompanion />
           <Toaster richColors position="top-center" />
         </Providers>
       </body>

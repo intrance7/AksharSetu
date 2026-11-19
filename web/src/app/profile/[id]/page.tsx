@@ -2,6 +2,11 @@ import { notFound, redirect } from "next/navigation"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import {
+  ensureAllUsersHaveUsernames,
+  ensureUserUsername,
+  hasLegacyUuidSuffix,
+} from "@/lib/username"
+import {
   checkAndAwardBadges,
   ensureDefaultBadges,
   ensureDefaultQuests,
@@ -16,6 +21,14 @@ import type { DailyContribution } from "@/components/profile/ContributionGraph"
 
 export const dynamic = "force-dynamic"
 
+function safeDecodeParam(raw: string): string {
+  try {
+    return decodeURIComponent(raw)
+  } catch {
+    return raw
+  }
+}
+
 export default async function ProfilePage({
   params,
   searchParams,
@@ -25,38 +38,56 @@ export default async function ProfilePage({
 }) {
   const { id: rawParam } = await params
   const sp = await searchParams
+  await ensureAllUsersHaveUsernames()
   const session = await auth()
 
-  if (rawParam === "me") {
+  const decodedTrimmed = safeDecodeParam(rawParam).trim()
+  const cleanParam = decodedTrimmed.replace(/^@+/, "")
+  const tabSuffix = sp.tab ? `?tab=${encodeURIComponent(sp.tab)}` : ""
+
+  if (cleanParam.toLowerCase() === "me") {
     if (!session?.user?.id) {
       redirect("/login")
     }
-    redirect(`/profile/${session.user.id}`)
+    const ownUsername =
+      session.user.username &&
+      !hasLegacyUuidSuffix(session.user.username, session.user.id)
+        ? session.user.username
+        : await ensureUserUsername(
+            session.user.id,
+            session.user.name,
+            session.user.email
+          )
+    redirect(`/profile/${ownUsername || session.user.id}${tabSuffix}`)
   }
 
-  // Resolve by ID, unique @username, or active session fallback
+  // Look up by unique @username FIRST, then by UUID id
   let targetUser = await prisma.user.findUnique({
-    where: { id: rawParam },
-    select: { id: true },
+    where: { username: cleanParam.toLowerCase() },
+    select: { id: true, username: true, name: true, email: true },
   })
   if (!targetUser) {
     targetUser = await prisma.user.findUnique({
-      where: { username: rawParam.toLowerCase() },
-      select: { id: true },
+      where: { id: cleanParam },
+      select: { id: true, username: true, name: true, email: true },
     })
-  }
-  if (!targetUser && session?.user?.id) {
-    // If the user clicked their own profile link with a pre-migration UUID, redirect to their synced session user ID
-    const sessionUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { id: true },
-    })
-    if (sessionUser) {
-      targetUser = sessionUser
-    }
   }
   if (!targetUser) {
     notFound()
+  }
+
+  const canonicalUsername = await ensureUserUsername(
+    targetUser.id,
+    targetUser.name,
+    targetUser.email
+  )
+
+  // Canonical username URL redirect (UUID, @handle, or uppercase -> /profile/<username>)
+  if (
+    canonicalUsername &&
+    decodedTrimmed !== canonicalUsername
+  ) {
+    redirect(`/profile/${canonicalUsername}${tabSuffix}`)
   }
 
   // Evaluate achievements and ensure quests exist
@@ -370,10 +401,7 @@ export default async function ProfilePage({
     }
   })
 
-  const username =
-    user.username ||
-    user.email?.split("@")[0] ||
-    (user.name || "reader").toLowerCase().replace(/[^a-z0-9]/g, "")
+  const username = canonicalUsername
 
   return (
     <div className="min-h-screen bg-[#F2EBE1] pt-8 pb-16">

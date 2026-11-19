@@ -144,17 +144,17 @@ export default async function CampusTextbookHubPage({
       <section className="bg-black text-[#F5F5F7] py-16 px-4 border-b border-white/10">
         <div className="container mx-auto max-w-7xl flex flex-col lg:flex-row lg:items-end justify-between gap-8">
           <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 text-xs font-bold uppercase tracking-widest text-[#F5F5F7]/80 mb-4">
-              <GraduationCap className="w-4 h-4 text-[#C84200]" /> University &
-              Semester Hub
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 text-xs font-bold uppercase tracking-widest text-[#F5F5F7]/85 mb-4">
+              <GraduationCap className="w-4 h-4 text-[#C84200]" /> Campus Desk ·
+              Syllabus Stacks
             </div>
             <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-[1.03] mb-4 max-w-3xl">
-              Pass Down Your Semester. Save 70% on Textbooks.
+              Senior Stacks. Half the Cover Price.
             </h1>
             <p className="text-[#86868b] text-base md:text-lg max-w-2xl">
-              Find exact syllabus textbooks and full-semester bundles from
-              seniors at your college—or swap last semester&apos;s books 1-for-1
-              for next semester&apos;s reading list.
+              Pick up exact syllabus editions and full-semester bundles straight
+              from seniors on your campus—or swap last term&apos;s set 1-for-1
+              for the incoming semester.
             </p>
           </div>
 
@@ -163,13 +163,13 @@ export default async function CampusTextbookHubPage({
               href="/catalog/new?bundle=true"
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white font-black text-xs uppercase tracking-wider shadow-lg transition-colors"
             >
-              <Package className="w-4 h-4" /> Sell Semester Pack
+              <Package className="w-4 h-4" /> List a Semester Pack
             </Link>
             <Link
               href="/catalog/new"
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider transition-colors"
             >
-              <Plus className="w-4 h-4" /> List Single Textbook
+              <Plus className="w-4 h-4" /> List One Textbook
             </Link>
           </div>
         </div>
@@ -348,7 +348,7 @@ export default async function CampusTextbookHubPage({
           <div>
             <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
               <h2 className="text-xl font-black text-[#1D1D1F]">
-                Academic Textbooks & Semester Packs ({books.length})
+                Campus Textbooks &amp; Semester Packs ({books.length})
               </h2>
               <Link
                 href="/catalog?price=exchange"

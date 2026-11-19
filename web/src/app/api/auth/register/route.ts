@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import {
+  ensureUserUsername,
+  isReservedUsername,
+  sanitizeUsername,
+} from "@/lib/username"
 import bcrypt from "bcryptjs"
 
 export async function POST(req: Request) {
@@ -15,6 +20,10 @@ export async function POST(req: Request) {
     const email =
       typeof body?.email === "string" ? body.email.trim().toLowerCase() : ""
     const password = typeof body?.password === "string" ? body.password : ""
+    const requestedUsername =
+      typeof body?.username === "string" && body.username.trim()
+        ? sanitizeUsername(body.username)
+        : ""
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -37,6 +46,17 @@ export async function POST(req: Request) {
       )
     }
 
+    if (requestedUsername && (requestedUsername.length < 3 || isReservedUsername(requestedUsername))) {
+      return NextResponse.json(
+        {
+          error: isReservedUsername(requestedUsername)
+            ? "That @username is reserved. Please choose another handle."
+            : "Username must be at least 3 characters (letters, numbers, underscore).",
+        },
+        { status: 400 }
+      )
+    }
+
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -50,6 +70,19 @@ export async function POST(req: Request) {
       )
     }
 
+    if (requestedUsername) {
+      const existingUsername = await prisma.user.findUnique({
+        where: { username: requestedUsername },
+        select: { id: true },
+      })
+      if (existingUsername) {
+        return NextResponse.json(
+          { error: "That @username is already taken." },
+          { status: 400 }
+        )
+      }
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
@@ -59,10 +92,12 @@ export async function POST(req: Request) {
         name,
         email,
         password: hashedPassword,
+        ...(requestedUsername ? { username: requestedUsername } : {}),
       },
       select: {
         id: true,
         name: true,
+        username: true,
         email: true,
         role: true,
         image: true,
@@ -70,11 +105,14 @@ export async function POST(req: Request) {
       },
     })
 
-    return NextResponse.json(user, { status: 201 })
+    const finalUsername =
+      user.username || (await ensureUserUsername(user.id, user.name, user.email))
+
+    return NextResponse.json({ ...user, username: finalUsername }, { status: 201 })
   } catch (error: any) {
     if (error?.code === "P2002") {
       return NextResponse.json(
-        { error: "An account with this email already exists." },
+        { error: "An account with this email or @username already exists." },
         { status: 400 }
       )
     }

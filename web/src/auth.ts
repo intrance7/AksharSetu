@@ -2,6 +2,7 @@ import NextAuth from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import prisma from "@/lib/prisma"
 import { cached } from "@/lib/fastCache"
+import { ensureUserUsername, hasLegacyUuidSuffix } from "@/lib/username"
 import Google from "next-auth/providers/google"
 import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
@@ -85,13 +86,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             async () => {
               let found = await prisma.user.findUnique({
                 where: { id: userId },
-                select: { id: true, role: true, name: true, image: true },
+                select: {
+                  id: true,
+                  role: true,
+                  name: true,
+                  image: true,
+                  username: true,
+                },
               })
 
               if (!found && email) {
                 const byEmail = await prisma.user.findUnique({
                   where: { email },
-                  select: { id: true, role: true, name: true, image: true },
+                  select: {
+                    id: true,
+                    role: true,
+                    name: true,
+                    image: true,
+                    username: true,
+                  },
                 })
                 if (byEmail) found = byEmail
               }
@@ -108,8 +121,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     image: session.user.image || null,
                     role: (token.role as string) || "USER",
                   },
-                  select: { id: true, role: true, name: true, image: true },
+                  select: {
+                    id: true,
+                    role: true,
+                    name: true,
+                    image: true,
+                    username: true,
+                  },
                 })
+              }
+
+              if (
+                !found.username ||
+                hasLegacyUuidSuffix(found.username, found.id)
+              ) {
+                found.username = await ensureUserUsername(
+                  found.id,
+                  found.name,
+                  email
+                )
               }
 
               return found
@@ -118,6 +148,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           session.user.id = dbUser.id
           session.user.role = dbUser.role || (token.role as string) || "USER"
+          session.user.username = dbUser.username || null
           if (dbUser.name) session.user.name = dbUser.name
           if (dbUser.image !== null) session.user.image = dbUser.image
         } catch {
