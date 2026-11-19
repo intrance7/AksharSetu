@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
+import { invalidateCache } from "@/lib/fastCache"
 import { checkAndAwardBadges } from "@/services/badgeService"
 import { generateSabhaCode } from "@/lib/sabha"
 
@@ -131,6 +132,7 @@ export async function POST(req: Request) {
       },
     })
 
+    invalidateCache("clubs:")
     checkAndAwardBadges(session.user.id).catch(() => {})
 
     return NextResponse.json(club, { status: 201 })

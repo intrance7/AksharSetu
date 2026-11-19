@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
+import { invalidateCache } from "@/lib/fastCache"
 import { checkAndAwardBadges } from "@/services/badgeService"
 import {
   COSMETIC_CATALOG,
@@ -338,6 +339,9 @@ export async function PATCH(req: Request) {
       select: SAFE_PROFILE_SELECT,
     })
 
+    invalidateCache(`session-user:${userId}`)
+    invalidateCache(`user-loc:${userId}`)
+    invalidateCache("leaderboard:")
     checkAndAwardBadges(userId).catch(() => {})
 
     return NextResponse.json(updatedUser)
