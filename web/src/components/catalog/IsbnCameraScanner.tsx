@@ -16,13 +16,11 @@ interface IsbnCameraScannerProps {
   onClose?: () => void
 }
 
+// 99.9% of book ISBN barcodes are EAN-13 (978/979); keeping the format list minimal cuts per-frame decode time >50%
 const ISBN_FORMATS = [
   Html5QrcodeSupportedFormats.EAN_13,
   Html5QrcodeSupportedFormats.EAN_8,
   Html5QrcodeSupportedFormats.UPC_A,
-  Html5QrcodeSupportedFormats.UPC_E,
-  Html5QrcodeSupportedFormats.CODE_128,
-  Html5QrcodeSupportedFormats.QR_CODE,
 ]
 
 export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
@@ -158,19 +156,21 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
         }
 
         const config = {
-          fps: 15,
+          fps: 25,
           qrbox: (viewfinderWidth: number, viewfinderHeight: number) => ({
             width: Math.min(
-              440,
-              Math.max(220, Math.floor(viewfinderWidth * 0.78))
+              480,
+              Math.max(240, Math.floor(viewfinderWidth * 0.85))
             ),
             height: Math.min(
-              200,
-              Math.max(110, Math.floor(viewfinderHeight * 0.42))
+              180,
+              Math.max(100, Math.floor(viewfinderHeight * 0.36))
             ),
           }),
           aspectRatio: 1.6,
-          disableFlip: false,
+          // CSS -scale-x-100 only mirrors the visual display; raw webcam pixels are un-flipped,
+          // so disableFlip: true avoids wasting 50% CPU decoding every frame backwards.
+          disableFlip: true,
         }
 
         const handleDecoded = (decodedText: string) => {
@@ -179,6 +179,14 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
 
         await qr.start(cameraIdOrConfig, config, handleDecoded, () => {})
 
+        // Upgrade active track to 720p HD for sharper 1D barcode bars (best-effort)
+        try {
+          await qr.applyVideoConstraints({
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          })
+        } catch {}
+
         if (cancelled) {
           await safeStopAndClear(qr)
           return
@@ -186,18 +194,11 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
 
         setStatus("live")
 
-        // Native browser BarcodeDetector fast-path loop (Chrome/Brave/Edge)
+        // Native browser BarcodeDetector fast-path loop (Chrome/Brave/Edge) every 80ms
         if (typeof window !== "undefined" && "BarcodeDetector" in window) {
           try {
             const detector = new (window as any).BarcodeDetector({
-              formats: [
-                "ean_13",
-                "ean_8",
-                "upc_a",
-                "upc_e",
-                "code_128",
-                "qr_code",
-              ],
+              formats: ["ean_13", "ean_8", "upc_a"],
             })
             nativeInterval = setInterval(async () => {
               if (cancelled || detectedRef.current) return
@@ -211,7 +212,7 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
                   triggerDetection(results[0].rawValue, qr)
                 }
               } catch {}
-            }, 220)
+            }, 80)
           } catch {}
         }
       } catch (err: any) {
@@ -349,6 +350,10 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
           id={containerId}
           className={`w-full ${isMirrored ? "[&_video]:-scale-x-100" : ""}`}
         />
+
+        {status === "live" && (
+          <div className="pointer-events-none absolute inset-x-[12%] top-1/2 -translate-y-1/2 h-[2px] bg-[#C84200]/80 shadow-[0_0_8px_#C84200] z-10" />
+        )}
 
         {status === "starting" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/80 text-xs font-semibold text-white/80">
