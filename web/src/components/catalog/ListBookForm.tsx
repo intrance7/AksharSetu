@@ -24,6 +24,8 @@ import {
   Tag,
   ArrowLeftRight,
   Gift,
+  ChevronDown,
+  GraduationCap,
 } from "lucide-react"
 import { createBook } from "@/app/actions/book"
 import { IsbnCameraScanner } from "./IsbnCameraScanner"
@@ -36,6 +38,23 @@ const CONDITION_DIMENSIONS = [
   { key: "condHighlighting", label: "Free of Highlighting" },
   { key: "condNotes", label: "Clean Margins" },
   { key: "condBinding", label: "Spine & Binding" },
+] as const
+
+const SHELF_CATEGORIES = [
+  { id: "fiction", label: "Fiction" },
+  { id: "non-fiction", label: "Non-Fiction" },
+  { id: "engineering", label: "Engineering" },
+  { id: "medical", label: "Medical" },
+  { id: "school", label: "School / Board" },
+  { id: "other", label: "Other" },
+] as const
+
+const CONDITION_TIERS = [
+  { id: "NEW", label: "Brand New", score: 5 },
+  { id: "LIKE_NEW", label: "Like New", score: 5 },
+  { id: "GOOD", label: "Good", score: 4 },
+  { id: "FAIR", label: "Fair", score: 3 },
+  { id: "POOR", label: "Well-Worn", score: 2 },
 ] as const
 
 type InitialLocation = {
@@ -93,6 +112,7 @@ export function ListBookForm({
   const [showScanner, setShowScanner] = useState(false)
   const [showUrlInput, setShowUrlInput] = useState(false)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [showAcademic, setShowAcademic] = useState(false)
 
   const [formData, setFormData] = useState({
     title: "",
@@ -423,47 +443,6 @@ export function ListBookForm({
     )
   }
 
-  // Consistent Randomization for Doodles based on title or isbn
-  const seedString = formData.title || isbn || "new-book"
-  const hash = seedString
-    .split("")
-    .reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  const pseudoRandom = (seed: number) => {
-    const x = Math.sin(hash + seed) * 10000
-    return x - Math.floor(x)
-  }
-
-  const doodles = [
-    "doodle-star.png",
-    "doodle-smile.png",
-    "doodle-heart.png",
-    "doodle-bulb.png",
-    "doodle-flower.png",
-    "doodle-lightning.png",
-    "doodle-cloud.png",
-    "doodle-leaf.png",
-  ]
-
-  const doodleTop1 = doodles[hash % doodles.length]
-  const doodleTop2 = doodles[(hash + 1) % doodles.length]
-  const top1Top = (5 + pseudoRandom(1) * 20).toFixed(2)
-  const top1Right = (-2 + pseudoRandom(2) * 5).toFixed(2)
-  const top2Top = (50 + pseudoRandom(3) * 20).toFixed(2)
-  const top2Left = (5 + pseudoRandom(4) * 15).toFixed(2)
-
-  const doodleCard1 = doodles[(hash + 2) % doodles.length]
-  const doodleCard2 = doodles[(hash + 3) % doodles.length]
-
-  const card1Top = (10 + pseudoRandom(5) * 30).toFixed(2)
-  const card1Left = (-6 + pseudoRandom(6) * 10).toFixed(2)
-  const card1Rot = (-30 + pseudoRandom(7) * 60).toFixed(2)
-  const card1Size = (14 + pseudoRandom(8) * 8).toFixed(2)
-
-  const card2Top = (40 + pseudoRandom(9) * 40).toFixed(2)
-  const card2Right = (-6 + pseudoRandom(10) * 10).toFixed(2)
-  const card2Rot = (-30 + pseudoRandom(11) * 60).toFixed(2)
-  const card2Size = (16 + pseudoRandom(12) * 10).toFixed(2)
-
   const integrityPct = Math.round(
     ((formData.condCover +
       formData.condPages +
@@ -473,6 +452,39 @@ export function ListBookForm({
       25) *
       100
   )
+
+  const readinessChecks = [
+    {
+      label: "Title & Author filled",
+      done: Boolean(formData.title.trim() && formData.author.trim()),
+    },
+    {
+      label: "Cover ready (fetched or custom)",
+      done: Boolean(formData.imageUrl && !previewImgError),
+    },
+    {
+      label:
+        formData.listingType === "SELL"
+          ? "Asking price set"
+          : formData.listingType === "EXCHANGE"
+            ? "Swap preference noted"
+            : "Vidya Daan free pledge",
+      done:
+        formData.listingType === "DONATE"
+          ? true
+          : formData.listingType === "EXCHANGE"
+            ? Boolean(formData.exchangePreferences.trim())
+            : Number(formData.price) > 0,
+    },
+    {
+      label:
+        formData.listingType === "SELL"
+          ? "Campus map pin locked (required)"
+          : "Campus map pin (optional)",
+      done: latitude !== null && longitude !== null,
+      optional: formData.listingType !== "SELL",
+    },
+  ]
 
   return (
     <div className="w-full">
@@ -500,53 +512,26 @@ export function ListBookForm({
 
       {/* STAGE 01: INSTANT ISBN SCAN */}
       <motion.div
-        initial={{ opacity: 0, y: 18 }}
+        initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-        className="bg-white rounded-3xl p-6 md:p-7 shadow-[0_10px_34px_rgb(0,0,0,0.05)] border border-[#1D1D1F]/[0.07] mb-6 relative overflow-hidden isolate"
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="bg-white rounded-3xl p-6 md:p-7 shadow-[0_14px_42px_-16px_rgba(29,29,31,0.12)] border border-[#1D1D1F]/[0.07] mb-6"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={`/${doodleTop1}`}
-          className="absolute opacity-25 pointer-events-none mix-blend-multiply z-0"
-          style={{
-            top: `${top1Top}%`,
-            right: `${top1Right}%`,
-            transform: "rotate(12deg)",
-            width: "9rem",
-            height: "9rem",
-          }}
-          alt=""
-        />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={`/${doodleTop2}`}
-          className="absolute opacity-30 pointer-events-none mix-blend-multiply z-0"
-          style={{
-            top: `${top2Top}%`,
-            left: `${top2Left}%`,
-            transform: "rotate(-12deg)",
-            width: "4rem",
-            height: "4rem",
-          }}
-          alt=""
-        />
-
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 relative z-10">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
           <div className="flex items-start gap-3.5">
             <div className="w-11 h-11 rounded-2xl bg-[#FFF5E6] border border-[#C84200]/15 text-[#C84200] flex items-center justify-center shrink-0">
               <ScanBarcode className="w-5 h-5" />
             </div>
             <div>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#C84200]/10 text-[#C84200] text-[10px] font-black uppercase tracking-[0.18em] mb-1.5">
-                01 · INSTANT ISBN SCAN
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#C84200]/10 text-[#C84200] text-[10px] font-mono font-bold uppercase tracking-[0.16em] mb-1.5">
+                01 · Instant ISBN Lookup
               </span>
               <h2 className="text-xl font-black text-[#1D1D1F] tracking-tight leading-snug">
                 Pull edition metadata in one tap
               </h2>
-              <p className="text-[#86868b] text-sm font-medium mt-0.5 max-w-xl">
-                Scan the barcode or type the 13-digit ISBN — we&apos;ll pull the
-                title, author, and cover automatically.
+              <p className="text-[#6e6e73] text-sm font-medium mt-0.5 max-w-xl">
+                Point your camera at the back-cover barcode or type the 13-digit
+                ISBN to auto-fill title, author, and official cover art.
               </p>
             </div>
           </div>
@@ -556,8 +541,8 @@ export function ListBookForm({
             onClick={() => setShowScanner(!showScanner)}
             className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full font-bold text-xs uppercase tracking-wider border transition-all whitespace-nowrap cursor-pointer shrink-0 ${
               showScanner
-                ? "bg-[#1D1D1F] text-white border-[#1D1D1F]"
-                : "bg-[#FAF6F0] text-[#1D1D1F] border-[#1D1D1F]/15 hover:bg-white hover:border-[#C84200]/40 hover:text-[#C84200]"
+                ? "bg-[#C84200] text-white border-[#C84200]"
+                : "bg-[#1D1D1F] text-[#F2EBE1] border-[#1D1D1F] hover:bg-[#C84200] hover:border-[#C84200]"
             }`}
           >
             <ScanBarcode className="w-4 h-4" />
@@ -571,7 +556,7 @@ export function ListBookForm({
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden mb-5 relative z-10"
+              className="overflow-hidden mb-5"
             >
               <IsbnCameraScanner
                 onScan={(cleanIsbn) => {
@@ -585,15 +570,15 @@ export function ListBookForm({
           )}
         </AnimatePresence>
 
-        <div className="flex flex-col sm:flex-row gap-3 relative z-10">
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868b]" />
             <input
               type="text"
               value={isbn}
               onChange={(e) => setIsbn(e.target.value)}
-              placeholder="e.g. 9780131103627 (back cover barcode)"
-              className="w-full bg-[#FAF6F0] border border-[#1D1D1F]/10 focus:border-[#C84200]/45 focus:bg-white focus:ring-4 focus:ring-[#C84200]/10 rounded-full pl-11 pr-4 py-3 text-sm text-[#1D1D1F] font-medium outline-none transition-all placeholder:text-[#86868b]/70"
+              placeholder="9780131103627 · ISBN-10 or ISBN-13"
+              className="w-full bg-[#FAF6F0] border border-[#1D1D1F]/10 focus:border-[#C84200]/45 focus:bg-white focus:ring-4 focus:ring-[#C84200]/10 rounded-full pl-11 pr-4 py-3 text-sm font-mono text-[#1D1D1F] font-semibold outline-none transition-all placeholder:font-sans placeholder:font-normal placeholder:text-[#86868b]/70"
               onKeyDown={(e) => e.key === "Enter" && fetchBookData()}
             />
           </div>
@@ -612,7 +597,7 @@ export function ListBookForm({
         </div>
 
         {error && (
-          <div className="mt-3.5 px-3.5 py-2.5 rounded-xl bg-red-50 border border-red-200/70 flex items-center gap-2 text-red-700 text-xs font-semibold relative z-10">
+          <div className="mt-3.5 px-3.5 py-2.5 rounded-xl bg-red-50 border border-red-200/70 flex items-center gap-2 text-red-700 text-xs font-semibold">
             <AlertCircle className="w-4 h-4 shrink-0" /> {error}
           </div>
         )}
@@ -866,142 +851,195 @@ export function ListBookForm({
               </AnimatePresence>
             </div>
 
-            {/* Academic Context */}
-            <div className="mb-7">
-              <div className="flex items-center justify-between mb-3.5">
-                <h3 className="text-xs font-black text-[#1D1D1F] uppercase tracking-[0.14em]">
-                  Campus &amp; Syllabus Tagging
-                </h3>
-                <span className="text-[11px] font-semibold text-[#86868b]">
-                  Optional · surfaces on /campus
-                </span>
+            {/* Shelf Category & Overall Condition Pill Selectors */}
+            <input type="hidden" name="category" value={formData.category} />
+            <input type="hidden" name="condition" value={formData.condition} />
+
+            <div className="mb-7 space-y-5">
+              <div>
+                <label className="block text-xs font-bold text-[#1D1D1F] mb-2.5">
+                  Shelf Category <span className="text-red-500">*</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {SHELF_CATEGORIES.map((cat) => {
+                    const active = formData.category === cat.id
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          setFormData((prev) => ({ ...prev, category: cat.id }))
+                          setPriceEstimate(null)
+                          if (
+                            ["engineering", "medical", "school"].includes(cat.id)
+                          ) {
+                            setShowAcademic(true)
+                          }
+                        }}
+                        className={`px-4 py-2 rounded-full text-xs font-bold border transition-all cursor-pointer ${
+                          active
+                            ? "bg-[#1D1D1F] text-[#F2EBE1] border-[#1D1D1F] shadow-xs"
+                            : "bg-[#FAF6F0] text-[#1D1D1F]/80 border-[#1D1D1F]/10 hover:bg-white hover:border-[#C84200]/40"
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-[#1D1D1F] mb-1.5">
-                    University / College
-                  </label>
-                  <input
-                    type="text"
-                    name="university"
-                    value={formData.university}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        university: e.target.value,
-                      }))
-                    }
-                    placeholder="e.g. Delhi University, IIT Bombay"
-                    className={INPUT_CLASS}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-[#1D1D1F] mb-1.5">
-                    Course / Degree
-                  </label>
-                  <input
-                    type="text"
-                    name="course"
-                    value={formData.course}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        course: e.target.value,
-                      }))
-                    }
-                    placeholder="e.g. B.Tech CSE, MBBS, B.A. Econ"
-                    className={INPUT_CLASS}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-[#1D1D1F] mb-1.5">
-                    Semester / Year
-                  </label>
-                  <input
-                    type="number"
-                    name="semester"
-                    min="1"
-                    value={formData.semester}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        semester: e.target.value,
-                      }))
-                    }
-                    placeholder="e.g. 3"
-                    className={INPUT_CLASS}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-[#1D1D1F] mb-1.5">
-                    Subject
-                  </label>
-                  <input
-                    type="text"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        subject: e.target.value,
-                      }))
-                    }
-                    placeholder="e.g. Data Structures, Organic Chemistry"
-                    className={INPUT_CLASS}
-                  />
+
+              <div>
+                <label className="block text-xs font-bold text-[#1D1D1F] mb-2.5">
+                  Overall Condition <span className="text-red-500">*</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {CONDITION_TIERS.map((tier) => {
+                    const active = formData.condition === tier.id
+                    return (
+                      <button
+                        key={tier.id}
+                        type="button"
+                        onClick={() => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            condition: tier.id,
+                            condCover: tier.score,
+                            condPages: tier.score,
+                            condHighlighting: tier.score,
+                            condNotes: tier.score,
+                            condBinding: tier.score,
+                          }))
+                          setPriceEstimate(null)
+                        }}
+                        className={`px-4 py-2 rounded-full text-xs font-bold border transition-all cursor-pointer ${
+                          active
+                            ? "bg-[#C84200] text-white border-[#C84200] shadow-xs"
+                            : "bg-[#FAF6F0] text-[#1D1D1F]/80 border-[#1D1D1F]/10 hover:bg-white hover:border-[#C84200]/40"
+                        }`}
+                      >
+                        {tier.label}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             </div>
 
-            {/* Category & Overall Condition */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <div>
-                <label className="block text-xs font-bold text-[#1D1D1F] mb-1.5">
-                  Shelf Category <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={(e) => {
-                    setFormData((prev) => ({
-                      ...prev,
-                      category: e.target.value,
-                    }))
-                    setPriceEstimate(null)
-                  }}
-                  className={INPUT_CLASS}
-                >
-                  <option value="engineering">Engineering</option>
-                  <option value="medical">Medical</option>
-                  <option value="fiction">Fiction</option>
-                  <option value="non-fiction">Non-Fiction</option>
-                  <option value="school">School / Board</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-[#1D1D1F] mb-1.5">
-                  Overall Condition <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="condition"
-                  value={formData.condition}
-                  onChange={(e) => {
-                    setFormData((prev) => ({
-                      ...prev,
-                      condition: e.target.value,
-                    }))
-                    setPriceEstimate(null)
-                  }}
-                  className={INPUT_CLASS}
-                >
-                  <option value="NEW">Brand New · Unopened</option>
-                  <option value="LIKE_NEW">Like New · Crisp Spine</option>
-                  <option value="GOOD">Good · Read Once</option>
-                  <option value="FAIR">Fair · Light Highlighting</option>
-                  <option value="POOR">Well-Worn · Intact Text</option>
-                </select>
-              </div>
+            {/* Collapsible Campus & Syllabus Tagging */}
+            <div className="mb-7 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setShowAcademic((v) => !v)}
+                className="w-full px-5 py-4 flex items-center justify-between gap-3 text-left cursor-pointer hover:bg-[#F5EFE6]/70 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-white border border-black/5 text-[#1D1D1F] flex items-center justify-center shrink-0">
+                    <GraduationCap className="w-4 h-4 text-[#C84200]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-[#1D1D1F]">
+                      Campus &amp; Syllabus Tagging
+                    </h3>
+                    <p className="text-xs text-[#6e6e73] font-medium">
+                      Optional · tags university, course &amp; semester so
+                      juniors find it on /campus
+                    </p>
+                  </div>
+                </div>
+                <ChevronDown
+                  className={`w-4 h-4 text-[#86868b] shrink-0 transition-transform ${
+                    showAcademic ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              <AnimatePresence initial={false}>
+                {showAcademic && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-5 pb-5 pt-2 border-t border-[#1D1D1F]/[0.06] grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-[#1D1D1F] mb-1.5">
+                          University / College
+                        </label>
+                        <input
+                          type="text"
+                          name="university"
+                          value={formData.university}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              university: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g. Delhi University, IIT Bombay"
+                          className="w-full bg-white border border-[#1D1D1F]/10 focus:border-[#C84200]/45 focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-2.5 text-sm font-medium text-[#1D1D1F] outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-[#1D1D1F] mb-1.5">
+                          Course / Degree
+                        </label>
+                        <input
+                          type="text"
+                          name="course"
+                          value={formData.course}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              course: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g. B.Tech CSE, MBBS, B.A. Econ"
+                          className="w-full bg-white border border-[#1D1D1F]/10 focus:border-[#C84200]/45 focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-2.5 text-sm font-medium text-[#1D1D1F] outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-[#1D1D1F] mb-1.5">
+                          Semester / Year
+                        </label>
+                        <input
+                          type="number"
+                          name="semester"
+                          min="1"
+                          value={formData.semester}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              semester: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g. 3"
+                          className="w-full bg-white border border-[#1D1D1F]/10 focus:border-[#C84200]/45 focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-2.5 text-sm font-medium text-[#1D1D1F] outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-[#1D1D1F] mb-1.5">
+                          Subject
+                        </label>
+                        <input
+                          type="text"
+                          name="subject"
+                          value={formData.subject}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              subject: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g. Data Structures, Organic Chemistry"
+                          className="w-full bg-white border border-[#1D1D1F]/10 focus:border-[#C84200]/45 focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-2.5 text-sm font-medium text-[#1D1D1F] outline-none"
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* 5-Point Structured Condition Grader */}
@@ -1449,64 +1487,22 @@ export function ListBookForm({
             </span>
           </div>
 
-          <div className="bg-white rounded-[2rem] p-5 md:p-6 shadow-[0_14px_40px_rgb(0,0,0,0.08)] border border-[#1D1D1F]/[0.07] flex flex-col relative overflow-hidden transition-all duration-300">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={`/${doodleCard1}`}
-              className="absolute opacity-35 pointer-events-none mix-blend-multiply z-0"
-              style={{
-                top: `${card1Top}%`,
-                left: `${card1Left}%`,
-                transform: `rotate(${card1Rot}deg)`,
-                width: `${parseFloat(card1Size) * 4}px`,
-                height: `${parseFloat(card1Size) * 4}px`,
-              }}
-              alt=""
-            />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={`/${doodleCard2}`}
-              className="absolute opacity-25 pointer-events-none mix-blend-multiply z-0"
-              style={{
-                top: `${card2Top}%`,
-                right: `${card2Right}%`,
-                transform: `rotate(${card2Rot}deg)`,
-                width: `${parseFloat(card2Size) * 4}px`,
-                height: `${parseFloat(card2Size) * 4}px`,
-              }}
-              alt=""
-            />
-            <div className="absolute top-[25%] right-[8%] opacity-30 pointer-events-none z-0">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#F4B22B"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              >
-                <path d="M4 20L10 14" />
-                <path d="M14 10L20 4" />
-                <path d="M18 20L20 18" />
-              </svg>
-            </div>
-
+          <div className="bg-white rounded-[2rem] p-5 md:p-6 shadow-[0_18px_46px_-18px_rgba(29,29,31,0.14)] border border-[#1D1D1F]/[0.07] flex flex-col relative overflow-hidden transition-all duration-300">
             <div className="flex justify-between items-start z-30 mb-4 relative">
-              <div className="inline-flex items-center gap-2 bg-[#FAF6F0] border border-black/5 text-[#1D1D1F] text-[11px] font-bold px-3 py-1.5 rounded-full pointer-events-none tracking-wide">
+              <div className="inline-flex items-center gap-2 bg-[#FAF6F0] border border-[#1D1D1F]/[0.06] text-[#1D1D1F] text-[11px] font-bold px-3 py-1.5 rounded-full pointer-events-none tracking-wide">
                 <i className="w-2 h-2 rounded-full bg-[#0A7D4F]" />
                 {formData.condition.replace("_", " ")} · {integrityPct}%
               </div>
 
-              <div className="grid place-items-center w-9 h-9 rounded-full bg-[#FAF6F0] border border-black/5 text-[#1D1D1F]/40 pointer-events-none z-40">
+              <div className="grid place-items-center w-9 h-9 rounded-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.06] text-[#1D1D1F]/40 pointer-events-none z-40">
                 <Heart className="w-4 h-4" strokeWidth={2.5} />
               </div>
             </div>
 
-            <div className="relative grid place-items-center w-full aspect-[1/1.06] isolate mb-2 z-10">
-              <div className="absolute left-1/2 bottom-[5%] w-[60%] h-6 -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(29,29,31,0.25),transparent)] z-0" />
+            <div className="relative grid place-items-center w-full aspect-[1/1.02] rounded-2xl bg-gradient-to-b from-[#FAF6F0] to-[#F2EBE1]/60 border border-[#1D1D1F]/[0.04] isolate mb-3 z-10">
+              <div className="absolute left-1/2 bottom-[7%] w-[56%] h-6 -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(29,29,31,0.28),transparent)] z-0" />
 
-              <div className="relative z-10 w-[58%] aspect-[5/7] rounded-md overflow-hidden shadow-[20px_20px_40px_rgba(0,0,0,0.15),_5px_5px_15px_rgba(0,0,0,0.08)]">
+              <div className="relative z-10 w-[56%] aspect-[5/7] rounded-md overflow-hidden shadow-[18px_18px_36px_rgba(0,0,0,0.18),_4px_4px_12px_rgba(0,0,0,0.08)]">
                 {isLoading ? (
                   <div className="absolute inset-0 bg-[#F4EFE6] flex flex-col items-center justify-center z-30">
                     <div
@@ -1677,6 +1673,44 @@ export function ListBookForm({
                 )}
               </AnimatePresence>
             </div>
+          </div>
+
+          {/* Live Listing Readiness Checklist */}
+          <div className="bg-white rounded-3xl p-5 border border-[#1D1D1F]/[0.07] shadow-xs space-y-3">
+            <p className="text-[11px] font-mono font-bold uppercase tracking-[0.16em] text-[#86868b]">
+              Publishing Checklist
+            </p>
+            <div className="space-y-2">
+              {readinessChecks.map((item) => (
+                <div
+                  key={item.label}
+                  className="flex items-center gap-2.5 text-xs font-semibold"
+                >
+                  <span
+                    className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
+                      item.done
+                        ? "bg-[#0A7D4F] text-white"
+                        : "bg-[#FAF6F0] border border-[#1D1D1F]/15 text-[#86868b]"
+                    }`}
+                  >
+                    <Check className="w-3 h-3" />
+                  </span>
+                  <span
+                    className={
+                      item.done ? "text-[#1D1D1F]" : "text-[#86868b]"
+                    }
+                  >
+                    {item.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p
+              className="pt-2.5 border-t border-[#1D1D1F]/[0.06] text-xl text-[#C84200] text-center font-[family-name:var(--font-caveat)] leading-none"
+              style={{ fontFamily: "var(--font-caveat), 'Caveat', cursive" }}
+            >
+              “Good books find better people.”
+            </p>
           </div>
         </div>
       </motion.form>

@@ -2,7 +2,13 @@ import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, ScanBarcode, SlidersHorizontal, MapPin } from "lucide-react"
+import {
+  ArrowLeft,
+  ScanBarcode,
+  SlidersHorizontal,
+  MapPin,
+  BookOpen,
+} from "lucide-react"
 import { ListBookForm } from "@/components/catalog/ListBookForm"
 
 export const dynamic = "force-dynamic"
@@ -50,169 +56,126 @@ export default async function ListBookPage({
   const isDonationMode = Boolean(campaign || typeParam === "donation")
 
   return (
-    <div className="min-h-screen bg-[#F2EBE1] pt-10 md:pt-14 pb-20 relative overflow-x-clip">
-      {/* Background Decorations - Left */}
-      <div className="hidden xl:block absolute -left-12 top-24 w-[360px] pointer-events-none z-0">
-        <div className="relative transform -rotate-12 mb-12 left-24">
-          <p
-            style={{ fontFamily: "var(--font-caveat), 'Caveat', cursive" }}
-            className="font-[family-name:var(--font-caveat)] text-3xl text-[#1D1D1F]/70 leading-tight flex flex-col gap-1"
-          >
-            <span>Books</span>
-            <span>build</span>
-            <span>brighter</span>
-            <span className="flex items-center gap-2">
-              tomorrows{" "}
-              <span className="w-8 h-8 inline-flex">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/doodle-heart.png"
-                  alt=""
-                  className="w-full h-full object-contain"
-                />
-              </span>
-            </span>
-          </p>
-        </div>
+    <div className="min-h-screen bg-[#F2EBE1] pb-24">
+      {/* Full-Bleed Obsidian Editorial Publishing Studio Hero */}
+      <section className="relative bg-[#0B0B0D] text-[#F5F5F7] border-b border-white/10 overflow-hidden">
+        {/* Warm saffron ambient glow */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse 65% 80% at 85% 15%, rgba(200,66,0,0.22), transparent 60%), radial-gradient(ellipse 50% 60% at 10% 90%, rgba(244,178,43,0.08), transparent 55%)",
+          }}
+        />
+        {/* Subtle editorial dot-grid matching Catalog & Profile */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.06]"
+          style={{
+            backgroundImage:
+              "radial-gradient(#F2EBE1 1.25px, transparent 1.25px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
 
-        <div className="relative">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/books-left-ai.png"
-            alt=""
-            className="w-full h-auto drop-shadow-2xl mix-blend-multiply"
-          />
-        </div>
-      </div>
-
-      {/* Background Decorations - Right */}
-      <div className="hidden xl:block absolute -right-12 top-16 w-[360px] pointer-events-none z-0">
-        <div className="relative transform rotate-6 mb-24 right-16 text-right">
-          <p
-            style={{ fontFamily: "var(--font-caveat), 'Caveat', cursive" }}
-            className="font-[family-name:var(--font-caveat)] text-3xl text-[#1D1D1F]/70 leading-tight"
-          >
-            Good books <br /> find better people.
-          </p>
-        </div>
-
-        <div className="relative">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/books-right-ai.png"
-            alt=""
-            className="w-full h-auto drop-shadow-2xl mix-blend-multiply"
-          />
-        </div>
-      </div>
-
-      <div className="container max-w-6xl mx-auto px-4 md:px-8 relative z-10 w-full">
-        {/* Header Section */}
-        <div className="mb-8 md:mb-10 w-full flex flex-col justify-start">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div className="container max-w-6xl mx-auto px-4 md:px-6 pt-8 pb-16 md:pt-10 md:pb-20 relative z-10">
+          {/* Top Breadcrumb + Studio Label */}
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-7">
             <Link
               href={campaign ? "/donations" : "/catalog"}
-              className="inline-flex items-center gap-2 text-[#86868b] hover:text-[#C84200] transition-colors font-semibold text-sm w-fit"
+              className="inline-flex items-center gap-2 text-white/65 hover:text-[#FF8A4C] transition-colors font-semibold text-xs sm:text-sm w-fit"
             >
               <ArrowLeft className="w-4 h-4" />
               {campaign ? "Back to Vidya Daan Campaigns" : "Back to Catalog"}
             </Link>
 
-            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/80 border border-[#1D1D1F]/10 text-[11px] font-black uppercase tracking-[0.18em] text-[#C84200]">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.08] border border-white/15 text-[11px] font-black uppercase tracking-[0.18em] text-[#FF8A4C]">
+              <BookOpen className="w-3.5 h-3.5" />
               {isDonationMode
-                ? "VIDYA DAAN · DONATION STUDIO"
+                ? "Vidya Daan · Pledge Studio"
                 : bundleParam
-                  ? "CAMPUS HUB · SEMESTER PACK STUDIO"
-                  : "AKSHARSETU · BOOK LISTING STUDIO"}
+                  ? "Campus Hub · Semester Pack"
+                  : "AksharSetu · Publishing Studio"}
             </span>
           </div>
 
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-            <div>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-[#1D1D1F] tracking-tighter leading-none mb-3">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+            <div className="max-w-2xl">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[0.98] text-white mb-4">
                 {isDonationMode ? (
                   <>
                     Donate a{" "}
-                    <span className="text-[#C84200] relative inline-block">
-                      Book.
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src="/doodle-lightning.png"
-                        alt=""
-                        className="hidden sm:block absolute -top-4 -right-10 w-12 h-12 opacity-60 mix-blend-multiply rotate-12 pointer-events-none"
-                      />
-                    </span>
+                    <span className="font-serif italic font-semibold text-[#FF7F45]">
+                      Book
+                    </span>{" "}
+                    Forward.
                   </>
                 ) : (
                   <>
                     Pass a{" "}
-                    <span className="text-[#C84200] relative inline-block">
-                      Book On.
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src="/doodle-lightning.png"
-                        alt=""
-                        className="hidden sm:block absolute -top-4 -right-10 w-12 h-12 opacity-60 mix-blend-multiply rotate-12 pointer-events-none"
-                      />
-                    </span>
+                    <span className="font-serif italic font-semibold text-[#FF7F45]">
+                      Book
+                    </span>{" "}
+                    On.
                   </>
                 )}
               </h1>
-              <p className="text-base sm:text-lg text-[#1D1D1F]/75 font-medium max-w-2xl leading-relaxed">
+              <p className="text-base sm:text-lg text-white/65 font-medium leading-relaxed">
                 {isDonationMode
-                  ? "Pledge a textbook or reader to a verified NGO classroom drive—with a 6-stage chain-of-custody tracking ID."
-                  : "Scan the barcode, grade the spine and margins honestly, and list your copy for a hostel gate handoff, 1-for-1 swap, or Vidya Daan pledge."}
+                  ? "Pledge a textbook or novel to a verified NGO classroom drive — complete with a 6-stage chain-of-custody tracking ID."
+                  : "Scan the ISBN barcode, grade the spine and margins honestly, and place your edition on the campus shelf in under a minute."}
               </p>
             </div>
 
-            {/* 3-Stage Studio Index Strip */}
+            {/* Crisp 3-Stage Editorial Stepper */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 w-full lg:w-auto shrink-0">
-              <div className="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs border border-[#1D1D1F]/10 rounded-2xl px-3.5 py-2.5 shadow-2xs">
-                <span className="w-7 h-7 rounded-xl bg-[#C84200]/10 text-[#C84200] flex items-center justify-center shrink-0">
-                  <ScanBarcode className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-3 rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3 backdrop-blur-xs">
+                <span className="w-8 h-8 rounded-xl bg-[#C84200]/25 text-[#FF8A4C] flex items-center justify-center shrink-0">
+                  <ScanBarcode className="w-4 h-4" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-[#C84200]">
-                    STAGE 01
+                  <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#FF8A4C]">
+                    Step 01
                   </p>
-                  <p className="text-xs font-bold text-[#1D1D1F] truncate">
-                    Instant ISBN Scan
+                  <p className="text-xs font-bold text-white truncate">
+                    Scan or Type ISBN
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs border border-[#1D1D1F]/10 rounded-2xl px-3.5 py-2.5 shadow-2xs">
-                <span className="w-7 h-7 rounded-xl bg-[#1D1D1F]/5 text-[#1D1D1F] flex items-center justify-center shrink-0">
-                  <SlidersHorizontal className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-3 rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3 backdrop-blur-xs">
+                <span className="w-8 h-8 rounded-xl bg-white/10 text-[#F4B22B] flex items-center justify-center shrink-0">
+                  <SlidersHorizontal className="w-4 h-4" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-[#86868b]">
-                    STAGE 02
+                  <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F4B22B]">
+                    Step 02
                   </p>
-                  <p className="text-xs font-bold text-[#1D1D1F] truncate">
-                    Edition & Condition
+                  <p className="text-xs font-bold text-white truncate">
+                    Edition &amp; Grade
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs border border-[#1D1D1F]/10 rounded-2xl px-3.5 py-2.5 shadow-2xs">
-                <span className="w-7 h-7 rounded-xl bg-[#0066cc]/10 text-[#0066cc] flex items-center justify-center shrink-0">
-                  <MapPin className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-3 rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3 backdrop-blur-xs">
+                <span className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-[#0066cc]">
-                    STAGE 03
+                  <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-300">
+                    Step 03
                   </p>
-                  <p className="text-xs font-bold text-[#1D1D1F] truncate">
-                    Mode & Map Pin
+                  <p className="text-xs font-bold text-white truncate">
+                    Mode &amp; Map Pin
                   </p>
                 </div>
               </div>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Form Container */}
+      {/* Main Studio Workspace (elevated overlap) */}
+      <div className="container max-w-6xl mx-auto px-4 md:px-6 -mt-8 relative z-20">
         <ListBookForm
           initialLocation={{
             latitude: user?.latitude ?? null,
@@ -224,8 +187,8 @@ export default async function ListBookPage({
             typeParam === "donation" || campaign
               ? "DONATE"
               : bundleParam
-              ? "SELL"
-              : undefined
+                ? "SELL"
+                : undefined
           }
         />
       </div>

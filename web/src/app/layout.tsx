@@ -3,6 +3,7 @@ import {
   Geist,
   Geist_Mono,
   Bricolage_Grotesque,
+  Fraunces,
   Caveat,
   Silkscreen,
 } from "next/font/google"
@@ -28,6 +29,13 @@ const geistMono = Geist_Mono({
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
   subsets: ["latin"],
+  display: "swap",
+})
+
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
   display: "swap",
 })
 
@@ -130,7 +138,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable} ${caveat.variable} ${silkscreen.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable} ${fraunces.variable} ${caveat.variable} ${silkscreen.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans bg-[#F2EBE1] text-[#1D1D1F]">
         <script
