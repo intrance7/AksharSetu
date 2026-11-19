@@ -94,33 +94,38 @@ export function ContributionGraph({
   }, [contributions])
 
   const getCellClass = (day: DailyContribution) => {
-    if (day.total === 0) return "bg-[#f5f5f7] border-black/5"
-    if (day.total === 1) return "bg-[#0066cc]/30 border-[#0066cc]/40"
-    if (day.total === 2) return "bg-[#0066cc]/55 border-[#0066cc]/60"
-    if (day.total <= 4) return "bg-[#0066cc]/80 border-[#0066cc]"
-    return "bg-[#0066cc] border-[#004499]"
+    if (day.total === 0) return "bg-[#EFE7DC] border-[#1D1D1F]/[0.05]"
+    if (day.total === 1) return "bg-[#FAD6BF] border-[#E89B6B]/40"
+    if (day.total === 2) return "bg-[#F09965] border-[#DC6D2E]/50"
+    if (day.total <= 4) return "bg-[#DE5D1E] border-[#C84200]/70"
+    return "bg-[#C84200] border-[#9E3300]"
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-black/5 shadow-sm p-6 space-y-5">
+    <div className="bg-white rounded-3xl border border-[#1D1D1F]/[0.06] shadow-sm p-6 md:p-7 space-y-5">
       {/* Header & Summary Metrics */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-bold text-[#1d1d1f] tracking-tight flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-[#0066cc]" />
-            Reading & Contribution Activity (Past 12 Months)
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#C84200] mb-1">
+            Reading Rhythm · 52 Weeks
+          </p>
+          <h3 className="text-xl font-black text-[#1d1d1f] tracking-tight flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-[#C84200]" />
+            Activity & Reading Streak
           </h3>
           <p className="text-xs font-medium text-[#86868b] mt-0.5">
-            {totalYearCount} verified contributions across reading sessions,
-            book handoffs, reviews, and community circles.
+            {totalYearCount} verified actions across Shanti sessions, book
+            handoffs, reviews, and Sabha circles.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="px-3.5 py-2 rounded-xl bg-[#f5f5f7] flex items-center gap-2">
-            <Flame className="w-4 h-4 text-[#C84200]" />
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="px-4 py-2.5 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.05] flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#C84200]/10 flex items-center justify-center">
+              <Flame className="w-4 h-4 text-[#C84200]" />
+            </div>
             <div>
-              <p className="text-[10px] font-bold uppercase text-[#86868b]">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#86868b]">
                 Current Streak
               </p>
               <p className="text-sm font-black text-[#1d1d1f]">
@@ -129,10 +134,12 @@ export function ContributionGraph({
             </div>
           </div>
 
-          <div className="px-3.5 py-2 rounded-xl bg-[#f5f5f7] flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-[#0066cc]" />
+          <div className="px-4 py-2.5 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.05] flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/15 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-amber-700" />
+            </div>
             <div>
-              <p className="text-[10px] font-bold uppercase text-[#86868b]">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#86868b]">
                 Longest Streak
               </p>
               <p className="text-sm font-black text-[#1d1d1f]">
@@ -142,12 +149,12 @@ export function ContributionGraph({
           </div>
 
           {mostActiveDay && (
-            <div className="px-3.5 py-2 rounded-xl bg-[#f5f5f7]">
-              <p className="text-[10px] font-bold uppercase text-[#86868b]">
-                Most Active Day
+            <div className="px-4 py-2.5 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.05]">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#86868b]">
+                Peak Day
               </p>
-              <p className="text-xs font-bold text-[#1d1d1f]">
-                {mostActiveDay.date} ({mostActiveDay.total} actions)
+              <p className="text-xs font-black text-[#1d1d1f] mt-0.5">
+                {mostActiveDay.date} · {mostActiveDay.total} actions
               </p>
             </div>
           )}
@@ -155,23 +162,23 @@ export function ContributionGraph({
       </div>
 
       {/* Streak Milestones Bar */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-[#86868b] shrink-0">
-          Streak Milestones:
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        <span className="text-[10px] font-black uppercase tracking-wider text-[#86868b] shrink-0">
+          Milestones:
         </span>
         {STREAK_MILESTONES.map((m) => {
           const achieved = longestStreak >= m || currentStreak >= m
           return (
             <span
               key={m}
-              className={`px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap border ${
+              className={`px-3 py-1 rounded-full text-[11px] font-bold whitespace-nowrap border transition-colors ${
                 achieved
-                  ? "bg-[#0066cc]/10 border-[#0066cc]/30 text-[#0066cc]"
-                  : "bg-[#f5f5f7] border-transparent text-[#86868b]"
+                  ? "bg-[#C84200]/12 border-[#C84200]/30 text-[#C84200]"
+                  : "bg-[#FAF6F0] border-[#1D1D1F]/[0.05] text-[#86868b]"
               }`}
             >
               {achieved ? "✓ " : ""}
-              {m} Days
+              {m}d
             </span>
           )
         })}
@@ -181,7 +188,7 @@ export function ContributionGraph({
       <div className="overflow-x-auto pb-2">
         <div className="min-w-[680px]">
           {/* Month Labels */}
-          <div className="flex text-[10px] font-semibold text-[#86868b] mb-1.5 pl-7 relative h-4">
+          <div className="flex text-[10px] font-bold text-[#86868b] mb-1.5 pl-7 relative h-4">
             {monthLabels.map((m, idx) => (
               <span
                 key={`${m.label}-${idx}`}
@@ -195,7 +202,7 @@ export function ContributionGraph({
 
           <div className="flex items-start gap-1.5">
             {/* Day-of-Week Labels */}
-            <div className="flex flex-col justify-between h-[88px] text-[9px] font-semibold text-[#86868b] pr-1 py-1">
+            <div className="flex flex-col justify-between h-[88px] text-[9px] font-bold text-[#86868b] pr-1 py-1">
               <span>Mon</span>
               <span>Wed</span>
               <span>Fri</span>
@@ -214,7 +221,7 @@ export function ContributionGraph({
                       title={`${cell.date}: ${cell.count} contribution${
                         cell.count === 1 ? "" : "s"
                       }`}
-                      className={`w-[10px] h-[10px] rounded-[2px] border transition-transform hover:scale-125 cursor-pointer ${getCellClass(
+                      className={`w-[10px] h-[10px] rounded-[3px] border transition-transform hover:scale-125 cursor-pointer ${getCellClass(
                         cell.data
                       )}`}
                     />
@@ -227,29 +234,29 @@ export function ContributionGraph({
       </div>
 
       {/* Legend + Selected Day Breakdown */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-black/5 text-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-[#1D1D1F]/[0.06] text-xs">
         <div className="text-[#86868b] font-medium">
           {selectedDay ? (
             <span>
               <strong className="text-[#1d1d1f]">{selectedDay.date}</strong>:{" "}
               {selectedDay.total === 0
-                ? "No recorded activity"
+                ? "Quiet day on the shelf"
                 : `${selectedDay.total} contribution${
                     selectedDay.total === 1 ? "" : "s"
                   } (${selectedDay.items.slice(0, 3).join(" · ")})`}
             </span>
           ) : (
-            <span>Hover or click any square to inspect daily breakdown.</span>
+            <span>Hover or tap any day square to inspect activity details.</span>
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 text-[10px] font-semibold text-[#86868b] shrink-0">
+        <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#86868b] shrink-0">
           <span>Less</span>
-          <span className="w-2.5 h-2.5 rounded-[2px] bg-[#f5f5f7] border border-black/10" />
-          <span className="w-2.5 h-2.5 rounded-[2px] bg-[#0066cc]/30" />
-          <span className="w-2.5 h-2.5 rounded-[2px] bg-[#0066cc]/55" />
-          <span className="w-2.5 h-2.5 rounded-[2px] bg-[#0066cc]/80" />
-          <span className="w-2.5 h-2.5 rounded-[2px] bg-[#0066cc]" />
+          <span className="w-2.5 h-2.5 rounded-[3px] bg-[#EFE7DC] border border-black/10" />
+          <span className="w-2.5 h-2.5 rounded-[3px] bg-[#FAD6BF]" />
+          <span className="w-2.5 h-2.5 rounded-[3px] bg-[#F09965]" />
+          <span className="w-2.5 h-2.5 rounded-[3px] bg-[#DE5D1E]" />
+          <span className="w-2.5 h-2.5 rounded-[3px] bg-[#C84200]" />
           <span>More</span>
         </div>
       </div>

@@ -404,9 +404,8 @@ export default async function ProfilePage({
   const username = canonicalUsername
 
   return (
-    <div className="min-h-screen bg-[#F2EBE1] pt-8 pb-16">
-      <div className="container max-w-6xl mx-auto px-4 md:px-6">
-        <ProfileEcosystemClient
+    <div className="min-h-screen bg-[#F2EBE1] pb-20">
+      <ProfileEcosystemClient
           profileUser={{
             id: user.id,
             name: user.name || username,
@@ -489,7 +488,6 @@ export default async function ProfilePage({
           initialFollowing={Boolean(followRecord)}
           initialTab={sp.tab || "overview"}
         />
-      </div>
     </div>
   )
 }
