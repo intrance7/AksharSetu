@@ -14,11 +14,11 @@ type Props = {
 
 export function ShantiModeChooser({ title, author, ebook }: Props) {
   return (
-    <div className="relative w-full max-w-3xl px-4 sm:px-6 text-[#F2EBE1]">
+    <div className="relative z-10 w-full max-w-3xl px-4 sm:px-6 text-[#F2EBE1]">
       <div className="mb-8 flex justify-start">
         <Link
           href="/library"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-[#F2EBE1]/80 hover:text-[#F2EBE1] transition-colors text-xs sm:text-sm font-bold"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-[#F2EBE1]/85 hover:text-[#F2EBE1] transition-colors text-sm font-bold"
         >
           <ArrowLeft className="w-4 h-4" /> Exit Shanti Mode
         </Link>
@@ -30,18 +30,21 @@ export function ShantiModeChooser({ title, author, ebook }: Props) {
         transition={{ duration: 0.9, ease: EASE }}
         className="text-center mb-12"
       >
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#C84200]/20 border border-[#FF7F45]/30 text-[#FF7F45] text-xs font-black uppercase tracking-[0.25em] mb-5">
-          <Sparkles className="w-3.5 h-3.5 text-[#F4B22B]" /> Shanti Mode
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#C84200]/20 border border-[#FF7F45]/30 text-[#FF7F45] text-xs sm:text-[13px] font-black uppercase tracking-[0.22em] mb-5">
+          <Sparkles className="w-4 h-4 text-[#F4B22B]" /> Shanti Mode
         </div>
-        <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-none mb-3 text-[#F2EBE1]">
-          How are you reading today?
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter leading-none mb-4 text-white">
+          How are you{" "}
+          <span className="font-serif italic font-medium text-[#FF7F45]">
+            reading today?
+          </span>
         </h1>
-        <p className="text-[#F2EBE1]/70 text-lg font-medium">
-          {title} <span className="text-[#F2EBE1]/45">· {author}</span>
+        <p className="text-[#F2EBE1]/80 text-lg sm:text-xl font-medium">
+          {title} <span className="text-[#F2EBE1]/50">· {author}</span>
         </p>
       </motion.div>
 
-      <div className="grid md:grid-cols-2 gap-5">
+      <div className="grid md:grid-cols-2 gap-6">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -50,15 +53,15 @@ export function ShantiModeChooser({ title, author, ebook }: Props) {
           <Link
             id="shanti-mode-physical"
             href="?mode=physical"
-            className="group flex flex-col h-full rounded-[2rem] bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#F4B22B]/40 p-8 transition-all duration-500"
+            className="group flex flex-col h-full rounded-3xl bg-white/[0.06] border border-white/12 hover:bg-white/[0.11] hover:border-[#F4B22B]/40 p-8 transition-all duration-500"
           >
-            <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mb-6">
+            <div className="w-13 h-13 rounded-2xl bg-white/10 flex items-center justify-center mb-6">
               <BookOpen className="w-6 h-6 text-[#F4B22B]" />
             </div>
-            <h2 className="text-2xl font-black tracking-tight mb-2 text-[#F2EBE1]">
+            <h2 className="text-2xl sm:text-[26px] font-black tracking-tight mb-2.5 text-white">
               I have the physical book
             </h2>
-            <p className="text-[#F2EBE1]/65 mb-8 flex-1 font-medium">
+            <p className="text-base text-[#F2EBE1]/70 mb-8 flex-1 font-medium leading-relaxed">
               Just a deep-focus Pomodoro timer. Your book, your pace, no screen in the way.
             </p>
             <span className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-wider text-[#F4B22B]">
@@ -76,13 +79,15 @@ export function ShantiModeChooser({ title, author, ebook }: Props) {
             <Link
               id="shanti-mode-read"
               href="?mode=read"
-              className="group flex flex-col h-full rounded-[2rem] bg-[#C84200] hover:bg-[#A33500] p-8 transition-all duration-500 shadow-xl"
+              className="group flex flex-col h-full rounded-3xl bg-[#C84200] hover:bg-[#A33500] p-8 transition-all duration-500 shadow-xl"
             >
-              <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center mb-6">
+              <div className="w-13 h-13 rounded-2xl bg-white/15 flex items-center justify-center mb-6">
                 <Tablet className="w-6 h-6 text-[#F4B22B]" />
               </div>
-              <h2 className="text-2xl font-black tracking-tight mb-2 text-white">Read it here</h2>
-              <p className="text-white/80 mb-8 flex-1 font-medium">
+              <h2 className="text-2xl sm:text-[26px] font-black tracking-tight mb-2.5 text-white">
+                Read it here
+              </h2>
+              <p className="text-base text-white/85 mb-8 flex-1 font-medium leading-relaxed">
                 Open <span className="text-white font-bold">{ebook.title}</span> by {ebook.author} in our e-reader, with the focus timer alongside.
               </p>
               <span className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
@@ -92,15 +97,15 @@ export function ShantiModeChooser({ title, author, ebook }: Props) {
           ) : (
             <div
               id="shanti-mode-read-unavailable"
-              className="flex flex-col h-full rounded-[2rem] bg-white/[0.03] border border-dashed border-white/15 p-8"
+              className="flex flex-col h-full rounded-3xl bg-white/[0.03] border border-dashed border-white/15 p-8"
             >
-              <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6">
-                <Tablet className="w-6 h-6 text-[#86868b]" />
+              <div className="w-13 h-13 rounded-2xl bg-white/5 flex items-center justify-center mb-6">
+                <Tablet className="w-6 h-6 text-white/45" />
               </div>
-              <h2 className="text-2xl font-black tracking-tight mb-2 text-[#F2EBE1]/50">
+              <h2 className="text-2xl sm:text-[26px] font-black tracking-tight mb-2.5 text-[#F2EBE1]/55">
                 Read it here
               </h2>
-              <p className="text-[#F2EBE1]/45 mb-8 flex-1 font-medium">
+              <p className="text-base text-[#F2EBE1]/50 mb-8 flex-1 font-medium leading-relaxed">
                 This book isn&apos;t in our digital library yet. Only public-domain classics can be read online.
               </p>
               <Link

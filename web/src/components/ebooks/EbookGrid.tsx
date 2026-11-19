@@ -56,7 +56,7 @@ function EbookCard({ book }: { book: EBookSummary }) {
   const badgeStyle = SOURCE_BADGE_STYLES[book.source || "gutenberg"] || SOURCE_BADGE_STYLES.gutenberg
 
   return (
-    <div className="group bg-white rounded-2xl border border-black/5 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col">
+    <div className="group bg-white rounded-3xl border border-[#1D1D1F]/[0.07] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col">
       {/* Book Cover */}
       <Link
         href={`/ebooks/${encodeURIComponent(String(book.id))}?view=book`}
@@ -81,18 +81,18 @@ function EbookCard({ book }: { book: EBookSummary }) {
             className={`w-full h-full bg-gradient-to-br ${gradient} p-5 flex flex-col justify-between text-white relative`}
           >
             <div className="absolute inset-y-0 left-0 w-3 bg-black/25" />
-            <div className="pl-2 flex items-center justify-between text-[10px] uppercase tracking-widest text-white/70 font-semibold">
-              <span>{book.sourceLabel || "Digital Edition"}</span>
-              {book.year && <span>{book.year}</span>}
+            <div className="pl-2 flex items-center justify-between text-xs uppercase tracking-wider text-white/75 font-semibold">
+              <span className="truncate">{book.sourceLabel || "Digital Edition"}</span>
+              {book.year && <span className="shrink-0 ml-1">{book.year}</span>}
             </div>
             <div className="pl-2 my-auto">
-              <p className="font-serif text-lg font-bold leading-snug line-clamp-4 drop-shadow">
+              <p className="font-serif text-lg sm:text-xl font-bold leading-snug line-clamp-4 drop-shadow">
                 {book.title}
               </p>
               <div className="w-8 h-0.5 bg-amber-300/70 my-3" />
-              <p className="text-xs text-white/80 line-clamp-2">{book.author}</p>
+              <p className="text-sm text-white/85 line-clamp-2">{book.author}</p>
             </div>
-            <div className="pl-2 text-[10px] text-white/50 uppercase tracking-wider">
+            <div className="pl-2 text-xs text-white/60 uppercase tracking-wider font-semibold">
               AksharSetu E-Library
             </div>
           </div>
@@ -100,14 +100,14 @@ function EbookCard({ book }: { book: EBookSummary }) {
 
         {/* Source Badge */}
         <div
-          className={`absolute top-2.5 right-2.5 text-[10px] font-bold px-2.5 py-1 rounded-full shadow backdrop-blur-sm ${badgeStyle}`}
+          className={`absolute top-2.5 right-2.5 text-xs font-bold px-2.5 py-1 rounded-full shadow backdrop-blur-sm max-w-[85%] truncate ${badgeStyle}`}
         >
           {book.sourceLabel || "Project Gutenberg"}
         </div>
 
         {/* Resume Bookmark Badge */}
         {(savedSpread || savedPage) && (
-          <div className="absolute top-2.5 left-2.5 bg-[#0066cc] text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow">
+          <div className="absolute top-2.5 left-2.5 bg-[#0066cc] text-white text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow">
             <Bookmark className="w-3 h-3 fill-current" />
             {savedSpread ? `Spread ${savedSpread}` : `Page ${savedPage}`}
           </div>
@@ -115,29 +115,31 @@ function EbookCard({ book }: { book: EBookSummary }) {
 
         {/* Hover Quick-Read Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-[#0066cc] px-3.5 py-1.5 rounded-full shadow">
-            <BookOpen className="w-3.5 h-3.5" />
+          <span className="inline-flex items-center gap-1.5 text-sm font-bold text-white bg-[#C84200] px-4 py-2 rounded-full shadow">
+            <BookOpen className="w-4 h-4" />
             {savedSpread || savedPage ? "Continue Reading" : "Open Book Reader"}
           </span>
         </div>
       </Link>
 
       {/* Card Body */}
-      <div className="p-4 flex-1 flex flex-col justify-between">
+      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
         <div>
           <Link href={`/ebooks/${encodeURIComponent(String(book.id))}?view=book`}>
-            <h3 className="font-bold text-sm text-[#1d1d1f] line-clamp-2 group-hover:text-[#0066cc] transition-colors">
+            <h3 className="font-bold text-base text-[#1d1d1f] line-clamp-2 leading-snug group-hover:text-[#C84200] transition-colors">
               {book.title}
             </h3>
           </Link>
-          <p className="text-xs text-[#86868b] mt-1 line-clamp-1">{book.author}</p>
+          <p className="text-xs sm:text-[13px] font-medium text-[#6e6e73] mt-1 line-clamp-1">
+            {book.author}
+          </p>
         </div>
 
         {/* Action Buttons: Book Read, Classic Read, Shanti */}
-        <div className="mt-4 pt-3 border-t border-black/5 flex flex-col gap-1.5">
+        <div className="mt-4 pt-3.5 border-t border-[#1D1D1F]/[0.06] flex flex-col gap-2">
           <Link
             href={`/ebooks/${encodeURIComponent(String(book.id))}?view=book`}
-            className="w-full inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-full text-[11px] font-semibold bg-[#1d1d1f] text-white hover:bg-[#C84200] transition"
+            className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-full text-xs sm:text-[13px] font-bold bg-[#1d1d1f] text-white hover:bg-[#C84200] transition"
             title="Read as a realistic open 2-page hardcover book"
           >
             <BookOpen className="w-3.5 h-3.5 shrink-0" />
@@ -146,10 +148,10 @@ function EbookCard({ book }: { book: EBookSummary }) {
           <div className="grid grid-cols-2 gap-1.5">
             <Link
               href={`/ebooks/${encodeURIComponent(String(book.id))}?view=classic`}
-              className="inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-full text-[11px] font-semibold bg-[#FAF6F0] text-[#1d1d1f] hover:bg-[#e8e8ed] border border-black/5 transition"
+              className="inline-flex items-center justify-center gap-1 px-2.5 py-2 rounded-full text-xs font-bold bg-[#FAF6F0] text-[#1d1d1f] hover:bg-[#EFE7DC] border border-black/6 transition"
               title="Read in classic single-column mode"
             >
-              <ScrollText className="w-3 h-3 shrink-0" />
+              <ScrollText className="w-3.5 h-3.5 shrink-0" />
               Classic
             </Link>
             <StartShantiButton

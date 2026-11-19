@@ -13,6 +13,7 @@ import {
   X,
   History,
   ArrowUpRight,
+  BookOpen,
 } from "lucide-react"
 import { toast } from "sonner"
 import { CatalogGridInterlude } from "./CatalogGridInterlude"
@@ -22,8 +23,8 @@ import dynamic from "next/dynamic"
 const InteractiveMap = dynamic(() => import("./Map"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[600px] md:h-[750px] rounded-3xl bg-black/5 animate-pulse flex items-center justify-center font-bold text-[#1D1D1F]/40">
-      Loading Map...
+    <div className="w-full h-[520px] md:h-[680px] rounded-3xl bg-white/70 border border-[#1D1D1F]/[0.07] animate-pulse flex items-center justify-center font-bold text-sm text-[#1D1D1F]/50">
+      Loading Interactive Book Map...
     </div>
   ),
 })
@@ -39,10 +40,10 @@ interface CatalogLayoutClientProps {
 
 const FILTER_LABELS: Record<string, string> = {
   category: "Category",
-  price: "Price",
+  price: "Listing",
   condition: "Condition",
-  delivery: "Handoff",
-  bundles: "Semester Bundles",
+  delivery: "Delivery",
+  bundles: "Semester Packs",
   university: "University",
   course: "Course",
   subject: "Subject",
@@ -50,6 +51,14 @@ const FILTER_LABELS: Record<string, string> = {
   semester: "Semester",
   maxPrice: "Max ₹",
   q: "Search",
+}
+
+const PRICE_VALUE_LABELS: Record<string, string> = {
+  free: "Free Vidya Daan",
+  exchange: "1-for-1 Swap",
+  under250: "Under ₹250",
+  under500: "Under ₹500",
+  paid: "Paid Resale",
 }
 
 export function CatalogLayoutClient({
@@ -96,13 +105,17 @@ export function CatalogLayoutClient({
     searchParams.forEach((value, key) => {
       if (key === "page" || key === "sort" || !value || value === "all") return
       const prefix = FILTER_LABELS[key] || key
+      const prettyValue =
+        key === "price" && PRICE_VALUE_LABELS[value]
+          ? PRICE_VALUE_LABELS[value]
+          : value.replace(/_/g, " ")
       chips.push({
         key,
         value,
         label:
           key === "bundles"
-            ? "Semester Bundles"
-            : `${prefix}: ${value.replace(/_/g, " ")}`,
+            ? "Semester Packs"
+            : `${prefix}: ${prettyValue}`,
       })
     })
     return chips
@@ -112,7 +125,8 @@ export function CatalogLayoutClient({
     const params = new URLSearchParams(searchParams.toString())
     params.delete(key)
     params.delete("page")
-    router.push(`/catalog?${params.toString()}`)
+    const qs = params.toString()
+    router.push(qs ? `/catalog?${qs}` : "/catalog")
   }
 
   const goToPage = (page: number) => {
@@ -145,7 +159,7 @@ export function CatalogLayoutClient({
 
   return (
     <div className="container mx-auto max-w-[1400px] px-4 md:px-8 pb-24 pt-2">
-      {/* Section Header & View Controls */}
+      {/* Editorial Section Header, Quick-Filter Ribbon & View Controls */}
       <CatalogTopBar
         showFilters={showFilters}
         onToggleFilters={() => setShowFilters(!showFilters)}
@@ -158,42 +172,42 @@ export function CatalogLayoutClient({
 
       {/* Active Filter Chips Bar */}
       {activeFilters.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 mb-5">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#1D1D1F]/50 mr-1">
-            Active Filters:
+        <div className="flex flex-wrap items-center gap-2 mb-6 bg-white/80 rounded-2xl px-4 py-3 border border-[#1D1D1F]/[0.07]">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#86868b] mr-1">
+            Active:
           </span>
           {activeFilters.map((chip) => (
             <button
               key={chip.key}
               type="button"
               onClick={() => removeFilterChip(chip.key)}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#1D1D1F]/15 text-xs font-bold text-[#1D1D1F] hover:border-[#C84200] hover:text-[#C84200] transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.1] text-[13px] font-bold text-[#1D1D1F] hover:border-[#C84200] hover:text-[#C84200] hover:bg-white transition-colors cursor-pointer"
             >
               <span>{chip.label}</span>
-              <X className="w-3 h-3" />
+              <X className="w-3.5 h-3.5" />
             </button>
           ))}
           <Link
             href="/catalog"
-            className="text-xs font-bold text-[#C84200] hover:underline ml-2"
+            className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold text-[#C84200] hover:bg-[#C84200]/10 transition-colors ml-auto sm:ml-2"
           >
-            Clear all
+            Reset all
           </Link>
         </div>
       )}
 
       {/* AI Recommendations Bar */}
-      <div className="mt-2">
+      <div className="mt-1">
         <AIRecommendations />
       </div>
 
       {/* Recently Viewed Shelf (when present & on page 1) */}
       {recentBooks.length > 0 && !isFiltered && currentPage === 1 && (
-        <section className="mb-8 bg-white/75 rounded-3xl p-5 border border-[#1D1D1F]/[0.08]">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-black uppercase tracking-wider text-[#1D1D1F]/70 flex items-center gap-1.5">
-              <History className="w-3.5 h-3.5 text-[#C84200]" /> Recently Viewed
-              by You
+        <section className="mb-8 bg-white rounded-3xl p-5 sm:p-6 border border-[#1D1D1F]/[0.07] shadow-[0_4px_20px_rgba(29,29,31,0.03)]">
+          <div className="flex items-center justify-between gap-2 mb-4">
+            <h3 className="text-xs font-black uppercase tracking-[0.14em] text-[#1D1D1F]/70 flex items-center gap-2">
+              <History className="w-4 h-4 text-[#C84200]" /> Recently Viewed on
+              Your Desk
             </h3>
             <button
               type="button"
@@ -201,7 +215,7 @@ export function CatalogLayoutClient({
                 localStorage.removeItem("aksharsetu_recent_books_v1")
                 setRecentBooks([])
               }}
-              className="text-[11px] font-bold text-[#86868b] hover:text-[#1D1D1F] cursor-pointer"
+              className="text-xs font-bold text-[#86868b] hover:text-[#C84200] transition-colors cursor-pointer"
             >
               Clear history
             </button>
@@ -211,39 +225,41 @@ export function CatalogLayoutClient({
               <Link
                 key={item.id}
                 href={`/catalog/${item.id}`}
-                className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-[#FAF6F0] hover:bg-white border border-black/5 hover:border-[#C84200]/30 transition-all"
+                className="group flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-[#FAF6F0] hover:bg-white border border-[#1D1D1F]/[0.06] hover:border-[#C84200]/30 hover:shadow-sm transition-all"
               >
                 <div className="min-w-0">
-                  <p className="text-xs font-bold text-[#1D1D1F] truncate">
+                  <p className="text-sm font-bold text-[#1D1D1F] group-hover:text-[#C84200] transition-colors truncate">
                     {item.title}
                   </p>
-                  <p className="text-[11px] text-[#86868b] truncate">
+                  <p className="text-xs text-[#6e6e73] truncate mt-0.5">
                     {item.author} ·{" "}
-                    {item.price === 0
-                      ? item.acceptsExchange
-                        ? "Swap"
-                        : "Free"
-                      : `₹${item.price}`}
+                    <span className="font-mono font-bold text-[#1D1D1F]">
+                      {item.price === 0
+                        ? item.acceptsExchange
+                          ? "Swap"
+                          : "Free"
+                        : `₹${item.price}`}
+                    </span>
                   </p>
                 </div>
-                <ArrowUpRight className="w-3.5 h-3.5 text-[#C84200] shrink-0" />
+                <ArrowUpRight className="w-4 h-4 text-[#C84200] shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>
             ))}
           </div>
         </section>
       )}
 
-      <div className="flex items-start mt-4">
+      <div className="flex items-start mt-2">
         {/* Desktop Sidebar */}
         <motion.div
           initial={false}
           animate={{
-            width: showFilters ? 270 : 0,
+            width: showFilters ? 276 : 0,
             opacity: showFilters ? 1 : 0,
             marginRight: showFilters ? 28 : 0,
           }}
           transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="hidden md:block shrink-0 overflow-y-auto overflow-x-hidden sticky top-[132px] self-start max-h-[calc(100vh-140px)] scrollbar-hide"
+          className="hidden md:block shrink-0 overflow-y-auto overflow-x-hidden sticky top-[184px] self-start max-h-[calc(100vh-196px)] scrollbar-hide"
         >
           <CatalogSidebarFilters />
         </motion.div>
@@ -257,23 +273,26 @@ export function CatalogLayoutClient({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setMobileFiltersOpen(false)}
-                className="fixed inset-0 z-50 bg-black/45 backdrop-blur-xs md:hidden"
+                className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs md:hidden"
               />
               <motion.div
                 initial={{ x: "-100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "-100%" }}
                 transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                className="fixed inset-y-0 left-0 z-50 w-[86vw] max-w-[340px] bg-[#F2EBE1] p-5 overflow-y-auto shadow-2xl md:hidden"
+                className="fixed inset-y-0 left-0 z-50 w-[88vw] max-w-[350px] bg-[#F2EBE1] p-5 overflow-y-auto shadow-2xl rounded-r-3xl md:hidden"
               >
                 <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#1D1D1F]/10">
-                  <h3 className="text-base font-black text-[#1D1D1F]">
-                    Filter Catalog
+                  <h3 className="text-lg font-black text-[#1D1D1F]">
+                    Refine{" "}
+                    <span className="font-serif italic font-normal text-[#C84200]">
+                      Shelves
+                    </span>
                   </h3>
                   <button
                     type="button"
                     onClick={() => setMobileFiltersOpen(false)}
-                    className="p-2 rounded-full bg-white text-[#1D1D1F]"
+                    className="w-9 h-9 rounded-full bg-white border border-[#1D1D1F]/10 text-[#1D1D1F] flex items-center justify-center cursor-pointer"
                     aria-label="Close filters"
                   >
                     <X className="w-4 h-4" />
@@ -291,7 +310,7 @@ export function CatalogLayoutClient({
         <div className="flex-1 min-w-0">
           {books.length > 0 ? (
             viewMode === "map" ? (
-              <div className="rounded-3xl overflow-hidden border border-[#1D1D1F]/10 shadow-sm">
+              <div className="rounded-3xl overflow-hidden border border-[#1D1D1F]/[0.08] shadow-sm bg-white p-2">
                 <InteractiveMap
                   books={books as any}
                   userLocation={userLocation}
@@ -299,7 +318,7 @@ export function CatalogLayoutClient({
               </div>
             ) : viewMode === "list" ? (
               <>
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-5">
                   {books.map((book) => (
                     <BookCard
                       key={book.id}
@@ -348,14 +367,21 @@ export function CatalogLayoutClient({
               </>
             )
           ) : (
-            <div className="text-center py-16 px-6 border border-[#1D1D1F]/15 rounded-3xl mt-4 max-w-2xl mx-auto bg-white shadow-xs">
-              <h3 className="text-2xl font-black text-[#1D1D1F] mb-2 tracking-tight">
-                No books match those filters
+            <div className="text-center py-16 px-6 sm:px-10 border border-[#1D1D1F]/[0.07] rounded-3xl mt-4 max-w-2xl mx-auto bg-white shadow-[0_6px_28px_rgba(29,29,31,0.04)]">
+              <div className="w-14 h-14 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] flex items-center justify-center mx-auto mb-5">
+                <BookOpen className="w-7 h-7 text-[#C84200]" />
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-black text-[#1D1D1F] mb-2.5 tracking-tight">
+                No books on this{" "}
+                <span className="font-serif italic font-normal text-[#C84200]">
+                  shelf
+                </span>{" "}
+                yet
               </h3>
-              <p className="text-[#1D1D1F]/65 font-medium max-w-[44ch] mx-auto mb-6 text-sm">
-                Try removing a filter, explore our 70,000+ Free Public-Domain
-                E-Library, or set a Wishlist Radar alert so we notify you the
-                moment this title is listed.
+              <p className="text-[#6e6e73] font-medium max-w-[46ch] mx-auto mb-7 text-[15px] leading-relaxed">
+                Try relaxing a filter, explore our 70,000+ Free Public-Domain
+                E-Library, or activate a Wishlist Radar alert so we notify you
+                the instant a copy arrives.
               </p>
               <div className="flex flex-wrap justify-center gap-3">
                 {searchQuery && (
@@ -363,7 +389,7 @@ export function CatalogLayoutClient({
                     type="button"
                     onClick={handleAddToWishlist}
                     disabled={addingWishlist}
-                    className="bg-[#C84200] text-white px-5 py-2.5 rounded-full text-xs font-bold hover:bg-[#A33500] transition-colors cursor-pointer"
+                    className="bg-[#C84200] text-white px-6 py-3 rounded-full text-sm font-bold hover:bg-[#A33500] transition-colors cursor-pointer shadow-xs"
                   >
                     {addingWishlist
                       ? "Adding Alert..."
@@ -373,14 +399,14 @@ export function CatalogLayoutClient({
                 {isFiltered && (
                   <Link
                     href="/catalog"
-                    className="bg-[#FAF6F0] border border-[#1D1D1F]/15 text-[#1D1D1F] px-5 py-2.5 rounded-full text-xs font-bold hover:bg-[#E8E2D7] transition-colors"
+                    className="bg-[#FAF6F0] border border-[#1D1D1F]/12 text-[#1D1D1F] px-6 py-3 rounded-full text-sm font-bold hover:bg-[#E8E2D7] transition-colors"
                   >
-                    Clear All Filters
+                    Reset All Filters
                   </Link>
                 )}
                 <Link
                   href="/catalog/new"
-                  className="bg-[#1D1D1F] text-white px-5 py-2.5 rounded-full text-xs font-bold hover:bg-[#C84200] transition-colors"
+                  className="bg-[#1D1D1F] text-white px-6 py-3 rounded-full text-sm font-bold hover:bg-[#C84200] transition-colors"
                 >
                   + List a Book
                 </Link>
@@ -411,18 +437,18 @@ function CatalogPagination({
         type="button"
         disabled={currentPage <= 1}
         onClick={() => onPageChange(currentPage - 1)}
-        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white text-[#1D1D1F] text-xs font-bold border border-[#1D1D1F]/10 shadow-xs hover:bg-[#FAF6F0] disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white text-[#1D1D1F] text-[13px] font-bold border border-[#1D1D1F]/[0.08] shadow-xs hover:bg-[#FAF6F0] hover:border-[#C84200]/40 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
       >
         <ChevronLeft className="w-4 h-4" /> Previous
       </button>
-      <span className="px-4 py-2 rounded-full bg-white border border-[#1D1D1F]/10 text-xs font-black text-[#1D1D1F]">
-        Page {currentPage} of {totalPages}
+      <span className="px-4 py-2.5 rounded-full bg-white border border-[#1D1D1F]/[0.08] font-mono text-xs sm:text-[13px] font-bold text-[#1D1D1F]">
+        {currentPage} / {totalPages}
       </span>
       <button
         type="button"
         disabled={currentPage >= totalPages}
         onClick={() => onPageChange(currentPage + 1)}
-        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white text-[#1D1D1F] text-xs font-bold border border-[#1D1D1F]/10 shadow-xs hover:bg-[#FAF6F0] disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white text-[#1D1D1F] text-[13px] font-bold border border-[#1D1D1F]/[0.08] shadow-xs hover:bg-[#FAF6F0] hover:border-[#C84200]/40 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
       >
         Next <ChevronRight className="w-4 h-4" />
       </button>

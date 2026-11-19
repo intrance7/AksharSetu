@@ -23,34 +23,48 @@ function SuccessContent() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-      className="bg-white rounded-3xl p-7 sm:p-10 md:p-12 shadow-sm border border-[#1D1D1F]/10 max-w-lg w-full text-center"
+      className="bg-white rounded-3xl p-8 sm:p-10 md:p-12 shadow-[0_14px_48px_-16px_rgba(29,29,31,0.14)] border border-[#1D1D1F]/[0.07] max-w-xl w-full text-center relative overflow-hidden"
     >
-      <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+      <div className="w-20 h-20 bg-[#0A7D4F]/10 border border-[#0A7D4F]/20 rounded-full flex items-center justify-center mx-auto mb-6">
         {isMeetup ? (
-          <Handshake className="w-10 h-10 text-emerald-700" />
+          <Handshake className="w-10 h-10 text-[#0A7D4F]" />
         ) : (
-          <CheckCircle className="w-10 h-10 text-emerald-700" />
+          <CheckCircle className="w-10 h-10 text-[#0A7D4F]" />
         )}
       </div>
 
-      <h1 className="text-3xl font-black text-[#1D1D1F] tracking-tight mb-3">
-        {isMeetup ? "Meetup Reserved!" : "Order Confirmed!"}
+      <h1 className="text-3xl sm:text-4xl font-black text-[#1D1D1F] tracking-tight mb-3">
+        {isMeetup ? (
+          <>
+            Meetup{" "}
+            <span className="font-serif italic font-normal text-[#0A7D4F]">
+              Reserved.
+            </span>
+          </>
+        ) : (
+          <>
+            Order{" "}
+            <span className="font-serif italic font-normal text-[#0A7D4F]">
+              Confirmed.
+            </span>
+          </>
+        )}
       </h1>
 
-      <p className="text-[#86868b] text-sm font-medium mb-6 leading-relaxed">
+      <p className="text-[#6e6e73] text-[15px] font-medium mb-7 leading-relaxed max-w-md mx-auto">
         {isMeetup
-          ? "This book has been reserved for your campus or local meetup with ₹0 platform & shipping fees. Message the seller to coordinate a safe public spot and inspect before paying."
+          ? "This book has been reserved for your campus or local meetup with ₹0 platform and shipping fees. Message the seller to coordinate a public spot and inspect before paying."
           : "Your payment is secured in escrow and the seller has been notified to dispatch your book."}
       </p>
 
       {awb && (
-        <div className="mb-8 p-4 rounded-2xl bg-[#FAF6F0] border border-black/5">
-          <p className="text-[10px] font-black uppercase tracking-widest text-[#C84200] mb-1">
+        <div className="mb-8 p-5 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.07]">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-[#C84200] mb-1.5">
             {isMeetup
               ? "Meetup Reservation Reference"
               : "Express Shipment Tracking AWB"}
           </p>
-          <p className="font-mono text-lg font-black text-[#1D1D1F] break-all">
+          <p className="font-mono text-xl font-black text-[#1D1D1F] break-all">
             {awb}
           </p>
         </div>
@@ -67,13 +81,13 @@ function SuccessContent() {
             </>
           ) : (
             <>
-              <Package className="w-4 h-4" /> Track Order & Shipment
+              <Package className="w-4 h-4" /> Track Order &amp; Shipment
             </>
           )}
         </Link>
         <Link
           href={isMeetup ? "/orders" : "/catalog"}
-          className="py-3.5 px-6 bg-[#FAF6F0] hover:bg-[#E8E2D7] text-[#1D1D1F] border border-black/10 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-colors flex-1"
+          className="py-3.5 px-6 bg-[#FAF6F0] hover:bg-[#EFE7DC] text-[#1D1D1F] border border-[#1D1D1F]/[0.1] rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-colors flex-1"
         >
           {isMeetup ? (
             <>
@@ -92,10 +106,32 @@ function SuccessContent() {
 
 export default function CheckoutSuccessPage() {
   return (
-    <div className="min-h-screen bg-[#F2EBE1] flex items-center justify-center px-4 py-12">
-      <Suspense fallback={null}>
-        <SuccessContent />
-      </Suspense>
+    <div className="min-h-screen bg-[#F2EBE1] flex flex-col">
+      <div className="relative overflow-hidden bg-[#0B0B0D] h-28 sm:h-36 border-b border-white/10">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-[0.07]"
+          style={{
+            backgroundImage:
+              "radial-gradient(#F2EBE1 1.25px, transparent 1.25px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-20 right-1/4 w-72 h-72 rounded-full opacity-25 blur-3xl"
+          style={{
+            background:
+              "radial-gradient(circle, #FF7F45 0%, #C84200 45%, transparent 72%)",
+          }}
+        />
+      </div>
+
+      <div className="flex-1 flex items-start justify-center px-4 -mt-14 sm:-mt-20 pb-20 relative z-10">
+        <Suspense fallback={null}>
+          <SuccessContent />
+        </Suspense>
+      </div>
     </div>
   )
 }

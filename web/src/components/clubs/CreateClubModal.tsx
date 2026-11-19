@@ -58,9 +58,9 @@ export function CreateClubModal({ isLoggedIn }: { isLoggedIn: boolean }) {
       <button
         type="button"
         onClick={handleOpen}
-        className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white font-black text-xs uppercase tracking-wider shadow-lg transition-colors cursor-pointer shrink-0"
+        className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white font-bold text-sm shadow-lg shadow-[#C84200]/20 transition-colors cursor-pointer shrink-0"
       >
-        <Plus className="w-4 h-4" /> Create Sabha Team
+        <Plus className="w-4.5 h-4.5" /> Create Sabha Team
       </button>
 
       <AnimatePresence>
@@ -83,21 +83,21 @@ export function CreateClubModal({ isLoggedIn }: { isLoggedIn: boolean }) {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="absolute top-5 right-5 w-8 h-8 rounded-full bg-[#FAF6F0] hover:bg-black/10 flex items-center justify-center cursor-pointer"
+                className="absolute top-5 right-5 w-9 h-9 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] flex items-center justify-center cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4.5 h-4.5" />
               </button>
 
-              <div className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-[#C84200] mb-1">
-                <Sparkles className="w-3.5 h-3.5" /> New Reading Team
+              <div className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-[#C84200] mb-1.5">
+                <Sparkles className="w-4 h-4" /> New Reading Team
               </div>
-              <h2 className="text-2xl font-black mb-5">
+              <h2 className="text-2xl sm:text-3xl font-black mb-5">
                 Create a Sabha Reading Team
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-1">
+                  <label className="block text-xs sm:text-[13px] font-bold uppercase tracking-wider mb-1.5">
                     Team Name *
                   </label>
                   <input
@@ -106,32 +106,32 @@ export function CreateClubModal({ isLoggedIn }: { isLoggedIn: boolean }) {
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder="e.g. IITD Systems & Algorithms Squad"
-                    className="w-full h-11 rounded-xl bg-[#FAF6F0] px-3.5 text-sm font-medium outline-none focus:ring-2 focus:ring-[#C84200]/25"
+                    className="w-full h-12 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] px-4 text-sm sm:text-base font-medium outline-none focus:border-[#C84200] focus:bg-white"
                   />
                 </div>
 
                 {/* Team Visibility Toggle */}
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-1.5">
+                  <label className="block text-xs sm:text-[13px] font-bold uppercase tracking-wider mb-1.5">
                     Team Access Mode
                   </label>
                   <div className="grid grid-cols-2 gap-2.5">
                     <button
                       type="button"
                       onClick={() => setForm({ ...form, isPrivate: false })}
-                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
                         !form.isPrivate
                           ? "bg-[#1D1D1F] text-white border-[#1D1D1F]"
                           : "bg-[#FAF6F0] text-[#1D1D1F] border-black/10"
                       }`}
                     >
-                      <div className="flex items-center gap-1.5 text-xs font-bold">
-                        <Globe className="w-3.5 h-3.5 text-[#C84200]" /> Public
+                      <div className="flex items-center gap-1.5 text-sm font-bold">
+                        <Globe className="w-4 h-4 text-[#FF8A4C]" /> Public
                         Team
                       </div>
                       <p
-                        className={`text-[10px] mt-0.5 ${
-                          !form.isPrivate ? "text-white/70" : "text-[#86868b]"
+                        className={`text-xs mt-1 leading-snug ${
+                          !form.isPrivate ? "text-white/75" : "text-[#6e6e73]"
                         }`}
                       >
                         Listed in directory + joinable via code
@@ -141,19 +141,19 @@ export function CreateClubModal({ isLoggedIn }: { isLoggedIn: boolean }) {
                     <button
                       type="button"
                       onClick={() => setForm({ ...form, isPrivate: true })}
-                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
                         form.isPrivate
                           ? "bg-[#1D1D1F] text-white border-[#1D1D1F]"
                           : "bg-[#FAF6F0] text-[#1D1D1F] border-black/10"
                       }`}
                     >
-                      <div className="flex items-center gap-1.5 text-xs font-bold">
-                        <Lock className="w-3.5 h-3.5 text-amber-500" /> Private
+                      <div className="flex items-center gap-1.5 text-sm font-bold">
+                        <Lock className="w-4 h-4 text-amber-500" /> Private
                         Team
                       </div>
                       <p
-                        className={`text-[10px] mt-0.5 ${
-                          form.isPrivate ? "text-white/70" : "text-[#86868b]"
+                        className={`text-xs mt-1 leading-snug ${
+                          form.isPrivate ? "text-white/75" : "text-[#6e6e73]"
                         }`}
                       >
                         Invite-code only · hidden from public
@@ -164,7 +164,7 @@ export function CreateClubModal({ isLoggedIn }: { isLoggedIn: boolean }) {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold uppercase mb-1">
+                    <label className="block text-xs sm:text-[13px] font-bold uppercase tracking-wider mb-1.5">
                       Current Book Title *
                     </label>
                     <input
@@ -175,11 +175,11 @@ export function CreateClubModal({ isLoggedIn }: { isLoggedIn: boolean }) {
                         setForm({ ...form, bookTitle: e.target.value })
                       }
                       placeholder="e.g. Gitanjali"
-                      className="w-full h-11 rounded-xl bg-[#FAF6F0] px-3.5 text-sm font-medium outline-none"
+                      className="w-full h-12 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] px-4 text-sm sm:text-base font-medium outline-none focus:border-[#C84200] focus:bg-white"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase mb-1">
+                    <label className="block text-xs sm:text-[13px] font-bold uppercase tracking-wider mb-1.5">
                       Book Author *
                     </label>
                     <input
@@ -190,14 +190,14 @@ export function CreateClubModal({ isLoggedIn }: { isLoggedIn: boolean }) {
                         setForm({ ...form, bookAuthor: e.target.value })
                       }
                       placeholder="e.g. Rabindranath Tagore"
-                      className="w-full h-11 rounded-xl bg-[#FAF6F0] px-3.5 text-sm font-medium outline-none"
+                      className="w-full h-12 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] px-4 text-sm sm:text-base font-medium outline-none focus:border-[#C84200] focus:bg-white"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold uppercase mb-1">
+                    <label className="block text-xs sm:text-[13px] font-bold uppercase tracking-wider mb-1.5">
                       Custom Team Code (Optional)
                     </label>
                     <input
@@ -212,11 +212,11 @@ export function CreateClubModal({ isLoggedIn }: { isLoggedIn: boolean }) {
                         })
                       }
                       placeholder="Auto (e.g. SABHA-7K2M)"
-                      className="w-full h-11 rounded-xl bg-[#FAF6F0] px-3.5 text-xs font-mono font-bold uppercase outline-none"
+                      className="w-full h-12 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] px-4 text-sm font-mono font-bold uppercase outline-none focus:border-[#C84200] focus:bg-white"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase mb-1">
+                    <label className="block text-xs sm:text-[13px] font-bold uppercase tracking-wider mb-1.5">
                       Max Team Members
                     </label>
                     <select
@@ -227,7 +227,7 @@ export function CreateClubModal({ isLoggedIn }: { isLoggedIn: boolean }) {
                           maxMembers: Number(e.target.value) || 25,
                         })
                       }
-                      className="w-full h-11 rounded-xl bg-[#FAF6F0] px-3.5 text-sm font-bold outline-none"
+                      className="w-full h-12 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] px-4 text-sm sm:text-base font-bold outline-none focus:border-[#C84200] focus:bg-white"
                     >
                       <option value={5}>5 Members (Study Squad)</option>
                       <option value={10}>10 Members (Reading Pod)</option>
@@ -239,7 +239,7 @@ export function CreateClubModal({ isLoggedIn }: { isLoggedIn: boolean }) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-1">
+                  <label className="block text-xs sm:text-[13px] font-bold uppercase tracking-wider mb-1.5">
                     Reading Schedule / Pace
                   </label>
                   <input
@@ -248,12 +248,12 @@ export function CreateClubModal({ isLoggedIn }: { isLoggedIn: boolean }) {
                     onChange={(e) =>
                       setForm({ ...form, scheduleText: e.target.value })
                     }
-                    className="w-full h-11 rounded-xl bg-[#FAF6F0] px-3.5 text-sm font-medium outline-none"
+                    className="w-full h-12 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] px-4 text-sm sm:text-base font-medium outline-none focus:border-[#C84200] focus:bg-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-1">
+                  <label className="block text-xs sm:text-[13px] font-bold uppercase tracking-wider mb-1.5">
                     Team Description & Goals
                   </label>
                   <textarea
@@ -263,17 +263,17 @@ export function CreateClubModal({ isLoggedIn }: { isLoggedIn: boolean }) {
                       setForm({ ...form, description: e.target.value })
                     }
                     placeholder="What chapters, problem sets, or themes will your team tackle?"
-                    className="w-full rounded-xl bg-[#FAF6F0] p-3.5 text-sm font-medium outline-none resize-none"
+                    className="w-full rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] p-4 text-sm sm:text-base font-medium outline-none resize-none focus:border-[#C84200] focus:bg-white"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={saving}
-                  className="w-full h-12 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  className="w-full h-13 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white font-bold text-base flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
                   {saving ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4.5 h-4.5 animate-spin" />
                   ) : (
                     "Launch Sabha Team & Generate Code"
                   )}

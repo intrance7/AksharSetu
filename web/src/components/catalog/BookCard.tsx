@@ -23,6 +23,7 @@ export type CatalogBookWithOwner = Book & {
   owner?: {
     id?: string
     name?: string | null
+    username?: string | null
     image?: string | null
     sellerRating?: number
     booksSold?: number
@@ -46,28 +47,34 @@ const CONDITION_META: Record<
   string,
   { label: string; dot: string; badgeBg: string; badgeText: string }
 > = {
+  NEW: {
+    label: "Brand New",
+    dot: "#0A7D4F",
+    badgeBg: "bg-[#0A7D4F]/10 border-[#0A7D4F]/20",
+    badgeText: "text-[#0A7D4F]",
+  },
   LIKE_NEW: {
     label: "Like New",
     dot: "#0A7D4F",
-    badgeBg: "bg-emerald-50 border-emerald-200/70",
-    badgeText: "text-emerald-800",
+    badgeBg: "bg-[#0A7D4F]/10 border-[#0A7D4F]/20",
+    badgeText: "text-[#0A7D4F]",
   },
   GOOD: {
     label: "Good",
-    dot: "#1D4ED8",
-    badgeBg: "bg-blue-50 border-blue-200/70",
-    badgeText: "text-blue-800",
+    dot: "#0066cc",
+    badgeBg: "bg-[#0066cc]/10 border-[#0066cc]/20",
+    badgeText: "text-[#0066cc]",
   },
   FAIR: {
     label: "Fair",
     dot: "#B45309",
-    badgeBg: "bg-amber-50 border-amber-200/70",
+    badgeBg: "bg-amber-50 border-amber-200/80",
     badgeText: "text-amber-800",
   },
   POOR: {
     label: "Readable",
     dot: "#C84200",
-    badgeBg: "bg-orange-50 border-orange-200/70",
+    badgeBg: "bg-[#C84200]/10 border-[#C84200]/20",
     badgeText: "text-[#C84200]",
   },
 }
@@ -117,6 +124,7 @@ export function BookCard({
 
   const hasCover = Boolean(book.images && book.images.length > 0 && !imgError)
   const isDonation = book.price === 0 && !book.acceptsExchange
+  const isSwapOnly = book.acceptsExchange && book.price === 0
   const cond = CONDITION_META[book.condition] || CONDITION_META.GOOD
 
   // Compute 5-point condition average from real listing grading
@@ -150,7 +158,7 @@ export function BookCard({
     Date.now() - new Date(book.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
   const isVerifiedSeller =
     (book.owner?.sellerRating ?? 5) >= 4.7 &&
-    ((book.owner?.booksSold ?? 0) + (book.owner?.successfulExchanges ?? 0) >= 1)
+    (book.owner?.booksSold ?? 0) + (book.owner?.successfulExchanges ?? 0) >= 1
   const isPopular = (book._count?.requests ?? 0) >= 2
 
   const handleToggleWishlist = async (e: React.MouseEvent) => {
@@ -189,63 +197,85 @@ export function BookCard({
     }
   }
 
+  const pricePillClass = isDonation
+    ? "bg-[#0A7D4F]/10 text-[#0A7D4F] border-[#0A7D4F]/20"
+    : isSwapOnly
+    ? "bg-[#0066cc]/10 text-[#0066cc] border-[#0066cc]/20"
+    : "bg-[#C84200]/10 text-[#C84200] border-[#C84200]/20"
+
+  const priceDisplay = isDonation
+    ? "Free"
+    : isSwapOnly
+    ? "1-for-1 Swap"
+    : `₹${book.price}`
+
   if (variant === "list") {
     return (
-      <article className="group relative bg-white rounded-2xl p-4 sm:p-5 border border-[#1D1D1F]/10 shadow-[0_2px_12px_rgba(29,29,31,0.04)] hover:shadow-[0_12px_28px_rgba(29,29,31,0.09)] hover:border-[#C84200]/35 transition-all duration-200 flex flex-col sm:flex-row gap-5 items-start sm:items-center">
-        {/* Book Cover Thumbnail */}
+      <article className="group relative bg-white rounded-3xl p-5 sm:p-6 border border-[#1D1D1F]/[0.07] shadow-[0_4px_20px_rgba(29,29,31,0.04)] hover:-translate-y-1 hover:shadow-[0_18px_40px_-14px_rgba(29,29,31,0.12)] hover:border-[#C84200]/30 transition-all duration-300 flex flex-col sm:flex-row gap-5 sm:gap-6 items-start sm:items-center">
+        {/* Warm Parchment Book Cover Pedestal */}
         <Link
           href={`/catalog/${book.id}`}
           onClick={() => recordRecentlyViewedBook(book)}
-          className="relative w-24 sm:w-28 aspect-[5/7] rounded-lg overflow-hidden shrink-0 shadow-md bg-[#FAF6F0] border border-black/5"
+          className="relative w-full sm:w-36 h-48 sm:h-44 rounded-2xl bg-gradient-to-b from-[#FAF6F0] to-[#EFE7DC]/75 border border-[#1D1D1F]/[0.05] grid place-items-center shrink-0 overflow-hidden"
         >
-          {hasCover ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={book.images[0]}
-              alt={`${book.title} by ${book.author}`}
-              loading="lazy"
-              onError={() => setImgError(true)}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          <div className="relative w-24 sm:w-[92px] aspect-[5/7] rounded-r-md rounded-l-[2px] overflow-hidden shadow-[10px_14px_24px_rgba(29,29,31,0.22),2px_4px_10px_rgba(29,29,31,0.12)] transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-[1.03] border-r border-white/60">
+            <div
+              className="absolute inset-y-0 left-0 w-[13%] z-20 pointer-events-none"
+              style={{
+                background:
+                  "linear-gradient(90deg, rgba(0,0,0,0.34) 0%, rgba(0,0,0,0.08) 55%, rgba(255,255,255,0.24) 78%, transparent 100%)",
+              }}
             />
-          ) : (
-            <GeneratedCover
-              title={book.title}
-              author={book.author}
-              category={book.category}
-            />
-          )}
+            {hasCover ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={book.images[0]}
+                alt={`${book.title} by ${book.author}`}
+                loading="lazy"
+                onError={() => setImgError(true)}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <GeneratedCover
+                title={book.title}
+                author={book.author}
+                category={book.category}
+              />
+            )}
+          </div>
         </Link>
 
         {/* Middle Editorial Details */}
-        <div className="flex-1 min-w-0 space-y-2">
+        <div className="flex-1 min-w-0 space-y-2.5">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-black uppercase tracking-wider text-[#C84200] bg-[#C84200]/10 px-2.5 py-0.5 rounded-full">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#C84200] bg-[#C84200]/[0.09] px-3 py-1 rounded-full">
               {book.category}
             </span>
             <span
-              className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${cond.badgeBg} ${cond.badgeText}`}
+              className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border ${cond.badgeBg} ${cond.badgeText}`}
             >
               <span
-                className="w-1.5 h-1.5 rounded-full"
+                className="w-2 h-2 rounded-full"
                 style={{ backgroundColor: cond.dot }}
               />
-              {cond.label} · {avgConditionScore}★
+              <span>{cond.label}</span>
+              <span className="font-mono opacity-85">· {avgConditionScore}★</span>
             </span>
             {isRecent && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-[#F2EBE1] text-[#1D1D1F] px-2 py-0.5 rounded-full">
-                <Sparkles className="w-2.5 h-2.5 text-[#C84200]" /> New
+              <span className="inline-flex items-center gap-1 text-xs font-bold bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] text-[#1D1D1F] px-2.5 py-1 rounded-full">
+                <Sparkles className="w-3 h-3 text-[#C84200]" /> New
               </span>
             )}
             {book.isBundle && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-purple-800 border border-purple-200 px-2.5 py-0.5 rounded-full">
-                <Package className="w-3 h-3" /> Bundle ({book.booksInBundle}{" "}
-                Books)
+              <span className="inline-flex items-center gap-1 text-xs font-bold bg-[#1D1D1F] text-white px-3 py-1 rounded-full">
+                <Package className="w-3.5 h-3.5 text-[#FF7F45]" /> Pack ·{" "}
+                <span className="font-mono">{book.booksInBundle}</span>
               </span>
             )}
           </div>
 
           <div>
-            <h3 className="text-lg sm:text-xl font-black text-[#1D1D1F] tracking-tight leading-snug group-hover:text-[#C84200] transition-colors">
+            <h3 className="text-xl font-black text-[#1D1D1F] tracking-tight leading-snug group-hover:text-[#C84200] transition-colors">
               <Link
                 href={`/catalog/${book.id}`}
                 onClick={() => recordRecentlyViewedBook(book)}
@@ -253,10 +283,10 @@ export function BookCard({
                 {book.title}
               </Link>
             </h3>
-            <p className="text-sm font-semibold text-[#86868B]">
-              by {book.author}
+            <p className="text-sm font-medium text-[#6e6e73] mt-0.5">
+              by <span className="text-[#1D1D1F]/80 font-semibold">{book.author}</span>
               {book.isbn ? (
-                <span className="ml-2 text-xs font-mono text-[#86868B]/80">
+                <span className="ml-2 text-xs font-mono text-[#86868b]">
                   · ISBN {book.isbn}
                 </span>
               ) : null}
@@ -264,31 +294,31 @@ export function BookCard({
           </div>
 
           {(book.university || book.course || book.semester) && (
-            <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold text-[#1D1D1F]/75">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#1D1D1F]/80">
               {book.university && (
-                <span className="bg-[#FAF6F0] border border-black/10 px-2.5 py-0.5 rounded-md">
+                <span className="bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] px-3 py-1 rounded-full">
                   {book.university}
                 </span>
               )}
               {book.course && (
-                <span className="bg-[#FAF6F0] border border-black/10 px-2.5 py-0.5 rounded-md">
+                <span className="bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] px-3 py-1 rounded-full">
                   {book.course}
                 </span>
               )}
               {book.semester && (
-                <span className="bg-[#FAF6F0] border border-black/10 px-2.5 py-0.5 rounded-md">
+                <span className="bg-[#FAF6F0] border border-[#C84200]/20 text-[#C84200] font-mono px-3 py-1 rounded-full">
                   Sem {book.semester}
                 </span>
               )}
             </div>
           )}
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-medium text-[#86868B] pt-1">
-            <span className="inline-flex items-center gap-1 text-[#1D1D1F]/80 font-semibold">
-              Seller: {book.owner?.name || "Community Reader"}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] font-medium text-[#86868b] pt-1">
+            <span className="inline-flex items-center gap-1.5 text-[#1D1D1F]/85 font-semibold">
+              {book.owner?.name || "Community Reader"}
               {isVerifiedSeller && (
                 <ShieldCheck
-                  className="w-3.5 h-3.5 text-emerald-600"
+                  className="w-4 h-4 text-[#0A7D4F]"
                   aria-label="Verified Trusted Seller"
                 />
               )}
@@ -297,7 +327,7 @@ export function BookCard({
               <MapPin className="w-3.5 h-3.5 text-[#C84200]" /> {locationText}
             </span>
             <span className="inline-flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-[#86868B]" />{" "}
+              <Clock className="w-3.5 h-3.5 text-[#86868b]" />{" "}
               {formatDistanceToNow(new Date(book.createdAt), {
                 addSuffix: true,
               })}
@@ -305,31 +335,23 @@ export function BookCard({
           </div>
         </div>
 
-        {/* Right Price & Actions */}
-        <div className="w-full sm:w-auto flex sm:flex-col items-center sm:items-end justify-between gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-black/5 shrink-0">
+        {/* Right Editorial Price Pill & Actions */}
+        <div className="w-full sm:w-auto flex sm:flex-col items-center sm:items-end justify-between gap-3 pt-4 sm:pt-0 border-t sm:border-t-0 border-[#1D1D1F]/[0.07] shrink-0">
           <div className="text-left sm:text-right">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-[#86868B]">
+            <span className="block text-xs font-semibold text-[#86868b] mb-1">
               {isDonation
                 ? "Vidya Daan"
-                : book.acceptsExchange && book.price === 0
-                ? "Book Swap"
-                : "Listing Price"}
-            </div>
-            <div
-              className={`text-2xl font-black tracking-tight ${
-                isDonation
-                  ? "text-emerald-700"
-                  : book.acceptsExchange && book.price === 0
-                  ? "text-[#0066cc]"
-                  : "text-[#1D1D1F]"
-              }`}
+                : isSwapOnly
+                ? "Book Exchange"
+                : book.acceptsExchange
+                ? "Buy or Swap"
+                : "Resale Price"}
+            </span>
+            <span
+              className={`inline-flex items-center px-4 py-1.5 rounded-full border font-mono text-lg font-black tracking-tight ${pricePillClass}`}
             >
-              {isDonation
-                ? "Free"
-                : book.acceptsExchange && book.price === 0
-                ? "1-for-1 Swap"
-                : `₹${book.price}`}
-            </div>
+              {priceDisplay}
+            </span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -338,10 +360,10 @@ export function BookCard({
               onClick={handleToggleWishlist}
               disabled={savingWishlist}
               aria-label="Save to wishlist"
-              className={`w-9 h-9 rounded-full border flex items-center justify-center transition-colors cursor-pointer ${
+              className={`w-10 h-10 rounded-full border flex items-center justify-center transition-colors cursor-pointer ${
                 wishlisted
                   ? "bg-rose-50 border-rose-200 text-rose-600"
-                  : "bg-[#FAF6F0] border-black/10 text-[#1D1D1F] hover:border-[#C84200] hover:text-[#C84200]"
+                  : "bg-[#FAF6F0] border-[#1D1D1F]/[0.08] text-[#1D1D1F] hover:border-rose-300 hover:text-rose-600"
               }`}
             >
               <Heart
@@ -351,9 +373,9 @@ export function BookCard({
             <Link
               href={`/catalog/${book.id}`}
               onClick={() => recordRecentlyViewedBook(book)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1D1D1F] hover:bg-[#C84200] text-white text-xs font-bold transition-colors"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#1D1D1F] hover:bg-[#C84200] text-white text-[13px] font-bold transition-colors"
             >
-              View Book <ArrowUpRight className="w-3.5 h-3.5" />
+              Inspect <ArrowUpRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
@@ -362,111 +384,128 @@ export function BookCard({
   }
 
   return (
-    <article className="flex flex-col min-w-0 group relative h-full bg-white rounded-3xl p-5 border border-[#1D1D1F]/10 shadow-[0_4px_20px_rgba(29,29,31,0.05)] hover:shadow-[0_14px_34px_rgba(29,29,31,0.10)] hover:border-[#C84200]/30 transition-all duration-300">
-      {/* Top Row: Condition Badge + Optional Status Pill + Working Wishlist Button */}
-      <div className="flex items-center justify-between gap-2 mb-3 z-20">
-        <div className="flex items-center gap-1.5 flex-wrap">
+    <article className="flex flex-col min-w-0 group relative h-full bg-white rounded-3xl p-4 sm:p-5 border border-[#1D1D1F]/[0.07] shadow-[0_4px_20px_rgba(29,29,31,0.04)] hover:-translate-y-1.5 hover:shadow-[0_24px_48px_-14px_rgba(29,29,31,0.14)] hover:border-[#C84200]/30 transition-all duration-300">
+      {/* Warm Parchment Cover Pedestal */}
+      <div className="relative w-full aspect-[4/3.65] rounded-2xl bg-gradient-to-b from-[#FAF6F0] to-[#EFE7DC]/75 border border-[#1D1D1F]/[0.05] mb-4 overflow-hidden">
+        {/* Subtle Pedestal Ambient Floor Shadow */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 w-[56%] h-5 rounded-full bg-[#1D1D1F]/20 blur-md transition-all duration-300 group-hover:w-[62%] group-hover:opacity-80"
+        />
+
+        {/* Floating Top-Left Condition Dot Pill */}
+        <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 max-w-[calc(100%-56px)]">
           <span
-            className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full border ${cond.badgeBg} ${cond.badgeText}`}
+            className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-white/95 backdrop-blur-xs border shadow-[0_2px_8px_rgba(29,29,31,0.06)] ${cond.badgeText} border-[#1D1D1F]/[0.07] truncate`}
           >
             <span
-              className="w-1.5 h-1.5 rounded-full"
+              className="w-2 h-2 rounded-full shrink-0"
               style={{ backgroundColor: cond.dot }}
             />
-            {cond.label} · {avgConditionScore}★
+            <span className="truncate">{cond.label}</span>
+            <span className="font-mono text-[#1D1D1F]/65 shrink-0">
+              {avgConditionScore}★
+            </span>
           </span>
-
-          {isPopular ? (
-            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
-              Popular
-            </span>
-          ) : isRecent ? (
-            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#F2EBE1] text-[#1D1D1F]">
-              New
-            </span>
-          ) : null}
         </div>
 
+        {/* Floating Top-Right Wishlist Button */}
         <button
           type="button"
           onClick={handleToggleWishlist}
           disabled={savingWishlist}
           aria-label="Save to wishlist"
           title="Save to Wishlist Radar"
-          className={`w-9 h-9 rounded-full border flex items-center justify-center transition-all cursor-pointer z-30 ${
+          className={`absolute top-3 right-3 z-30 w-9 h-9 rounded-full border flex items-center justify-center transition-all cursor-pointer shadow-[0_2px_8px_rgba(29,29,31,0.06)] ${
             wishlisted
               ? "bg-rose-50 border-rose-200 text-rose-600 scale-105"
-              : "bg-[#FAF6F0] border-black/10 text-[#1D1D1F]/70 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50/50"
+              : "bg-white/95 border-[#1D1D1F]/[0.08] text-[#1D1D1F]/70 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50"
           }`}
         >
           <Heart className={`w-4 h-4 ${wishlisted ? "fill-rose-600" : ""}`} />
         </button>
+
+        {/* Centered 3D Tactile Book Cover */}
+        <Link
+          href={`/catalog/${book.id}`}
+          onClick={() => recordRecentlyViewedBook(book)}
+          className="absolute inset-0 grid place-items-center pt-5 pb-3"
+        >
+          <div className="relative z-10 w-[47%] aspect-[5/7] rounded-r-lg rounded-l-[3px] overflow-hidden shadow-[14px_18px_32px_rgba(29,29,31,0.26),3px_6px_12px_rgba(29,29,31,0.14)] border-r-[2px] border-white/65 transition-transform duration-300 ease-out group-hover:-translate-y-2 group-hover:scale-[1.03]">
+            {/* Realistic Book Spine Crease & Specular Lighting */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-y-0 left-0 w-[13%] z-20 pointer-events-none"
+              style={{
+                background:
+                  "linear-gradient(90deg, rgba(0,0,0,0.36) 0%, rgba(0,0,0,0.08) 54%, rgba(255,255,255,0.28) 76%, rgba(0,0,0,0.08) 90%, transparent 100%)",
+              }}
+            />
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-tr from-black/15 via-transparent to-white/15"
+            />
+            {hasCover ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={book.images[0]}
+                alt={`${book.title} by ${book.author}`}
+                loading="lazy"
+                onError={() => setImgError(true)}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <GeneratedCover
+                title={book.title}
+                author={book.author}
+                category={book.category}
+              />
+            )}
+          </div>
+        </Link>
+
+        {/* Subtle Bottom-Left Status / Bundle Pill */}
+        {book.isBundle ? (
+          <span className="absolute bottom-3 left-3 z-20 inline-flex items-center gap-1.5 bg-[#1D1D1F]/92 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+            <Package className="w-3.5 h-3.5 text-[#FF7F45]" />
+            <span>
+              Pack · <span className="font-mono">{book.booksInBundle}</span>
+            </span>
+          </span>
+        ) : isPopular ? (
+          <span className="absolute bottom-3 left-3 z-20 inline-flex items-center gap-1 bg-white/95 border border-amber-300/70 text-amber-900 px-2.5 py-0.5 rounded-full text-xs font-bold shadow-xs">
+            Popular
+          </span>
+        ) : isRecent ? (
+          <span className="absolute bottom-3 left-3 z-20 inline-flex items-center gap-1 bg-white/95 border border-[#1D1D1F]/[0.08] text-[#1D1D1F] px-2.5 py-0.5 rounded-full text-xs font-bold shadow-xs">
+            <Sparkles className="w-3 h-3 text-[#C84200]" /> Fresh
+          </span>
+        ) : null}
       </div>
 
-      {/* Editorial Cover Stage */}
-      <Link
-        href={`/catalog/${book.id}`}
-        onClick={() => recordRecentlyViewedBook(book)}
-        className="relative grid place-items-center w-full aspect-[4/3.8] rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.06] mb-4 overflow-hidden"
-      >
-        <div className="relative z-10 w-[48%] aspect-[5/7] rounded-md overflow-hidden shadow-[12px_14px_28px_rgba(0,0,0,0.18)] transition-transform duration-300 group-hover:-translate-y-1.5 group-hover:scale-[1.03]">
-          <div
-            className="absolute inset-y-0 left-0 w-[10%] z-20 pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(90deg, rgba(0,0,0,0.28), rgba(255,255,255,0.18) 85%, transparent)",
-            }}
-          />
-          {hasCover ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={book.images[0]}
-              alt={`${book.title} by ${book.author}`}
-              loading="lazy"
-              onError={() => setImgError(true)}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <GeneratedCover
-              title={book.title}
-              author={book.author}
-              category={book.category}
-            />
-          )}
-        </div>
-
-        {/* Bottom-left overlay pill for Bundle or Swap */}
-        {book.isBundle && (
-          <span className="absolute bottom-2.5 left-2.5 z-20 inline-flex items-center gap-1 bg-[#1D1D1F]/90 text-white px-2.5 py-1 rounded-full text-[10px] font-bold">
-            <Package className="w-3 h-3 text-[#F4B22B]" /> Bundle:{" "}
-            {book.booksInBundle} Books
-          </span>
-        )}
-      </Link>
-
-      {/* Book Metadata */}
-      <div className="flex flex-col flex-1">
+      {/* Editorial Book Metadata */}
+      <div className="flex flex-col flex-1 px-0.5">
         <div className="flex items-center justify-between gap-2 mb-1.5">
-          <span className="text-[11px] font-black uppercase tracking-wider text-[#C84200]">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#C84200] truncate">
             {book.category}
           </span>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             {(book.deliveryType === "MEETUP" ||
               book.deliveryType === "BOTH") && (
               <span
-                className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#0A7D4F] bg-[#0A7D4F]/[0.09] px-2 py-0.5 rounded-full"
                 title="Available for Campus/City Meetup"
               >
-                <Handshake className="w-2.5 h-2.5" /> Meetup
+                <Handshake className="w-3 h-3" /> Meetup
               </span>
             )}
             {(book.deliveryType === "SHIPPING" ||
               book.deliveryType === "BOTH") && (
               <span
-                className="inline-flex items-center gap-0.5 text-[10px] font-bold text-[#1D1D1F]/70 bg-[#F2EBE1] px-2 py-0.5 rounded-md"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#1D1D1F]/70 bg-[#FAF6F0] px-2 py-0.5 rounded-full border border-[#1D1D1F]/[0.06]"
                 title="Available for Courier Delivery"
               >
-                <Truck className="w-2.5 h-2.5" /> Courier
+                <Truck className="w-3 h-3" /> Courier
               </span>
             )}
           </div>
@@ -484,52 +523,54 @@ export function BookCard({
           </Link>
         </h3>
 
-        <p className="text-xs sm:text-sm font-semibold text-[#86868B] mt-0.5 line-clamp-1">
+        <p className="text-sm font-medium text-[#6e6e73] mt-1 line-clamp-1">
           {book.author}
         </p>
 
         {/* Academic Tag Row if present */}
-        {(book.university || book.course || book.semester) && (
+        {(book.university || book.semester) && (
           <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
             {book.university && (
-              <span className="text-[11px] font-semibold bg-[#FAF6F0] text-[#1D1D1F]/80 px-2 py-0.5 rounded-md border border-black/5 truncate max-w-[160px]">
+              <span className="text-xs font-semibold bg-[#FAF6F0] text-[#1D1D1F]/80 px-2.5 py-0.5 rounded-full border border-[#1D1D1F]/[0.07] truncate max-w-[170px]">
                 {book.university}
               </span>
             )}
             {book.semester && (
-              <span className="text-[11px] font-bold bg-[#FAF6F0] text-[#C84200] px-2 py-0.5 rounded-md border border-[#C84200]/15">
+              <span className="text-xs font-mono font-bold bg-[#FAF6F0] text-[#C84200] px-2.5 py-0.5 rounded-full border border-[#C84200]/20">
                 Sem {book.semester}
               </span>
             )}
           </div>
         )}
 
-        {/* Seller & Location Row */}
-        <div className="mt-3 pt-3 border-t border-[#1D1D1F]/[0.06] space-y-1.5 text-xs text-[#86868B]">
+        {/* Seller Trust & Location Row */}
+        <div className="mt-3.5 pt-3 border-t border-[#1D1D1F]/[0.07] space-y-1.5 text-xs text-[#6e6e73]">
           <div className="flex items-center justify-between gap-2">
-            <span className="inline-flex items-center gap-1 font-semibold text-[#1D1D1F]/80 truncate">
-              {book.owner?.name || "Community Reader"}
+            <span className="inline-flex items-center gap-1.5 font-semibold text-[#1D1D1F]/85 truncate">
+              <span className="truncate">
+                {book.owner?.name || "Community Reader"}
+              </span>
               {isVerifiedSeller && (
                 <ShieldCheck
-                  className="w-3.5 h-3.5 text-emerald-600 shrink-0"
+                  className="w-4 h-4 text-[#0A7D4F] shrink-0"
                   aria-label="Verified Seller"
                 />
               )}
             </span>
             {book.owner?.sellerRating ? (
-              <span className="text-[11px] font-bold text-[#1D1D1F]/70 shrink-0">
+              <span className="font-mono text-xs font-bold text-[#1D1D1F]/75 shrink-0">
                 {book.owner.sellerRating.toFixed(1)}★
               </span>
             ) : null}
           </div>
 
-          <div className="flex items-center justify-between gap-2 text-[11px]">
+          <div className="flex items-center justify-between gap-2 text-xs">
             <span className="inline-flex items-center gap-1 truncate">
-              <MapPin className="w-3 h-3 text-[#C84200] shrink-0" />{" "}
-              {locationText}
+              <MapPin className="w-3.5 h-3.5 text-[#C84200] shrink-0" />
+              <span className="truncate">{locationText}</span>
             </span>
-            <span className="inline-flex items-center gap-1 shrink-0">
-              <Clock className="w-3 h-3 text-[#86868B]" />{" "}
+            <span className="inline-flex items-center gap-1 shrink-0 text-[#86868b]">
+              <Clock className="w-3.5 h-3.5 shrink-0" />
               {formatDistanceToNow(new Date(book.createdAt), {
                 addSuffix: true,
               })}
@@ -537,42 +578,30 @@ export function BookCard({
           </div>
         </div>
 
-        {/* Footer Row: Price + View Details Action */}
-        <div className="mt-4 pt-3 border-t border-[#1D1D1F]/10 flex items-center justify-between gap-2">
-          <div>
-            <span className="block text-[10px] font-bold uppercase tracking-wider text-[#86868B]">
-              {isDonation
-                ? "Vidya Daan"
-                : book.acceptsExchange && book.price === 0
-                ? "Exchange"
-                : book.acceptsExchange
-                ? "Buy or Swap"
-                : "Price"}
-            </span>
-            <span
-              className={`text-xl font-black tracking-tight ${
-                isDonation
-                  ? "text-emerald-700"
-                  : book.acceptsExchange && book.price === 0
-                  ? "text-[#0066cc]"
-                  : "text-[#1D1D1F]"
-              }`}
-            >
-              {isDonation
-                ? "Free"
-                : book.acceptsExchange && book.price === 0
-                ? "1-for-1 Swap"
-                : `₹${book.price}`}
-            </span>
-          </div>
+        {/* Footer Row: Prominent Editorial Price Pill + Action */}
+        <div className="mt-auto pt-4">
+          <div className="pt-3.5 border-t border-[#1D1D1F]/[0.08] flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span
+                className={`inline-flex items-center px-3.5 py-1.5 rounded-full border font-mono text-sm sm:text-[15px] font-black tracking-tight whitespace-nowrap ${pricePillClass}`}
+              >
+                {priceDisplay}
+              </span>
+              {!isDonation && !isSwapOnly && book.acceptsExchange && (
+                <span className="text-xs font-semibold text-[#0066cc] truncate hidden xl:inline">
+                  + Swap
+                </span>
+              )}
+            </div>
 
-          <Link
-            href={`/catalog/${book.id}`}
-            onClick={() => recordRecentlyViewedBook(book)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1D1D1F] group-hover:bg-[#C84200] text-white text-xs font-bold transition-colors"
-          >
-            View Details <ArrowUpRight className="w-3.5 h-3.5" />
-          </Link>
+            <Link
+              href={`/catalog/${book.id}`}
+              onClick={() => recordRecentlyViewedBook(book)}
+              className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-[#1D1D1F] group-hover:bg-[#C84200] text-white text-xs sm:text-[13px] font-bold transition-colors shrink-0"
+            >
+              View <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
       </div>
     </article>

@@ -225,6 +225,7 @@ export default async function CatalogPage({
               select: {
                 id: true,
                 name: true,
+                username: true,
                 image: true,
                 sellerRating: true,
                 booksSold: true,

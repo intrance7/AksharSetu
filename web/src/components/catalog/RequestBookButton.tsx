@@ -11,13 +11,15 @@ interface RequestBookButtonProps {
 }
 
 export function RequestBookButton({ bookId, isOwner }: RequestBookButtonProps) {
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle")
   const [errorMessage, setErrorMessage] = useState("")
   const router = useRouter()
 
   const handleRequest = async () => {
     if (isOwner) return
-    
+
     setStatus("loading")
     setErrorMessage("")
 
@@ -42,8 +44,7 @@ export function RequestBookButton({ bookId, isOwner }: RequestBookButtonProps) {
       console.error(error)
       setStatus("error")
       setErrorMessage(error.message)
-      
-      // Reset back to idle after a few seconds on error
+
       setTimeout(() => {
         setStatus("idle")
       }, 3000)
@@ -52,7 +53,7 @@ export function RequestBookButton({ bookId, isOwner }: RequestBookButtonProps) {
 
   if (isOwner) {
     return (
-      <div className="w-full py-4 px-6 bg-[#1D1D1F]/5 text-[#1D1D1F]/60 rounded-full font-bold flex items-center justify-center gap-2">
+      <div className="w-full py-4 px-6 bg-[#FAF6F0] text-[#6e6e73] border border-[#1D1D1F]/[0.08] rounded-full text-sm font-bold flex items-center justify-center gap-2">
         <AlertCircle className="w-5 h-5" />
         This is your listing
       </div>
@@ -62,24 +63,25 @@ export function RequestBookButton({ bookId, isOwner }: RequestBookButtonProps) {
   if (status === "success") {
     return (
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full py-4 px-6 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-full font-bold flex items-center justify-center gap-2"
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full py-4 px-6 bg-[#0A7D4F]/10 text-[#0A7D4F] border border-[#0A7D4F]/25 rounded-full text-[15px] font-bold flex items-center justify-center gap-2"
       >
         <CheckCircle className="w-5 h-5" />
-        Request Sent Successfully
+        Vidya Daan Request Sent
       </motion.div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-2 w-full">
+    <div className="flex flex-col gap-2.5 w-full">
       <motion.button
         whileHover={{ scale: status === "loading" ? 1 : 1.01 }}
         whileTap={{ scale: status === "loading" ? 1 : 0.99 }}
         onClick={handleRequest}
         disabled={status === "loading"}
-        className="w-full py-4 px-6 bg-[#C84200] hover:bg-[#A33500] text-white rounded-full font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer shadow-sm"
+        className="w-full py-4 px-6 bg-[#0A7D4F] hover:bg-[#08633F] text-white rounded-full text-[15px] font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer shadow-sm"
       >
         {status === "loading" ? (
           <>
@@ -88,14 +90,14 @@ export function RequestBookButton({ bookId, isOwner }: RequestBookButtonProps) {
           </>
         ) : (
           <>
-            <Send className="w-5 h-5" />
-            Request Book
+            <Send className="w-4 h-4" />
+            Request Free Vidya Daan Book
           </>
         )}
       </motion.button>
-      
+
       {status === "error" && (
-        <p className="text-red-500 text-sm font-medium text-center animate-in fade-in slide-in-from-top-2">
+        <p className="text-red-600 text-sm font-medium text-center">
           {errorMessage}
         </p>
       )}

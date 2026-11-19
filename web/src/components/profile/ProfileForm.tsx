@@ -207,7 +207,7 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6 text-left">
       {/* Avatar & Presets */}
       <div className="space-y-3">
-        <label className="block text-xs font-bold uppercase tracking-wider text-[#1d1d1f]">
+        <label className="block text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1d1d1f]">
           Avatar & Presets
         </label>
         <div className="flex flex-wrap items-center gap-3">
@@ -219,9 +219,9 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
                 setFormData((prev) => ({ ...prev, image: presetUrl }))
                 setSuccess(false)
               }}
-              className={`w-12 h-12 rounded-full overflow-hidden border-2 transition-all cursor-pointer ${
+              className={`w-13 h-13 rounded-full overflow-hidden border-2 transition-all cursor-pointer ${
                 formData.image === presetUrl
-                  ? "border-[#0066cc] scale-110 shadow-md"
+                  ? "border-[#C84200] scale-110 shadow-md"
                   : "border-black/10 opacity-75 hover:opacity-100"
               }`}
             >
@@ -234,11 +234,11 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
             </button>
           ))}
 
-          <label className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#1d1d1f] hover:bg-[#0066cc] text-white text-xs font-bold cursor-pointer transition-colors">
+          <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#1d1d1f] hover:bg-[#C84200] text-white text-sm font-bold cursor-pointer transition-colors">
             {uploadingAvatar ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Upload className="w-3.5 h-3.5" />
+              <Upload className="w-4 h-4" />
             )}
             {uploadingAvatar ? "Uploading..." : "Upload Photo"}
             <input
@@ -254,7 +254,7 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
       {/* Display Name & Unique @Username */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-[#1d1d1f] mb-1.5">
+          <label className="block text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1d1d1f] mb-1.5">
             Display Name
           </label>
           <input
@@ -263,16 +263,16 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
             value={formData.name}
             onChange={handleChange}
             placeholder="Your full name"
-            className="w-full bg-[#f5f5f7] border border-transparent focus:border-[#0066cc] focus:bg-white rounded-xl px-4 py-2.5 text-sm font-medium text-[#1d1d1f] outline-none"
+            className="w-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] focus:border-[#C84200] focus:bg-white rounded-2xl px-4 py-3 text-sm sm:text-base font-medium text-[#1d1d1f] outline-none transition-colors"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-[#1d1d1f] mb-1.5">
+          <label className="block text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1d1d1f] mb-1.5">
             Unique @Username
           </label>
           <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-[#86868b]">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-[#6e6e73]">
               @
             </span>
             <input
@@ -281,7 +281,7 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
               value={formData.username}
               onChange={handleChange}
               placeholder="username"
-              className="w-full bg-[#f5f5f7] border border-transparent focus:border-[#0066cc] focus:bg-white rounded-xl pl-8 pr-4 py-2.5 text-sm font-medium text-[#1d1d1f] outline-none"
+              className="w-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] focus:border-[#C84200] focus:bg-white rounded-2xl pl-9 pr-4 py-3 text-sm sm:text-base font-medium text-[#1d1d1f] outline-none transition-colors"
             />
           </div>
         </div>
@@ -290,14 +290,14 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
       {/* Equipped Title & Annual Reading Goal */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-[#1d1d1f] mb-1.5 flex items-center gap-1">
-            <Award className="w-3.5 h-3.5 text-[#0066cc]" /> Equipped Rank Title
+          <label className="text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1d1d1f] mb-1.5 flex items-center gap-1.5">
+            <Award className="w-4 h-4 text-[#C84200]" /> Equipped Rank Title
           </label>
           <select
             name="selectedTitle"
             value={formData.selectedTitle}
             onChange={handleChange}
-            className="w-full bg-[#f5f5f7] border border-transparent focus:border-[#0066cc] focus:bg-white rounded-xl px-4 py-2.5 text-sm font-bold text-[#1d1d1f] outline-none"
+            className="w-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] focus:border-[#C84200] focus:bg-white rounded-2xl px-4 py-3 text-sm sm:text-base font-bold text-[#1d1d1f] outline-none transition-colors"
           >
             {levelInfo.unlockedTitles.map((t) => (
               <option key={t} value={t}>
@@ -308,7 +308,7 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
         </div>
 
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-[#1d1d1f] mb-1.5">
+          <label className="block text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1d1d1f] mb-1.5">
             Annual Reading Goal (Books)
           </label>
           <input
@@ -318,18 +318,18 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
             max={200}
             value={formData.readingGoalBooks}
             onChange={handleChange}
-            className="w-full bg-[#f5f5f7] border border-transparent focus:border-[#0066cc] focus:bg-white rounded-xl px-4 py-2.5 text-sm font-bold text-[#1d1d1f] outline-none"
+            className="w-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] focus:border-[#C84200] focus:bg-white rounded-2xl px-4 py-3 text-sm sm:text-base font-bold text-[#1d1d1f] outline-none transition-colors"
           />
         </div>
       </div>
 
       {/* Cosmetic Frame & Banner Selection */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-[#f5f5f7]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.06]">
         <div>
-          <label className="block text-[11px] font-bold uppercase tracking-wider text-[#1d1d1f] mb-2">
+          <label className="block text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1d1d1f] mb-2.5">
             Avatar Frame Style
           </label>
-          <div className="grid grid-cols-2 gap-1.5">
+          <div className="grid grid-cols-2 gap-2">
             {frames.map((f) => {
               const isUnlocked =
                 levelInfo.level >= f.minLevel ||
@@ -342,16 +342,16 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
                   onClick={() =>
                     setFormData((prev) => ({ ...prev, profileFrame: f.key }))
                   }
-                  className={`px-2.5 py-2 rounded-xl text-left text-xs font-bold border transition-all cursor-pointer disabled:opacity-45 ${
+                  className={`px-3 py-2.5 rounded-xl text-left text-sm font-bold border transition-all cursor-pointer disabled:opacity-45 ${
                     formData.profileFrame === f.key
-                      ? "bg-[#0066cc] text-white border-[#0066cc]"
-                      : "bg-white text-[#1d1d1f] border-black/10"
+                      ? "bg-[#1d1d1f] text-white border-[#1d1d1f]"
+                      : "bg-white text-[#1d1d1f] border-black/10 hover:border-[#C84200]/40"
                   }`}
                 >
                   <span className="block truncate">{f.name}</span>
                   {!isUnlocked && (
-                    <span className="text-[9px] flex items-center gap-0.5 opacity-80">
-                      <Lock className="w-2.5 h-2.5" /> Lvl {f.minLevel}
+                    <span className="text-xs flex items-center gap-1 opacity-80 mt-0.5">
+                      <Lock className="w-3 h-3" /> Lvl {f.minLevel}
                     </span>
                   )}
                 </button>
@@ -361,10 +361,10 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
         </div>
 
         <div>
-          <label className="block text-[11px] font-bold uppercase tracking-wider text-[#1d1d1f] mb-2">
+          <label className="block text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1d1d1f] mb-2.5">
             Cover Banner Design
           </label>
-          <div className="grid grid-cols-2 gap-1.5">
+          <div className="grid grid-cols-2 gap-2">
             {banners.map((b) => (
               <button
                 key={b.id}
@@ -372,10 +372,10 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
                 onClick={() =>
                   setFormData((prev) => ({ ...prev, coverImage: b.key }))
                 }
-                className={`px-2.5 py-2 rounded-xl text-left text-xs font-bold border transition-all cursor-pointer ${
+                className={`px-3 py-2.5 rounded-xl text-left text-sm font-bold border transition-all cursor-pointer ${
                   formData.coverImage === b.key
-                    ? "bg-[#0066cc] text-white border-[#0066cc]"
-                    : "bg-white text-[#1d1d1f] border-black/10"
+                    ? "bg-[#1d1d1f] text-white border-[#1d1d1f]"
+                    : "bg-white text-[#1d1d1f] border-black/10 hover:border-[#C84200]/40"
                 }`}
               >
                 <span className="block truncate">{b.name}</span>
@@ -388,7 +388,7 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
       {/* Location & Live Status */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-[#1d1d1f] mb-1.5">
+          <label className="block text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1d1d1f] mb-1.5">
             City / Campus Location
           </label>
           <div className="flex gap-2">
@@ -398,27 +398,27 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
               value={formData.location}
               onChange={handleChange}
               placeholder="e.g., New Delhi, India"
-              className="flex-1 bg-[#f5f5f7] border border-transparent focus:border-[#0066cc] focus:bg-white rounded-xl px-4 py-2.5 text-sm font-medium text-[#1d1d1f] outline-none"
+              className="flex-1 bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] focus:border-[#C84200] focus:bg-white rounded-2xl px-4 py-3 text-sm sm:text-base font-medium text-[#1d1d1f] outline-none transition-colors"
             />
             <button
               type="button"
               onClick={handleDetectLocation}
               disabled={detectingLocation}
-              className="px-3 rounded-xl bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] text-xs font-bold shrink-0 cursor-pointer"
+              className="px-3.5 rounded-2xl bg-[#FAF6F0] hover:bg-[#EFE7DC] border border-[#1D1D1F]/[0.08] text-[#1d1d1f] text-sm font-bold shrink-0 cursor-pointer transition-colors"
               title="Auto-detect GPS location"
             >
               {detectingLocation ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <MapPin className="w-4 h-4 text-[#0066cc]" />
+                <MapPin className="w-4 h-4 text-[#C84200]" />
               )}
             </button>
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-[#1d1d1f] mb-1.5 flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-[#C84200]" /> Live Reading
+          <label className="text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1d1d1f] mb-1.5 flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-[#C84200]" /> Live Reading
             Status
           </label>
           <input
@@ -427,14 +427,14 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
             value={formData.liveStatus}
             onChange={handleChange}
             placeholder="e.g., Reading Gitanjali · Chapter 4"
-            className="w-full bg-[#f5f5f7] border border-transparent focus:border-[#0066cc] focus:bg-white rounded-xl px-4 py-2.5 text-sm font-medium text-[#1d1d1f] outline-none"
+            className="w-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] focus:border-[#C84200] focus:bg-white rounded-2xl px-4 py-3 text-sm sm:text-base font-medium text-[#1d1d1f] outline-none transition-colors"
           />
         </div>
       </div>
 
       {/* Biography */}
       <div>
-        <label className="block text-xs font-bold uppercase tracking-wider text-[#1d1d1f] mb-1.5">
+        <label className="block text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1d1d1f] mb-1.5">
           Reader Biography
         </label>
         <textarea
@@ -443,15 +443,15 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
           value={formData.bio}
           onChange={handleChange}
           placeholder="Tell the community what you love reading, studying, or collecting..."
-          className="w-full bg-[#f5f5f7] border border-transparent focus:border-[#0066cc] focus:bg-white rounded-xl p-3.5 text-sm font-medium text-[#1d1d1f] outline-none resize-none"
+          className="w-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] focus:border-[#C84200] focus:bg-white rounded-2xl p-4 text-sm sm:text-base font-medium text-[#1d1d1f] outline-none resize-none transition-colors"
         />
       </div>
 
       {/* Signature Literary Quote */}
-      <div className="p-4 rounded-2xl bg-[#f5f5f7] space-y-3">
+      <div className="p-5 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.06] space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#1d1d1f] flex items-center gap-1.5">
-            <Quote className="w-3.5 h-3.5 text-[#0066cc]" /> Signature Literary
+          <span className="text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1d1d1f] flex items-center gap-1.5">
+            <Quote className="w-4 h-4 text-[#C84200]" /> Signature Literary
             Quote
           </span>
         </div>
@@ -461,7 +461,7 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
           value={formData.favoriteQuote}
           onChange={handleChange}
           placeholder="A favorite passage from a book..."
-          className="w-full bg-white rounded-xl p-3 text-sm italic font-medium text-[#1d1d1f] outline-none border border-black/5"
+          className="w-full bg-white rounded-2xl p-3.5 text-sm sm:text-base font-serif italic font-medium text-[#1d1d1f] outline-none border border-black/8 focus:border-[#C84200]"
         />
         <input
           type="text"
@@ -469,9 +469,9 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
           value={formData.quoteAuthor}
           onChange={handleChange}
           placeholder="Author / Book source"
-          className="w-full bg-white rounded-xl px-3.5 py-2 text-xs font-bold text-[#1d1d1f] outline-none border border-black/5"
+          className="w-full bg-white rounded-2xl px-4 py-2.5 text-sm font-bold text-[#1d1d1f] outline-none border border-black/8 focus:border-[#C84200]"
         />
-        <div className="flex flex-wrap gap-1.5 pt-1">
+        <div className="flex flex-wrap gap-2 pt-1">
           {PRESET_QUOTES.map((q, idx) => (
             <button
               key={idx}
@@ -483,7 +483,7 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
                   quoteAuthor: q.author,
                 }))
               }
-              className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-white hover:bg-[#0066cc] hover:text-white text-[#1d1d1f] border border-black/5 transition-colors cursor-pointer"
+              className="text-xs font-semibold px-3 py-1.5 rounded-full bg-white hover:bg-[#C84200] hover:text-white text-[#1d1d1f] border border-black/8 transition-colors cursor-pointer"
             >
               {q.author}
             </button>
@@ -492,9 +492,9 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
       </div>
 
       {/* Privacy & Showcase Visibility Controls */}
-      <div className="p-4 rounded-2xl bg-[#f5f5f7] space-y-2.5">
-        <span className="text-xs font-bold uppercase tracking-wider text-[#1d1d1f] flex items-center gap-1.5">
-          <Eye className="w-3.5 h-3.5 text-[#0066cc]" /> Privacy & Showcase
+      <div className="p-5 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.06] space-y-3">
+        <span className="text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1d1d1f] flex items-center gap-1.5">
+          <Eye className="w-4 h-4 text-[#C84200]" /> Privacy & Showcase
           Visibility
         </span>
 
@@ -518,7 +518,7 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
         ].map((item) => (
           <label
             key={item.key}
-            className="flex items-center justify-between gap-3 py-1 text-xs font-semibold text-[#1d1d1f] cursor-pointer"
+            className="flex items-center justify-between gap-3 py-1.5 text-sm font-semibold text-[#1d1d1f] cursor-pointer"
           >
             <span>{item.label}</span>
             <input
@@ -530,7 +530,7 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
                   [item.key]: e.target.checked,
                 }))
               }
-              className="w-4 h-4 accent-[#0066cc] rounded cursor-pointer"
+              className="w-4.5 h-4.5 accent-[#C84200] rounded cursor-pointer shrink-0"
             />
           </label>
         ))}
@@ -539,15 +539,15 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3.5 px-6 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+        className="w-full py-3.5 px-6 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white font-bold text-base flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
       >
         {loading ? (
           <>
-            <Loader2 className="w-4 h-4 animate-spin" /> Saving Profile...
+            <Loader2 className="w-4.5 h-4.5 animate-spin" /> Saving Profile...
           </>
         ) : success ? (
           <>
-            <Check className="w-4 h-4" /> Saved Successfully!
+            <Check className="w-4.5 h-4.5" /> Saved Successfully!
           </>
         ) : (
           "Save Identity & Preferences"

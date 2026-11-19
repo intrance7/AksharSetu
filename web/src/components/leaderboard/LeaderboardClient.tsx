@@ -144,20 +144,30 @@ export function LeaderboardClient({
   }
 
   return (
-    <div className="min-h-screen bg-[#F2EBE1] pb-20">
-      {/* High-Impact Hero Section (#000000 per AksharSetu Design System) */}
-      <section className="bg-[#000000] text-[#f5f5f7] py-12 md:py-16 px-4 border-b border-white/10">
-        <div className="container mx-auto max-w-6xl">
+    <div className="min-h-screen bg-[#F2EBE1] pb-24">
+      {/* High-Impact Editorial Obsidian Hero */}
+      <section className="relative bg-[#0B0B0D] bg-[radial-gradient(ellipse_at_top_right,rgba(200,66,0,0.22),transparent_55%),radial-gradient(ellipse_at_bottom_left,rgba(244,178,43,0.08),transparent_50%)] text-[#F5F5F7] py-14 md:py-16 px-4 border-b border-white/10 overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.06]"
+          style={{
+            backgroundImage:
+              "radial-gradient(#F2EBE1 1.25px, transparent 1.25px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+        <div className="container mx-auto max-w-6xl relative z-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
             <div>
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-xs font-bold uppercase tracking-widest text-[#f5f5f7] mb-4">
-                <Trophy className="w-3.5 h-3.5 text-[#C84200]" /> Community Standings & Profiles
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs sm:text-[13px] font-bold uppercase tracking-widest text-[#FF8A4C] mb-4">
+                <Trophy className="w-4 h-4" /> Community Standings &amp; Profiles
               </div>
-              <h1 className="text-4xl md:text-6xl font-bold tracking-tighter leading-none text-[#f5f5f7]">
-                Reader Leaderboard &{" "}
-                <span className="text-[#FF8A4C]">Profiles.</span>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter leading-none text-white">
+                Reader{" "}
+                <span className="font-serif italic font-medium text-[#FF7F45]">
+                  Charts.
+                </span>
               </h1>
-              <p className="text-[#86868b] text-base md:text-lg font-medium max-w-2xl mt-4">
+              <p className="text-white/75 text-base md:text-lg font-medium max-w-2xl mt-4 leading-relaxed">
                 Celebrating readers, Vidya Daan book donors, and Shanti Mode scholars. Explore community profiles, read their favorite literary quotes, and start a conversation.
               </p>
             </div>
@@ -170,71 +180,71 @@ export function LeaderboardClient({
                     myStanding?.user.username ||
                     currentUserId
                   }`}
-                  className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/15 text-[#f5f5f7] text-xs font-bold flex items-center gap-2 transition-colors"
+                  className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white text-sm font-bold flex items-center gap-2 transition-colors"
                 >
-                  <Pencil className="w-3.5 h-3.5" /> Edit My Profile & Quote
+                  <Pencil className="w-4 h-4" /> Edit My Profile
                 </Link>
               )}
               <Link
                 href="/messages"
-                className="px-5 py-2.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-xs font-bold flex items-center gap-2 transition-colors"
+                className="px-5 py-2.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-sm font-bold flex items-center gap-2 transition-colors shadow-lg shadow-[#C84200]/20"
               >
-                <MessageSquare className="w-3.5 h-3.5" /> Open Messenger
+                <MessageSquare className="w-4 h-4" /> Open Messenger
               </Link>
             </div>
           </div>
 
           {/* Community Bento Stats Row */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
-              <div className="flex items-center gap-2 text-[#86868b] text-xs font-bold uppercase tracking-wider mb-2">
-                <Users className="w-4 h-4 text-[#0066cc]" /> Readers
+            <div className="bg-white/[0.06] border border-white/10 rounded-3xl p-5 sm:p-6">
+              <div className="flex items-center gap-2 text-white/65 text-xs sm:text-[13px] font-bold uppercase tracking-wider mb-2">
+                <Users className="w-4 h-4 text-[#FF8A4C]" /> Readers
               </div>
-              <p className="text-3xl font-bold tracking-tight text-[#f5f5f7]">
+              <p className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-none">
                 {overview.totalReaders}
               </p>
-              <p className="text-xs text-[#86868b] mt-1">Active profiles</p>
+              <p className="text-xs sm:text-sm text-white/60 mt-1.5">Active profiles</p>
             </div>
 
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
-              <div className="flex items-center gap-2 text-[#86868b] text-xs font-bold uppercase tracking-wider mb-2">
+            <div className="bg-white/[0.06] border border-white/10 rounded-3xl p-5 sm:p-6">
+              <div className="flex items-center gap-2 text-white/65 text-xs sm:text-[13px] font-bold uppercase tracking-wider mb-2">
                 <HeartHandshake className="w-4 h-4 text-emerald-400" /> Donated
               </div>
-              <p className="text-3xl font-bold tracking-tight text-[#f5f5f7]">
+              <p className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-none">
                 {overview.totalBooksDonated}
               </p>
-              <p className="text-xs text-[#86868b] mt-1">Vidya Daan books</p>
+              <p className="text-xs sm:text-sm text-white/60 mt-1.5">Vidya Daan books</p>
             </div>
 
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
-              <div className="flex items-center gap-2 text-[#86868b] text-xs font-bold uppercase tracking-wider mb-2">
+            <div className="bg-white/[0.06] border border-white/10 rounded-3xl p-5 sm:p-6">
+              <div className="flex items-center gap-2 text-white/65 text-xs sm:text-[13px] font-bold uppercase tracking-wider mb-2">
                 <BookOpen className="w-4 h-4 text-amber-400" /> Listed
               </div>
-              <p className="text-3xl font-bold tracking-tight text-[#f5f5f7]">
+              <p className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-none">
                 {overview.totalBooksListed}
               </p>
-              <p className="text-xs text-[#86868b] mt-1">Books in catalog</p>
+              <p className="text-xs sm:text-sm text-white/60 mt-1.5">Books in catalog</p>
             </div>
 
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
-              <div className="flex items-center gap-2 text-[#86868b] text-xs font-bold uppercase tracking-wider mb-2">
+            <div className="bg-white/[0.06] border border-white/10 rounded-3xl p-5 sm:p-6">
+              <div className="flex items-center gap-2 text-white/65 text-xs sm:text-[13px] font-bold uppercase tracking-wider mb-2">
                 <Clock className="w-4 h-4 text-purple-400" /> Shanti Time
               </div>
-              <p className="text-3xl font-bold tracking-tight text-[#f5f5f7]">
+              <p className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-none">
                 {Math.floor(overview.totalReadingMinutes / 60)}h{" "}
                 {overview.totalReadingMinutes % 60}m
               </p>
-              <p className="text-xs text-[#86868b] mt-1">Focused reading</p>
+              <p className="text-xs sm:text-sm text-white/60 mt-1.5">Focused reading</p>
             </div>
 
-            <div className="col-span-2 md:col-span-1 bg-white/5 border border-white/10 rounded-2xl p-5">
-              <div className="flex items-center gap-2 text-[#86868b] text-xs font-bold uppercase tracking-wider mb-2">
-                <Sparkles className="w-4 h-4 text-[#0066cc]" /> Total XP
+            <div className="col-span-2 md:col-span-1 bg-white/[0.06] border border-white/10 rounded-3xl p-5 sm:p-6">
+              <div className="flex items-center gap-2 text-white/65 text-xs sm:text-[13px] font-bold uppercase tracking-wider mb-2">
+                <Sparkles className="w-4 h-4 text-[#F4B22B]" /> Total XP
               </div>
-              <p className="text-3xl font-bold tracking-tight text-[#f5f5f7]">
+              <p className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-none">
                 {overview.totalCommunityXP.toLocaleString()}
               </p>
-              <p className="text-xs text-[#86868b] mt-1">
+              <p className="text-xs sm:text-sm text-white/60 mt-1.5">
                 {overview.totalBadgesEarned} badges unlocked
               </p>
             </div>
@@ -245,9 +255,9 @@ export function LeaderboardClient({
       <div className="container mx-auto max-w-6xl px-4 mt-8 flex flex-col gap-8">
         {/* Logged-in User's Personal Standing Card */}
         {myStanding && (
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-black/5 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-[#1D1D1F]/[0.07] flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-[#000000] text-white flex items-center justify-center font-bold text-lg shrink-0 overflow-hidden">
+              <div className="w-15 h-15 rounded-full bg-[#1D1D1F] text-white flex items-center justify-center font-black text-xl shrink-0 overflow-hidden">
                 {myStanding.user.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -261,31 +271,31 @@ export function LeaderboardClient({
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2.5 py-0.5 rounded-full bg-[#0066cc] text-white text-xs font-bold">
+                  <span className="px-3 py-1 rounded-full bg-[#C84200] text-white text-xs sm:text-[13px] font-bold">
                     Your Global Rank #{myStanding.rank}
                   </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-[#e8e8ed] text-[#1d1d1f] text-xs font-bold">
+                  <span className="px-3 py-1 rounded-full bg-[#FAF6F0] text-[#1d1d1f] text-xs sm:text-[13px] font-bold border border-[#1D1D1F]/[0.06]">
                     LVL {myStanding.user.stats.level} •{" "}
                     {myStanding.user.stats.rankTitle}
                   </span>
                 </div>
-                <h2 className="text-lg font-bold text-[#1d1d1f] mt-1 flex flex-wrap items-baseline gap-1.5">
+                <h2 className="text-xl font-black text-[#1d1d1f] mt-1.5 flex flex-wrap items-baseline gap-2">
                   <span>{myStanding.user.name}</span>
                   {myStanding.user.username && (
-                    <span className="text-xs font-semibold text-[#0066cc]">
+                    <span className="text-sm font-bold text-[#C84200]">
                       @{myStanding.user.username}
                     </span>
                   )}
-                  <span className="text-[#86868b] font-medium text-sm">
-                    ({myStanding.user.stats.totalXP} XP)
+                  <span className="text-[#6e6e73] font-semibold text-sm">
+                    ({myStanding.user.stats.totalXP.toLocaleString()} XP)
                   </span>
                 </h2>
                 {myStanding.user.favoriteQuote ? (
-                  <p className="text-xs text-[#86868b] italic mt-0.5 line-clamp-1">
+                  <p className="text-sm text-[#6e6e73] font-serif italic mt-1 line-clamp-1">
                     “{myStanding.user.favoriteQuote}”
                   </p>
                 ) : (
-                  <p className="text-xs text-[#86868b] mt-0.5">
+                  <p className="text-sm text-[#6e6e73] mt-1">
                     Add your signature literary quote on your profile!
                   </p>
                 )}
@@ -297,13 +307,13 @@ export function LeaderboardClient({
                 href={`/profile/${
                   myStanding.user.username || myStanding.user.id
                 }`}
-                className="px-4 py-2 rounded-full bg-[#e8e8ed] hover:bg-[#d2d2d7] text-[#1d1d1f] text-xs font-bold transition-colors"
+                className="px-5 py-2.5 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] text-[#1d1d1f] text-sm font-bold border border-[#1D1D1F]/[0.08] transition-colors"
               >
-                My Profile & Quote
+                My Profile &amp; Quote
               </Link>
               <Link
                 href="/catalog/new"
-                className="px-4 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-bold transition-colors"
+                className="px-5 py-2.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-sm font-bold transition-colors"
               >
                 + List / Donate Book (+100 XP)
               </Link>
@@ -312,8 +322,8 @@ export function LeaderboardClient({
         )}
 
         {/* Filter & Category Bar */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-black/5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-1 lg:pb-0">
+        <div className="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-[#1D1D1F]/[0.07] flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1 lg:pb-0">
             {[
               { id: "xp", label: "Overall XP", icon: Trophy },
               { id: "donors", label: "Top Donors", icon: HeartHandshake },
@@ -328,13 +338,13 @@ export function LeaderboardClient({
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id as CategoryTab)}
-                  className={`px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 whitespace-nowrap transition-colors cursor-pointer ${
+                  className={`px-4 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 whitespace-nowrap transition-colors cursor-pointer ${
                     isActive
-                      ? "bg-[#0066cc] text-white shadow-sm"
-                      : "bg-[#f5f5f7] text-[#1d1d1f] hover:bg-[#e8e8ed]"
+                      ? "bg-[#1D1D1F] text-[#F2EBE1] shadow-sm"
+                      : "bg-[#FAF6F0] text-[#1d1d1f] hover:bg-[#EFE7DC]"
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
+                  <Icon className="w-4 h-4" />
                   {tab.label}
                 </button>
               )
@@ -342,13 +352,13 @@ export function LeaderboardClient({
           </div>
 
           <div className="relative w-full lg:w-80">
-            <Search className="w-4 h-4 text-[#86868b] absolute left-4 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[#6e6e73] absolute left-4 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search profiles by name, @username, city, quote..."
-              className="w-full h-10 pl-10 pr-4 rounded-full bg-[#f5f5f7] text-xs font-medium text-[#1d1d1f] placeholder:text-[#86868b] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] border border-transparent transition-all"
+              placeholder="Search name, @username, city, quote..."
+              className="w-full h-11 pl-11 pr-4 rounded-full bg-[#FAF6F0] text-sm font-medium text-[#1d1d1f] placeholder:text-[#6e6e73] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#C84200]/20 focus:border-[#C84200] border border-[#1D1D1F]/[0.07] transition-all"
             />
           </div>
         </div>
@@ -366,14 +376,14 @@ export function LeaderboardClient({
                   duration: 0.3,
                   ease: [0.16, 1, 0.3, 1],
                 }}
-                className="bg-white rounded-2xl p-6 shadow-sm border border-black/5 flex flex-col justify-between gap-5 hover:shadow-md transition-shadow"
+                className="bg-white rounded-3xl p-6 shadow-sm border border-[#1D1D1F]/[0.07] flex flex-col justify-between gap-5 hover:shadow-md transition-shadow"
               >
                 <div className="flex flex-col gap-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3.5 min-w-0">
                       <Link
                         href={`/profile/${reader.username || reader.id}`}
-                        className="relative w-14 h-14 rounded-full bg-[#1d1d1f] text-white flex items-center justify-center font-bold text-xl shrink-0 overflow-hidden"
+                        className="relative w-14 h-14 rounded-full bg-[#1d1d1f] text-white flex items-center justify-center font-black text-xl shrink-0 overflow-hidden"
                       >
                         {reader.image ? (
                           // eslint-disable-next-line @next/next/no-img-element
@@ -389,48 +399,48 @@ export function LeaderboardClient({
                       <div className="min-w-0">
                         <Link
                           href={`/profile/${reader.username || reader.id}`}
-                          className="font-bold text-base text-[#1d1d1f] hover:text-[#0066cc] transition-colors truncate block"
+                          className="font-bold text-lg text-[#1d1d1f] hover:text-[#C84200] transition-colors truncate block"
                         >
                           {reader.name}
                         </Link>
                         {reader.username && (
-                          <p className="text-xs font-semibold text-[#0066cc] truncate">
+                          <p className="text-sm font-semibold text-[#C84200] truncate">
                             @{reader.username}
                           </p>
                         )}
-                        <p className="text-xs font-bold text-[#86868b]">
+                        <p className="text-xs sm:text-[13px] font-bold text-[#6e6e73] mt-0.5">
                           LVL {reader.stats.level} • {reader.stats.rankTitle}
                         </p>
                         {reader.location && (
-                          <p className="text-[11px] font-semibold text-[#86868b] flex items-center gap-1 mt-0.5 truncate">
-                            <MapPin className="w-3 h-3 text-[#0066cc] shrink-0" />
+                          <p className="text-xs sm:text-[13px] font-semibold text-[#6e6e73] flex items-center gap-1 mt-0.5 truncate">
+                            <MapPin className="w-3.5 h-3.5 text-[#C84200] shrink-0" />
                             {reader.location}
                           </p>
                         )}
                       </div>
                     </div>
 
-                    <span className="px-2.5 py-1 rounded-full bg-[#f5f5f7] text-[#1d1d1f] font-bold text-xs shrink-0">
-                      {reader.stats.totalXP} XP
+                    <span className="px-3 py-1 rounded-full bg-[#FAF6F0] text-[#1d1d1f] font-bold text-xs sm:text-[13px] shrink-0 border border-[#1D1D1F]/[0.06]">
+                      {reader.stats.totalXP.toLocaleString()} XP
                     </span>
                   </div>
 
-                  <p className="text-xs text-[#1d1d1f]/80 font-medium line-clamp-2">
+                  <p className="text-sm text-[#525257] font-medium line-clamp-2 leading-relaxed">
                     {reader.bio || "Community reader on AksharSetu."}
                   </p>
 
                   {/* Signature Quote Box */}
-                  <div className="rounded-xl bg-[#f5f5f7] p-3.5 border border-black/5">
-                    <div className="flex items-start gap-2">
-                      <Quote className="w-3.5 h-3.5 text-[#0066cc] shrink-0 mt-0.5" />
+                  <div className="rounded-2xl bg-[#FAF6F0] p-4 border border-[#1D1D1F]/[0.06]">
+                    <div className="flex items-start gap-2.5">
+                      <Quote className="w-4 h-4 text-[#C84200] shrink-0 mt-0.5" />
                       <div className="min-w-0">
-                        <p className="text-xs font-semibold text-[#1d1d1f] italic line-clamp-2">
+                        <p className="text-sm font-serif font-medium text-[#1d1d1f] italic line-clamp-2 leading-relaxed">
                           “
                           {reader.favoriteQuote ||
                             "A reader lives a thousand lives before he dies."}
                           ”
                         </p>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[#86868b] mt-1">
+                        <p className="text-xs font-bold uppercase tracking-wider text-[#6e6e73] mt-1.5">
                           — {reader.quoteAuthor || "George R.R. Martin"}
                         </p>
                       </div>
@@ -438,30 +448,30 @@ export function LeaderboardClient({
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-3 pt-3 border-t border-black/5">
+                <div className="flex flex-col gap-3.5 pt-4 border-t border-[#1D1D1F]/[0.06]">
                   <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="bg-[#f5f5f7] rounded-xl py-2 px-1">
-                      <p className="text-sm font-bold text-[#1d1d1f]">
+                    <div className="bg-[#FAF6F0] rounded-2xl py-2.5 px-1">
+                      <p className="text-base font-black text-[#1d1d1f]">
                         {reader.stats.booksListed}
                       </p>
-                      <p className="text-[10px] font-semibold text-[#86868b]">
+                      <p className="text-xs font-semibold text-[#6e6e73]">
                         Listed
                       </p>
                     </div>
-                    <div className="bg-[#f5f5f7] rounded-xl py-2 px-1">
-                      <p className="text-sm font-bold text-[#1d1d1f]">
+                    <div className="bg-[#FAF6F0] rounded-2xl py-2.5 px-1">
+                      <p className="text-base font-black text-[#1d1d1f]">
                         {reader.stats.booksDonated}
                       </p>
-                      <p className="text-[10px] font-semibold text-[#86868b]">
+                      <p className="text-xs font-semibold text-[#6e6e73]">
                         Donated
                       </p>
                     </div>
-                    <div className="bg-[#f5f5f7] rounded-xl py-2 px-1">
-                      <p className="text-sm font-bold text-[#1d1d1f]">
+                    <div className="bg-[#FAF6F0] rounded-2xl py-2.5 px-1">
+                      <p className="text-base font-black text-[#1d1d1f]">
                         {Math.floor(reader.stats.readingMinutes / 60)}h{" "}
                         {reader.stats.readingMinutes % 60}m
                       </p>
-                      <p className="text-[10px] font-semibold text-[#86868b]">
+                      <p className="text-xs font-semibold text-[#6e6e73]">
                         Read
                       </p>
                     </div>
@@ -470,16 +480,16 @@ export function LeaderboardClient({
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/profile/${reader.username || reader.id}`}
-                      className="flex-1 py-2 rounded-full bg-[#e8e8ed] hover:bg-[#d2d2d7] text-[#1d1d1f] text-xs font-bold text-center transition-colors"
+                      className="flex-1 py-2.5 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] text-[#1d1d1f] text-sm font-bold text-center border border-[#1D1D1F]/[0.08] transition-colors"
                     >
                       View Profile
                     </Link>
                     {currentUserId !== reader.id && (
                       <Link
                         href={`/messages/${reader.id}`}
-                        className="flex-1 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                        className="flex-1 py-2.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-sm font-bold flex items-center justify-center gap-1.5 transition-colors"
                       >
-                        <MessageSquare className="w-3.5 h-3.5" /> Chat
+                        <MessageSquare className="w-4 h-4" /> Chat
                       </Link>
                     )}
                   </div>
@@ -505,30 +515,30 @@ export function LeaderboardClient({
                         duration: 0.35,
                         ease: [0.16, 1, 0.3, 1],
                       }}
-                      className={`rounded-2xl p-6 border flex flex-col justify-between gap-5 ${
+                      className={`rounded-3xl p-6 sm:p-7 border flex flex-col justify-between gap-5 ${
                         isFirst
-                          ? "bg-[#000000] text-[#f5f5f7] border-white/15 shadow-xl"
-                          : "bg-white text-[#1d1d1f] border-black/5 shadow-sm"
+                          ? "bg-[#0B0B0D] bg-[radial-gradient(ellipse_at_top_right,rgba(200,66,0,0.22),transparent_60%)] text-[#F5F5F7] border-white/15 shadow-xl"
+                          : "bg-white text-[#1d1d1f] border-[#1D1D1F]/[0.07] shadow-sm"
                       }`}
                     >
                       <div>
                         <div className="flex items-center justify-between mb-4">
                           <span
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                            className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs sm:text-[13px] font-black ${
                               rank === 1
-                                ? "bg-amber-400 text-black"
+                                ? "bg-[#F4B22B] text-black"
                                 : rank === 2
-                                ? "bg-[#e8e8ed] text-[#1d1d1f]"
-                                : "bg-amber-700/20 text-amber-800"
+                                ? "bg-[#EFE7DC] text-[#1d1d1f]"
+                                : "bg-amber-700/15 text-amber-800"
                             }`}
                           >
-                            <Crown className="w-3.5 h-3.5" /> Rank #{rank}
+                            <Crown className="w-4 h-4" /> Rank #{rank}
                           </span>
                           <span
-                            className={`text-xs font-bold px-3 py-1 rounded-full ${
+                            className={`text-xs sm:text-[13px] font-bold px-3.5 py-1 rounded-full ${
                               isFirst
-                                ? "bg-white/10 text-[#f5f5f7]"
-                                : "bg-[#f5f5f7] text-[#1d1d1f]"
+                                ? "bg-white/12 text-[#F5F5F7]"
+                                : "bg-[#FAF6F0] text-[#1d1d1f]"
                             }`}
                           >
                             {getPrimaryScoreLabel(u)}
@@ -538,9 +548,9 @@ export function LeaderboardClient({
                         <div className="flex items-center gap-4">
                           <Link
                             href={`/profile/${u.username || u.id}`}
-                            className={`w-16 h-16 rounded-full flex items-center justify-center font-bold text-2xl shrink-0 overflow-hidden ${
+                            className={`w-16 h-16 rounded-full flex items-center justify-center font-black text-2xl shrink-0 overflow-hidden ${
                               isFirst
-                                ? "bg-white/10 text-white ring-2 ring-amber-400"
+                                ? "bg-white/10 text-white ring-2 ring-[#F4B22B]"
                                 : "bg-[#1d1d1f] text-white"
                             }`}
                           >
@@ -558,25 +568,33 @@ export function LeaderboardClient({
                           <div className="min-w-0">
                             <Link
                               href={`/profile/${u.username || u.id}`}
-                              className="font-bold text-xl tracking-tight truncate block hover:underline"
+                              className="font-black text-xl sm:text-2xl tracking-tight truncate block hover:underline"
                             >
                               {u.name}
                             </Link>
                             {u.username && (
                               <p
-                                className={`text-xs font-semibold truncate ${
-                                  isFirst ? "text-[#66b3ff]" : "text-[#0066cc]"
+                                className={`text-sm font-bold truncate ${
+                                  isFirst ? "text-[#F4B22B]" : "text-[#C84200]"
                                 }`}
                               >
                                 @{u.username}
                               </p>
                             )}
-                            <p className="text-xs font-semibold text-[#86868b]">
+                            <p
+                              className={`text-xs sm:text-[13px] font-semibold mt-0.5 ${
+                                isFirst ? "text-white/70" : "text-[#6e6e73]"
+                              }`}
+                            >
                               LVL {u.stats.level} • {u.stats.rankTitle}
                             </p>
                             {u.location && (
-                              <p className="text-xs text-[#86868b] flex items-center gap-1 mt-0.5 truncate">
-                                <MapPin className="w-3 h-3 text-[#0066cc]" />{" "}
+                              <p
+                                className={`text-xs sm:text-[13px] flex items-center gap-1 mt-0.5 truncate ${
+                                  isFirst ? "text-white/65" : "text-[#6e6e73]"
+                                }`}
+                              >
+                                <MapPin className="w-3.5 h-3.5 text-[#FF8A4C]" />{" "}
                                 {u.location}
                               </p>
                             )}
@@ -585,8 +603,8 @@ export function LeaderboardClient({
 
                         {u.favoriteQuote && (
                           <p
-                            className={`text-xs italic mt-4 line-clamp-2 ${
-                              isFirst ? "text-[#f5f5f7]/80" : "text-[#86868b]"
+                            className={`text-sm font-serif italic mt-4 line-clamp-2 leading-relaxed ${
+                              isFirst ? "text-white/80" : "text-[#525257]"
                             }`}
                           >
                             “{u.favoriteQuote}”
@@ -595,7 +613,11 @@ export function LeaderboardClient({
                       </div>
 
                       <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-current/10">
-                        <div className="flex items-center gap-3 text-xs font-semibold text-[#86868b]">
+                        <div
+                          className={`flex items-center gap-2.5 text-xs sm:text-[13px] font-semibold ${
+                            isFirst ? "text-white/70" : "text-[#6e6e73]"
+                          }`}
+                        >
                           <span>{u.stats.booksListed} listed</span>
                           <span>•</span>
                           <span>{u.stats.booksDonated} donated</span>
@@ -606,10 +628,10 @@ export function LeaderboardClient({
                         <div className="flex items-center gap-2">
                           <Link
                             href={`/profile/${u.username || u.id}`}
-                            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors ${
+                            className={`px-4 py-2 rounded-full text-sm font-bold transition-colors ${
                               isFirst
                                 ? "bg-white/15 hover:bg-white/25 text-white"
-                                : "bg-[#e8e8ed] hover:bg-[#d2d2d7] text-[#1d1d1f]"
+                                : "bg-[#FAF6F0] hover:bg-[#EFE7DC] text-[#1d1d1f]"
                             }`}
                           >
                             Profile
@@ -617,7 +639,7 @@ export function LeaderboardClient({
                           {currentUserId !== u.id && (
                             <Link
                               href={`/messages/${u.id}`}
-                              className="px-3.5 py-1.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-bold transition-colors"
+                              className="px-4 py-2 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-sm font-bold transition-colors"
                             >
                               Chat
                             </Link>
@@ -631,42 +653,42 @@ export function LeaderboardClient({
             )}
 
             {/* Full Leaderboard List */}
-            <div className="bg-white rounded-2xl shadow-sm border border-black/5 overflow-hidden">
-              <div className="px-4 sm:px-6 py-4 border-b border-black/5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-[#86868b]">
+            <div className="bg-white rounded-3xl shadow-sm border border-[#1D1D1F]/[0.07] overflow-hidden">
+              <div className="px-5 sm:px-7 py-5 border-b border-[#1D1D1F]/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-[#1d1d1f]">
                   Community Standings ({sortedUsers.length} Readers)
                 </h2>
-                <span className="text-xs font-medium text-[#86868b]">
+                <span className="text-sm font-medium text-[#6e6e73]">
                   Click any reader to view their profile or start a chat
                 </span>
               </div>
 
               {sortedUsers.length === 0 ? (
-                <div className="py-16 text-center text-[#86868b] text-sm font-medium">
+                <div className="py-16 text-center text-[#6e6e73] text-base font-medium">
                   No readers matched your search filter.
                 </div>
               ) : (
-                <div className="divide-y divide-black/5">
+                <div className="divide-y divide-[#1D1D1F]/[0.06]">
                   {sortedUsers.map((u, idx) => {
                     const rank = idx + 1
                     const isMe = u.id === currentUserId
                     return (
                       <div
                         key={u.id}
-                        className={`p-4 md:px-6 md:py-5 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors ${
-                          isMe ? "bg-[#0066cc]/5" : "hover:bg-[#f5f5f7]/60"
+                        className={`p-5 md:px-7 md:py-5 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors ${
+                          isMe ? "bg-[#C84200]/[0.05]" : "hover:bg-[#FAF6F0]/70"
                         }`}
                       >
                         <div className="flex items-center gap-4 min-w-0">
                           <div
-                            className={`w-9 text-center font-bold text-base shrink-0 ${
+                            className={`w-10 text-center font-black text-lg shrink-0 ${
                               rank === 1
                                 ? "text-amber-500"
                                 : rank === 2
-                                ? "text-[#86868b]"
+                                ? "text-[#6e6e73]"
                                 : rank === 3
                                 ? "text-amber-700"
-                                : "text-[#86868b]"
+                                : "text-[#6e6e73]"
                             }`}
                           >
                             #{rank}
@@ -674,7 +696,7 @@ export function LeaderboardClient({
 
                           <Link
                             href={`/profile/${u.username || u.id}`}
-                            className="w-12 h-12 rounded-full bg-[#1d1d1f] text-white flex items-center justify-center font-bold text-base shrink-0 overflow-hidden"
+                            className="w-13 h-13 rounded-full bg-[#1d1d1f] text-white flex items-center justify-center font-black text-lg shrink-0 overflow-hidden"
                           >
                             {u.image ? (
                               // eslint-disable-next-line @next/next/no-img-element
@@ -692,41 +714,41 @@ export function LeaderboardClient({
                             <div className="flex items-center gap-2 flex-wrap">
                               <Link
                                 href={`/profile/${u.username || u.id}`}
-                                className="font-bold text-[#1d1d1f] text-base hover:text-[#0066cc] transition-colors truncate"
+                                className="font-bold text-[#1d1d1f] text-base sm:text-lg hover:text-[#C84200] transition-colors truncate"
                               >
                                 {u.name}
                               </Link>
                               {u.username && (
                                 <Link
                                   href={`/profile/${u.username}`}
-                                  className="text-xs font-semibold text-[#0066cc] hover:underline truncate"
+                                  className="text-sm font-bold text-[#C84200] hover:underline truncate"
                                 >
                                   @{u.username}
                                 </Link>
                               )}
                               {isMe && (
-                                <span className="px-2 py-0.5 rounded-full bg-[#0066cc] text-white text-[10px] font-bold">
+                                <span className="px-2.5 py-0.5 rounded-full bg-[#C84200] text-white text-xs font-bold">
                                   You
                                 </span>
                               )}
-                              <span className="px-2.5 py-0.5 rounded-full bg-[#e8e8ed] text-[#1d1d1f] text-[10px] font-bold uppercase tracking-wider">
+                              <span className="px-2.5 py-0.5 rounded-full bg-[#FAF6F0] text-[#1d1d1f] border border-[#1D1D1F]/[0.06] text-xs font-bold uppercase tracking-wider">
                                 LVL {u.stats.level} • {u.stats.rankTitle}
                               </span>
                               {u.location && (
-                                <span className="text-xs font-medium text-[#86868b] flex items-center gap-1">
-                                  <MapPin className="w-3 h-3 text-[#0066cc]" />
+                                <span className="text-xs sm:text-[13px] font-medium text-[#6e6e73] flex items-center gap-1">
+                                  <MapPin className="w-3.5 h-3.5 text-[#C84200]" />
                                   {u.location}
                                 </span>
                               )}
                             </div>
 
                             {u.favoriteQuote ? (
-                              <p className="text-xs text-[#86868b] italic truncate mt-1">
+                              <p className="text-sm text-[#6e6e73] font-serif italic truncate mt-1">
                                 “{u.favoriteQuote}”{" "}
                                 {u.quoteAuthor && `— ${u.quoteAuthor}`}
                               </p>
                             ) : (
-                              <p className="text-xs text-[#86868b] truncate mt-1">
+                              <p className="text-sm text-[#6e6e73] truncate mt-1">
                                 {u.bio || "Sharing knowledge through books."}
                               </p>
                             )}
@@ -735,7 +757,7 @@ export function LeaderboardClient({
 
                         {/* Stats & Actions */}
                         <div className="flex flex-wrap items-center justify-between md:justify-end gap-3 md:gap-4 shrink-0">
-                          <div className="hidden sm:flex items-center gap-4 text-xs font-semibold text-[#86868b]">
+                          <div className="hidden sm:flex items-center gap-4 text-sm font-semibold text-[#6e6e73]">
                             <span title="Books Listed">
                               <strong className="text-[#1d1d1f]">
                                 {u.stats.booksListed}
@@ -757,23 +779,23 @@ export function LeaderboardClient({
                             </span>
                           </div>
 
-                          <div className="px-3.5 py-1.5 rounded-full bg-[#f5f5f7] text-[#1d1d1f] font-bold text-xs min-w-[90px] text-center">
+                          <div className="px-4 py-1.5 rounded-full bg-[#FAF6F0] text-[#1d1d1f] border border-[#1D1D1F]/[0.06] font-bold text-sm min-w-[98px] text-center">
                             {getPrimaryScoreLabel(u)}
                           </div>
 
                           <div className="flex items-center gap-2">
                             <Link
                               href={`/profile/${u.username || u.id}`}
-                              className="px-3.5 py-1.5 rounded-full bg-[#e8e8ed] hover:bg-[#d2d2d7] text-[#1d1d1f] text-xs font-bold flex items-center gap-1 transition-colors"
+                              className="px-4 py-2 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] text-[#1d1d1f] border border-[#1D1D1F]/[0.08] text-sm font-bold flex items-center gap-1 transition-colors"
                             >
-                              Profile <ArrowUpRight className="w-3 h-3" />
+                              Profile <ArrowUpRight className="w-3.5 h-3.5" />
                             </Link>
                             {!isMe && (
                               <Link
                                 href={`/messages/${u.id}`}
-                                className="px-3.5 py-1.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
+                                className="px-4 py-2 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-sm font-bold flex items-center gap-1.5 transition-colors"
                               >
-                                <MessageSquare className="w-3 h-3" /> Chat
+                                <MessageSquare className="w-3.5 h-3.5" /> Chat
                               </Link>
                             )}
                           </div>

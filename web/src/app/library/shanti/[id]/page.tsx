@@ -93,7 +93,7 @@ export default async function ShantiModePage({
 
   if (mode === "physical") {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-[#0B0B0D] flex items-center justify-center">
         <ShantiTimer
           bookId={book.id}
           title={book.title}
@@ -106,7 +106,15 @@ export default async function ShantiModePage({
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center py-20">
+    <div className="relative min-h-screen bg-[#0B0B0D] bg-[radial-gradient(ellipse_at_top_right,rgba(200,66,0,0.22),transparent_55%),radial-gradient(ellipse_at_bottom_left,rgba(244,178,43,0.08),transparent_50%)] flex items-center justify-center py-20 overflow-hidden">
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.06]"
+        style={{
+          backgroundImage:
+            "radial-gradient(#F2EBE1 1.25px, transparent 1.25px)",
+          backgroundSize: "24px 24px",
+        }}
+      />
       <ShantiModeChooser
         title={book.title}
         author={book.author}

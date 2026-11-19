@@ -11,6 +11,7 @@ import {
   BookOpen,
   ArrowLeftRight,
   Gift,
+  ChevronDown,
 } from "lucide-react"
 import { calculateDistance } from "@/lib/utils"
 import { resolveBookCoordinates } from "@/lib/geo"
@@ -20,8 +21,8 @@ import { toast } from "sonner"
 const InteractiveMap = dynamic(() => import("@/components/catalog/Map"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[380px] sm:h-[500px] md:h-[640px] rounded-3xl bg-black/5 animate-pulse flex items-center justify-center font-bold text-[#1D1D1F]/40">
-      Loading Interactive Campus & City Map...
+    <div className="w-full h-[380px] sm:h-[500px] md:h-[640px] rounded-3xl bg-white/75 border border-[#1D1D1F]/[0.07] animate-pulse flex items-center justify-center font-bold text-sm text-[#1D1D1F]/50">
+      Loading Interactive Campus &amp; City Map...
     </div>
   ),
 })
@@ -154,7 +155,7 @@ export function BooksMapClient({
   return (
     <div className="space-y-6">
       {/* Filter & GPS Control Bar */}
-      <div className="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-black/5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="bg-white rounded-3xl p-4 sm:p-5 shadow-[0_6px_28px_rgba(29,29,31,0.04)] border border-[#1D1D1F]/[0.07] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="relative flex-1 w-full lg:max-w-md">
           <Search className="w-4 h-4 text-[#86868b] absolute left-4 top-1/2 -translate-y-1/2" />
           <input
@@ -162,7 +163,7 @@ export function BooksMapClient({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Filter by book, author, campus, or city..."
-            className="w-full h-11 rounded-full bg-[#FAF6F0] pl-11 pr-4 text-sm font-medium text-[#1D1D1F] outline-none focus:bg-white focus:ring-2 focus:ring-[#C84200]/25"
+            className="w-full h-11 rounded-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] pl-11 pr-4 text-sm font-medium text-[#1D1D1F] outline-none focus:bg-white focus:border-[#C84200]/50 focus:ring-4 focus:ring-[#C84200]/10 transition-all"
           />
         </div>
 
@@ -171,7 +172,7 @@ export function BooksMapClient({
           {(
             [
               { id: "all", label: "All" },
-              { id: "free", label: "Free Donations" },
+              { id: "free", label: "Free Vidya Daan" },
               { id: "swap", label: "1-for-1 Swaps" },
               { id: "paid", label: "Resale" },
             ] as const
@@ -180,49 +181,58 @@ export function BooksMapClient({
               key={t.id}
               type="button"
               onClick={() => setTypeFilter(t.id)}
-              className={`px-3.5 py-2 rounded-full text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
+              className={`px-4 py-2 rounded-full text-[13px] font-bold transition-colors cursor-pointer whitespace-nowrap ${
                 typeFilter === t.id
-                  ? "bg-[#1D1D1F] text-white"
-                  : "bg-[#FAF6F0] text-[#1D1D1F] hover:bg-black/5"
+                  ? t.id === "free"
+                    ? "bg-[#0A7D4F] text-white"
+                    : t.id === "swap"
+                    ? "bg-[#0066cc] text-white"
+                    : "bg-[#1D1D1F] text-white"
+                  : "bg-[#FAF6F0] text-[#1D1D1F] hover:bg-[#EFE7DC]"
               }`}
             >
               {t.label}
             </button>
           ))}
 
-          <span className="h-5 w-px bg-black/10 mx-1 hidden sm:inline-block" />
+          <span className="h-5 w-px bg-[#1D1D1F]/10 mx-1 hidden sm:inline-block" />
 
           {/* Radius Selector */}
-          <select
-            value={radiusKm}
-            onChange={(e) => {
-              const next = Number(e.target.value) as RadiusKm
-              if (next > 0 && (!coords?.latitude || !coords?.longitude)) {
-                toast.info("Click 'Detect My GPS' first to filter by distance!")
-                return
-              }
-              setRadiusKm(next)
-            }}
-            aria-label="Filter radius"
-            className="h-9 rounded-full bg-[#FAF6F0] px-3.5 text-xs font-bold text-[#1D1D1F] outline-none border border-black/10 cursor-pointer"
-          >
-            <option value={0}>Radius: All India</option>
-            <option value={2}>Within 2 km (Campus)</option>
-            <option value={5}>Within 5 km</option>
-            <option value={15}>Within 15 km (City)</option>
-            <option value={50}>Within 50 km</option>
-          </select>
+          <div className="relative inline-flex items-center">
+            <select
+              value={radiusKm}
+              onChange={(e) => {
+                const next = Number(e.target.value) as RadiusKm
+                if (next > 0 && (!coords?.latitude || !coords?.longitude)) {
+                  toast.info(
+                    "Click 'Detect My GPS' first to filter by distance!"
+                  )
+                  return
+                }
+                setRadiusKm(next)
+              }}
+              aria-label="Filter radius"
+              className="appearance-none h-10 rounded-full bg-[#FAF6F0] pl-4 pr-8 text-[13px] font-bold text-[#1D1D1F] outline-none border border-[#1D1D1F]/[0.08] cursor-pointer"
+            >
+              <option value={0}>Radius: All India</option>
+              <option value={2}>Within 2 km (Campus)</option>
+              <option value={5}>Within 5 km</option>
+              <option value={15}>Within 15 km (City)</option>
+              <option value={50}>Within 50 km</option>
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-[#86868b] pointer-events-none absolute right-3" />
+          </div>
 
           <button
             type="button"
             onClick={handleDetectGps}
             disabled={detecting}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-bold transition-colors cursor-pointer whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-[13px] font-bold transition-colors cursor-pointer whitespace-nowrap shadow-xs"
           >
             {detecting ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Navigation className="w-3.5 h-3.5" />
+              <Navigation className="w-4 h-4" />
             )}
             {coords?.latitude ? "Refresh GPS" : "Detect My GPS"}
           </button>
@@ -232,35 +242,47 @@ export function BooksMapClient({
       {/* Split Map + Nearby List */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="lg:col-span-8 min-w-0">
-          <InteractiveMap books={filteredBooks} userLocation={coords} />
-          <p className="text-xs text-[#86868b] font-medium mt-2.5 px-2">
-            Showing {mappedPinCount} mapped pins ({filteredBooks.length}{" "}
-            matching listings). Exact coordinates are jittered ~150m to protect
+          <div className="bg-white rounded-3xl p-2 shadow-[0_6px_28px_rgba(29,29,31,0.04)] border border-[#1D1D1F]/[0.07]">
+            <InteractiveMap books={filteredBooks} userLocation={coords} />
+          </div>
+          <p className="text-[13px] text-[#6e6e73] font-medium mt-3 px-2">
+            Showing{" "}
+            <span className="font-mono font-bold text-[#1D1D1F]">
+              {mappedPinCount}
+            </span>{" "}
+            mapped pins (
+            <span className="font-mono font-bold text-[#1D1D1F]">
+              {filteredBooks.length}
+            </span>{" "}
+            matching listings). Coordinates are softly jittered ~150m to protect
             reader privacy.
           </p>
         </div>
 
-        <div className="lg:col-span-4 bg-white rounded-3xl p-5 shadow-sm border border-black/5 lg:max-h-[640px] lg:overflow-y-auto space-y-3 min-w-0">
-          <div className="flex items-center justify-between gap-2 pb-2 border-b border-black/5">
-            <h2 className="font-black text-base text-[#1D1D1F] flex items-center gap-2">
+        <div className="lg:col-span-4 bg-white rounded-3xl p-5 sm:p-6 shadow-[0_6px_28px_rgba(29,29,31,0.04)] border border-[#1D1D1F]/[0.07] lg:max-h-[656px] lg:overflow-y-auto space-y-3 min-w-0">
+          <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#1D1D1F]/[0.07]">
+            <h2 className="font-black text-lg text-[#1D1D1F] flex items-center gap-2">
               <MapPin className="w-4 h-4 text-[#C84200] shrink-0" /> Nearby
-              Books ({filteredBooks.length})
+              Books
+              <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] text-[#1D1D1F]/75">
+                {filteredBooks.length}
+              </span>
             </h2>
             <Link
               href="/catalog/new"
-              className="text-xs font-bold text-[#C84200] hover:underline shrink-0"
+              className="text-[13px] font-bold text-[#C84200] hover:underline shrink-0"
             >
               + Pin Yours
             </Link>
           </div>
 
           {filteredBooks.length === 0 ? (
-            <div className="py-12 text-center text-[#86868b]">
-              <BookOpen className="w-9 h-9 mx-auto mb-2 opacity-30" />
-              <p className="text-sm font-bold text-[#1D1D1F]">
+            <div className="py-12 text-center text-[#6e6e73]">
+              <BookOpen className="w-10 h-10 mx-auto mb-2.5 opacity-30" />
+              <p className="text-[15px] font-bold text-[#1D1D1F]">
                 No books within this radius
               </p>
-              <p className="text-xs mt-1">
+              <p className="text-sm mt-1">
                 Try switching Radius to &ldquo;All India&rdquo; or broadening
                 your search.
               </p>
@@ -270,23 +292,31 @@ export function BooksMapClient({
               <Link
                 key={b.id}
                 href={`/catalog/${b.id}`}
-                className="flex gap-3.5 p-3 rounded-2xl bg-[#FAF6F0]/70 hover:bg-[#FAF6F0] border border-black/5 hover:border-[#C84200]/25 transition-colors"
+                className="group flex gap-3.5 p-3.5 rounded-2xl bg-[#FAF6F0] hover:bg-white border border-[#1D1D1F]/[0.06] hover:border-[#C84200]/30 hover:shadow-sm transition-all"
               >
-                <div className="w-12 h-16 rounded-lg bg-white overflow-hidden shrink-0 border border-black/5">
+                <div className="w-13 h-[72px] rounded-lg bg-white overflow-hidden shrink-0 border border-[#1D1D1F]/[0.06] shadow-xs">
                   <MapListThumb book={b} />
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-black text-[#0066cc] inline-flex items-center gap-1">
+                    <span
+                      className={`font-mono text-xs font-black inline-flex items-center gap-1 ${
+                        b.price === 0
+                          ? b.acceptsExchange
+                            ? "text-[#0066cc]"
+                            : "text-[#0A7D4F]"
+                          : "text-[#C84200]"
+                      }`}
+                    >
                       {b.price === 0 ? (
                         b.acceptsExchange ? (
                           <>
-                            <ArrowLeftRight className="w-3 h-3" /> Swap
+                            <ArrowLeftRight className="w-3.5 h-3.5" /> Swap
                           </>
                         ) : (
                           <>
-                            <Gift className="w-3 h-3 text-emerald-600" /> Free
+                            <Gift className="w-3.5 h-3.5" /> Free
                           </>
                         )
                       ) : (
@@ -294,19 +324,22 @@ export function BooksMapClient({
                       )}
                     </span>
                     {b._distanceKm !== null && (
-                      <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full shrink-0">
+                      <span className="font-mono text-xs font-bold text-[#0A7D4F] bg-[#0A7D4F]/10 px-2.5 py-0.5 rounded-full shrink-0">
                         {b._distanceKm < 1
                           ? `${Math.round(b._distanceKm * 1000)} m`
                           : `${b._distanceKm.toFixed(1)} km`}
                       </span>
                     )}
                   </div>
-                  <h3 className="font-bold text-sm text-[#1D1D1F] truncate mt-0.5">
+                  <h3 className="font-bold text-[15px] text-[#1D1D1F] group-hover:text-[#C84200] transition-colors truncate mt-0.5">
                     {b.title}
                   </h3>
-                  <p className="text-xs text-[#86868b] truncate">{b.author}</p>
-                  <p className="text-[11px] text-[#86868b] truncate mt-0.5">
-                    📍 {b.university || b.owner?.location || "India"}
+                  <p className="text-xs text-[#6e6e73] truncate">{b.author}</p>
+                  <p className="text-xs text-[#6e6e73] truncate mt-1 inline-flex items-center gap-1 max-w-full">
+                    <MapPin className="w-3 h-3 text-[#C84200] shrink-0" />
+                    <span className="truncate">
+                      {b.university || b.owner?.location || "India"}
+                    </span>
                   </p>
                 </div>
               </Link>

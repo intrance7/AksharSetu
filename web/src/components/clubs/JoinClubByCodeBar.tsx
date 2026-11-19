@@ -63,24 +63,24 @@ export function JoinClubByCodeBar({ isLoggedIn }: { isLoggedIn: boolean }) {
       onSubmit={handleJoinByCode}
       className="flex items-center gap-2 bg-white/10 border border-white/15 focus-within:border-[#C84200] rounded-full p-1.5 pl-4 w-full sm:w-auto transition-colors"
     >
-      <KeyRound className="w-4 h-4 text-[#C84200] shrink-0" />
+      <KeyRound className="w-4 h-4 text-[#FF8A4C] shrink-0" />
       <input
         type="text"
         value={code}
         onChange={(e) => setCode(e.target.value.toUpperCase())}
         placeholder="Team code (SABHA-TAGORE)"
-        className="bg-transparent text-xs sm:text-sm font-mono font-bold text-white placeholder:text-white/45 outline-none flex-1 min-w-0 sm:flex-none sm:w-56 uppercase tracking-wider"
+        className="bg-transparent text-sm font-mono font-bold text-white placeholder:text-white/50 outline-none flex-1 min-w-0 sm:flex-none sm:w-56 uppercase tracking-wider"
       />
       <button
         type="submit"
         disabled={joining}
-        className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white text-[#1D1D1F] hover:bg-[#C84200] hover:text-white font-black text-xs uppercase tracking-wider transition-colors shrink-0 cursor-pointer"
+        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#F2EBE1] text-[#1D1D1F] hover:bg-[#C84200] hover:text-white font-bold text-sm transition-colors shrink-0 cursor-pointer"
       >
         {joining ? (
-          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          <Loader2 className="w-4 h-4 animate-spin" />
         ) : (
           <>
-            Join Team <ArrowRight className="w-3.5 h-3.5" />
+            Join Team <ArrowRight className="w-4 h-4" />
           </>
         )}
       </button>

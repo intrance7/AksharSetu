@@ -434,14 +434,14 @@ export default function EReader({
             </Link>
             <div className="truncate">
               <div className="flex items-center gap-2">
-                <p className="text-sm font-bold truncate max-w-[160px] sm:max-w-xs">{book.title}</p>
+                <p className="text-sm sm:text-base font-bold truncate max-w-[160px] sm:max-w-xs">{book.title}</p>
                 {book.sourceLabel && (
-                  <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#0066cc]/10 text-[#0066cc]">
+                  <span className="hidden md:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#0066cc]/10 text-[#0066cc]">
                     {book.sourceLabel}
                   </span>
                 )}
               </div>
-              <p className={`text-[11px] truncate ${currentTheme.sub}`}>{book.author}</p>
+              <p className={`text-xs truncate ${currentTheme.sub}`}>{book.author}</p>
             </div>
           </div>
 
@@ -708,17 +708,17 @@ export default function EReader({
             >
               <div className="p-6 border-b border-black/10 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#0066cc]">
+                  <p className="text-xs font-black uppercase tracking-widest text-[#C84200]">
                     Literary Notebook
                   </p>
-                  <h3 className="text-lg font-bold tracking-tight truncate max-w-[280px]">
+                  <h3 className="text-xl font-black tracking-tight truncate max-w-[280px] mt-0.5">
                     {book.title}
                   </h3>
                 </div>
                 <button
                   type="button"
                   onClick={() => setNotesOpen(false)}
-                  className="w-8 h-8 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] flex items-center justify-center cursor-pointer"
+                  className="w-9 h-9 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] flex items-center justify-center cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -727,9 +727,9 @@ export default function EReader({
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 {notes.length === 0 ? (
                   <div className="text-center py-16">
-                    <Highlighter className="w-10 h-10 text-[#86868b]/40 mx-auto mb-3" />
-                    <p className="font-bold text-sm text-[#1d1d1f]">No highlights saved yet</p>
-                    <p className="text-xs text-[#86868b] mt-1 max-w-xs mx-auto">
+                    <Highlighter className="w-11 h-11 text-[#86868b]/40 mx-auto mb-3" />
+                    <p className="font-bold text-base text-[#1d1d1f]">No highlights saved yet</p>
+                    <p className="text-sm text-[#6e6e73] mt-1.5 max-w-xs mx-auto leading-relaxed">
                       Select any sentence while reading in Book Read or Classic Read to highlight it, add a margin note, or set it as your profile quote.
                     </p>
                   </div>
@@ -741,23 +741,23 @@ export default function EReader({
                         COLOR_STYLES[n.color]?.card || COLOR_STYLES.amber.card
                       }`}
                     >
-                      <p className="text-sm font-serif italic leading-relaxed mb-2">
+                      <p className="text-base font-serif italic leading-relaxed mb-2.5">
                         “{n.quoteText}”
                       </p>
                       {n.noteText && (
-                        <p className="text-xs font-medium text-[#1d1d1f]/80 bg-white/80 rounded-xl px-3 py-2 mb-3">
+                        <p className="text-sm font-medium text-[#1d1d1f]/85 bg-white/85 rounded-xl px-3.5 py-2.5 mb-3">
                           Note: {n.noteText}
                         </p>
                       )}
-                      <div className="flex items-center justify-between text-[11px] text-[#86868b]">
+                      <div className="flex items-center justify-between text-xs text-[#6e6e73]">
                         <button
                           type="button"
                           onClick={() => jumpToLogicalPage(n.pageNumber)}
-                          className="font-bold text-[#0066cc] hover:underline cursor-pointer"
+                          className="font-bold text-[#C84200] hover:underline cursor-pointer"
                         >
                           Jump to Page {n.pageNumber}
                         </button>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2.5">
                           <button
                             type="button"
                             onClick={() => handleSetProfileQuote(n.quoteText)}
@@ -771,7 +771,7 @@ export default function EReader({
                             className="text-red-500 hover:text-red-700 cursor-pointer"
                             title="Delete highlight"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </div>

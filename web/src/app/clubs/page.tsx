@@ -150,17 +150,27 @@ export default async function SabhaClubsPage() {
 
   return (
     <div className="min-h-screen bg-[#F2EBE1] pb-24">
-      <section className="bg-black text-[#F5F5F7] py-16 px-4 border-b border-white/10">
-        <div className="container mx-auto max-w-6xl flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+      <section className="relative bg-[#0B0B0D] bg-[radial-gradient(ellipse_at_top_right,rgba(200,66,0,0.22),transparent_55%),radial-gradient(ellipse_at_bottom_left,rgba(244,178,43,0.08),transparent_50%)] text-[#F5F5F7] py-14 md:py-16 px-4 border-b border-white/10 overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.06]"
+          style={{
+            backgroundImage:
+              "radial-gradient(#F2EBE1 1.25px, transparent 1.25px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+        <div className="container mx-auto max-w-6xl relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-8">
           <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 text-xs font-bold uppercase tracking-widest text-[#F5F5F7]/85 mb-4">
-              <Users className="w-3.5 h-3.5 text-[#C84200]" /> Reading Sabhas ·
-              Study Squads
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs sm:text-[13px] font-bold uppercase tracking-widest text-[#FF8A4C] mb-4">
+              <Users className="w-4 h-4" /> Reading Sabhas · Study Squads
             </div>
-            <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-[1.04] mb-4 max-w-2xl">
-              Read Together. Show Up for the Chapter.
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter leading-none mb-4 text-white max-w-2xl">
+              Sabha{" "}
+              <span className="font-serif italic font-medium text-[#FF7F45]">
+                Reading Teams.
+              </span>
             </h1>
-            <p className="text-[#86868b] text-base md:text-lg max-w-2xl">
+            <p className="text-white/75 text-base md:text-lg max-w-2xl leading-relaxed">
               Start a hostel exam prep squad or an evening poetry circle. Share
               your{" "}
               <span className="text-white font-mono font-bold">
@@ -183,13 +193,13 @@ export default async function SabhaClubsPage() {
       <div className="container mx-auto max-w-6xl px-4 md:px-8 pt-10 space-y-12">
         {/* My Joined Sabha Teams */}
         {myTeams.length > 0 && (
-          <section className="space-y-4">
+          <section className="space-y-5">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-xs font-black uppercase tracking-widest text-[#C84200]">
+                <span className="text-xs sm:text-[13px] font-black uppercase tracking-widest text-[#C84200]">
                   Your Circles
                 </span>
-                <h2 className="text-2xl font-black text-[#1D1D1F] tracking-tight">
+                <h2 className="text-2xl sm:text-3xl font-black text-[#1D1D1F] tracking-tight mt-0.5">
                   My Reading Sabhas ({myTeams.length})
                 </h2>
               </div>
@@ -208,29 +218,29 @@ export default async function SabhaClubsPage() {
         )}
 
         {/* Open Public Sabha Teams Directory */}
-        <section className="space-y-4">
+        <section className="space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
             <div>
-              <span className="text-xs font-black uppercase tracking-widest text-[#1D1D1F]/50">
+              <span className="text-xs sm:text-[13px] font-black uppercase tracking-widest text-[#6e6e73]">
                 Open Circles
               </span>
-              <h2 className="text-2xl font-black text-[#1D1D1F] tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-black text-[#1D1D1F] tracking-tight mt-0.5">
                 Public Reading Sabhas ({publicTeams.length})
               </h2>
             </div>
-            <p className="text-xs font-semibold text-[#86868b]">
+            <p className="text-sm font-medium text-[#6e6e73]">
               Have a private team code? Enter it in the top bar above to join
               directly.
             </p>
           </div>
 
           {publicTeams.length === 0 ? (
-            <div className="bg-white rounded-3xl p-14 text-center border border-black/5">
+            <div className="bg-white rounded-3xl p-14 text-center border border-[#1D1D1F]/[0.07]">
               <Users className="w-12 h-12 text-[#C84200]/40 mx-auto mb-3" />
               <h3 className="text-2xl font-black text-[#1D1D1F] mb-2">
                 Start the first Public Sabha Team
               </h3>
-              <p className="text-sm text-[#86868b] max-w-md mx-auto mb-6">
+              <p className="text-base text-[#6e6e73] max-w-md mx-auto mb-6 leading-relaxed">
                 Create a reading team and share your invite code with classmates
                 or fellow readers.
               </p>
@@ -266,77 +276,77 @@ function SabhaTeamCard({
   return (
     <Link
       href={`/clubs/${club.id}`}
-      className="group bg-white rounded-3xl p-6 shadow-xs border border-[#1D1D1F]/10 hover:shadow-xl hover:border-[#C84200]/35 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+      className="group bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-[#1D1D1F]/[0.07] hover:shadow-xl hover:border-[#C84200]/35 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
     >
       <div>
         <div className="flex items-center justify-between gap-2 mb-4">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             {club.isPrivate ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-black uppercase">
-                <Lock className="w-3 h-3" /> Private Team
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-black uppercase">
+                <Lock className="w-3.5 h-3.5" /> Private Team
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FAF6F0] text-[#C84200] text-[10px] font-black uppercase">
-                <Globe className="w-3 h-3" /> Public Team
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF6F0] text-[#C84200] text-xs font-black uppercase">
+                <Globe className="w-3.5 h-3.5" /> Public Team
               </span>
             )}
             {isMember && (
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase">
+              <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-black uppercase">
                 Joined
               </span>
             )}
           </div>
 
-          <span className="inline-flex items-center gap-1 text-xs font-bold text-[#86868b]">
-            <Users className="w-3.5 h-3.5" /> {club._count.members}/
+          <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[#6e6e73]">
+            <Users className="w-4 h-4" /> {club._count.members}/
             {club.maxMembers || 25}
           </span>
         </div>
 
-        <h3 className="text-xl font-black text-[#1D1D1F] group-hover:text-[#C84200] transition-colors leading-snug mb-2">
+        <h3 className="text-xl sm:text-2xl font-black text-[#1D1D1F] group-hover:text-[#C84200] transition-colors leading-snug mb-3">
           {club.name}
         </h3>
 
-        <div className="p-3.5 rounded-2xl bg-[#FAF6F0] border border-black/5 mb-4">
-          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-[#C84200] mb-0.5">
-            <BookOpen className="w-3 h-3" /> Current Book
+        <div className="p-4 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.06] mb-4">
+          <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-[#C84200] mb-1">
+            <BookOpen className="w-3.5 h-3.5" /> Current Book
           </div>
-          <p className="text-sm font-bold text-[#1D1D1F] truncate">
+          <p className="text-base font-bold text-[#1D1D1F] truncate">
             {club.bookTitle}
           </p>
-          <p className="text-xs text-[#86868b] font-medium truncate">
+          <p className="text-sm text-[#6e6e73] font-medium truncate">
             by {club.bookAuthor}
           </p>
         </div>
 
-        <p className="text-xs sm:text-sm text-[#6e6e73] line-clamp-2 leading-relaxed mb-5">
+        <p className="text-sm sm:text-[15px] text-[#525257] line-clamp-2 leading-relaxed mb-5">
           {club.description}
         </p>
       </div>
 
-      <div className="pt-4 border-t border-black/5 space-y-3">
+      <div className="pt-4 border-t border-[#1D1D1F]/[0.06] space-y-3">
         <div className="flex items-center justify-between gap-2">
           {club.inviteCode && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#1D1D1F] text-white font-mono text-[11px] font-bold tracking-wider">
-              <KeyRound className="w-3 h-3 text-[#C84200]" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1D1D1F] text-white font-mono text-xs font-bold tracking-wider shrink-0">
+              <KeyRound className="w-3.5 h-3.5 text-[#FF8A4C]" />
               {club.inviteCode}
             </span>
           )}
           {club.scheduleText && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#86868b] truncate">
-              <Calendar className="w-3 h-3 text-[#C84200] shrink-0" />
+            <span className="inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-semibold text-[#6e6e73] truncate">
+              <Calendar className="w-3.5 h-3.5 text-[#C84200] shrink-0" />
               <span className="truncate">{club.scheduleText}</span>
             </span>
           )}
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#86868b]">
-            <MessageSquare className="w-3.5 h-3.5" /> {club._count.posts}{" "}
+          <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[#6e6e73]">
+            <MessageSquare className="w-4 h-4" /> {club._count.posts}{" "}
             reflections
           </span>
-          <span className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider text-[#C84200]">
-            Open Team <ArrowRight className="w-3.5 h-3.5" />
+          <span className="inline-flex items-center gap-1.5 text-sm font-black text-[#C84200]">
+            Open Team <ArrowRight className="w-4 h-4" />
           </span>
         </div>
       </div>

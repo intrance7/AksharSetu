@@ -246,17 +246,17 @@ export function AdminConsoleClient({
               key={t.id}
               type="button"
               onClick={() => setTab(t.id)}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-[13px] font-bold whitespace-nowrap transition-colors cursor-pointer ${
                 active
                   ? "bg-[#1D1D1F] text-white shadow-sm"
-                  : "bg-white text-[#1D1D1F] hover:bg-black/5 border border-black/10"
+                  : "bg-white text-[#1D1D1F] hover:bg-[#FAF6F0] border border-[#1D1D1F]/[0.08]"
               }`}
             >
-              <Icon className="w-3.5 h-3.5" />
+              <Icon className="w-4 h-4" />
               <span>{t.label}</span>
               <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                  active ? "bg-white/20 text-white" : "bg-[#F2EBE1] text-[#1D1D1F]"
+                className={`px-2 py-0.5 rounded-full font-mono text-xs font-bold ${
+                  active ? "bg-white/20 text-white" : "bg-[#FAF6F0] text-[#1D1D1F]"
                 }`}
               >
                 {t.count}
@@ -268,20 +268,20 @@ export function AdminConsoleClient({
 
       {/* TAB 1: DONATIONS PIPELINE */}
       {tab === "donations" && (
-        <div className="bg-white rounded-3xl p-6 md:p-8 border border-black/5 shadow-sm">
+        <div className="bg-white rounded-3xl p-6 md:p-8 border border-[#1D1D1F]/[0.07] shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
             <div>
-              <h2 className="text-xl font-black text-[#1D1D1F]">
+              <h2 className="text-2xl font-bold text-[#1D1D1F] tracking-tight">
                 Vidya Daan 6-Stage Logistics Pipeline
               </h2>
-              <p className="text-xs text-[#86868b] font-medium mt-1">
+              <p className="text-sm text-[#5E5E63] mt-1">
                 Advancing a stage sends a real-time notification to the donor and updates their public certificate.
               </p>
             </div>
           </div>
 
           {donations.length === 0 ? (
-            <div className="py-12 text-center text-[#86868b] text-sm font-medium">
+            <div className="py-12 text-center text-[#5E5E63] text-sm font-medium">
               No book donations recorded yet.
             </div>
           ) : (
@@ -289,22 +289,22 @@ export function AdminConsoleClient({
               {donations.map((d) => (
                 <div
                   key={d.id}
-                  className="p-4 rounded-2xl bg-[#FAF6F0] border border-black/5 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                  className="p-4.5 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.06] flex flex-col md:flex-row md:items-center justify-between gap-4"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-white border border-black/10 text-[#1D1D1F]">
+                      <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-full bg-white border border-[#1D1D1F]/10 text-[#1D1D1F]">
                         #{d.trackingId}
                       </span>
-                      <span className="text-xs font-bold text-[#0066cc]">
+                      <span className="text-xs sm:text-[13px] font-bold text-[#C84200]">
                         {d.campaign
                           ? `${d.campaign.title} (${d.campaign.ngoName})`
                           : "General Literacy Pool"}
                       </span>
                     </div>
-                    <h4 className="font-bold text-sm text-[#1D1D1F]">
+                    <h4 className="font-bold text-base text-[#1D1D1F]">
                       {d.book?.title || "Book Pledge"} —{" "}
-                      <span className="text-[#86868b] font-medium">
+                      <span className="text-[#5E5E63] font-medium text-sm">
                         Donated by {d.donor?.name || d.donor?.email || "Reader"}
                       </span>
                     </h4>
@@ -315,7 +315,7 @@ export function AdminConsoleClient({
                       value={d.status}
                       disabled={busyId === d.id}
                       onChange={(e) => handleDonationStage(d.id, e.target.value)}
-                      className="h-9 rounded-full bg-white border border-black/15 px-4 text-xs font-bold text-[#1D1D1F] outline-none focus:border-[#0066cc] cursor-pointer"
+                      className="h-10 rounded-full bg-white border border-[#1D1D1F]/15 px-4 text-xs sm:text-[13px] font-bold text-[#1D1D1F] outline-none focus:border-[#C84200] cursor-pointer"
                     >
                       {DONATION_STAGES.map((st) => (
                         <option key={st} value={st}>
@@ -326,9 +326,9 @@ export function AdminConsoleClient({
 
                     <Link
                       href={`/donations/track/${d.trackingId}`}
-                      className="inline-flex items-center gap-1 px-3.5 py-2 rounded-full bg-white hover:bg-black/5 border border-black/10 text-xs font-bold text-[#1D1D1F]"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white hover:bg-[#EFE7DC] border border-[#1D1D1F]/10 text-xs sm:text-[13px] font-bold text-[#1D1D1F]"
                     >
-                      Certificate <ExternalLink className="w-3 h-3" />
+                      Certificate <ExternalLink className="w-3.5 h-3.5" />
                     </Link>
                   </div>
                 </div>
@@ -450,7 +450,7 @@ export function AdminConsoleClient({
               Existing Campaigns ({campaigns.length})
             </h2>
             {campaigns.length === 0 ? (
-              <p className="text-sm text-[#86868b] py-8 text-center">
+              <p className="text-sm text-[#5E5E63] py-8 text-center">
                 No NGO campaigns created yet. Launch your first drive on the left!
               </p>
             ) : (
@@ -462,7 +462,7 @@ export function AdminConsoleClient({
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <span
-                        className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${
+                        className={`text-xs font-black uppercase px-2.5 py-0.5 rounded-full ${
                           c.status === "ACTIVE"
                             ? "bg-emerald-100 text-emerald-800"
                             : "bg-gray-200 text-gray-700"
@@ -477,7 +477,7 @@ export function AdminConsoleClient({
                     <h4 className="font-bold text-sm text-[#1D1D1F] mt-1">
                       {c.title}
                     </h4>
-                    <p className="text-xs text-[#86868b]">
+                    <p className="text-xs text-[#5E5E63]">
                       Progress: {c.currentBooks} / {c.targetBooks} books pledged
                     </p>
                   </div>
@@ -543,17 +543,17 @@ export function AdminConsoleClient({
                   />
                 ) : (
                   <div className="w-16 h-22 bg-white rounded-lg shrink-0 flex items-center justify-center border border-black/5">
-                    <BookOpen className="w-5 h-5 text-[#86868b]" />
+                    <BookOpen className="w-5 h-5 text-[#5E5E63]" />
                   </div>
                 )}
 
                 <div className="flex-1 min-w-0 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-white text-[#1D1D1F]">
+                      <span className="text-xs font-black uppercase px-2 py-0.5 rounded-full bg-white text-[#1D1D1F]">
                         {b.status}
                       </span>
-                      <span className="text-[10px] font-bold uppercase text-[#C84200]">
+                      <span className="text-xs font-bold uppercase text-[#C84200]">
                         {b.price === 0 ? "Free" : `₹${b.price}`}
                       </span>
                     </div>
@@ -563,7 +563,7 @@ export function AdminConsoleClient({
                     >
                       {b.title}
                     </Link>
-                    <p className="text-xs text-[#86868b] truncate">
+                    <p className="text-xs text-[#5E5E63] truncate">
                       By {b.author} · Listed by {b.owner?.name || "Reader"}
                     </p>
                   </div>
@@ -645,16 +645,16 @@ export function AdminConsoleClient({
                           {u.name || "Reader"}
                         </Link>
                         <span
-                          className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                          className={`text-xs font-black uppercase px-2 py-0.5 rounded-full ${
                             u.role === "ADMIN"
                               ? "bg-[#C84200] text-white"
-                              : "bg-white text-[#86868b]"
+                              : "bg-white text-[#5E5E63]"
                           }`}
                         >
                           {u.role}
                         </span>
                       </div>
-                      <p className="text-xs text-[#86868b]">
+                      <p className="text-xs text-[#5E5E63]">
                         {u.email} · {u.sellerRating?.toFixed(1) || "5.0"}★ Trust
                       </p>
                     </div>
@@ -767,14 +767,14 @@ export function AdminConsoleClient({
                     setNewBadge((p) => ({ ...p, name: e.target.value }))
                   }
                   placeholder="Achievement Name"
-                  className="rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-bold"
+                  className="rounded-xl bg-[#FAF6F0] px-3.5 py-2.5 text-xs font-bold"
                 />
                 <select
                   value={newBadge.rarity}
                   onChange={(e) =>
                     setNewBadge((p) => ({ ...p, rarity: e.target.value }))
                   }
-                  className="rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-bold"
+                  className="rounded-xl bg-[#FAF6F0] px-3.5 py-2.5 text-xs font-bold"
                 >
                   {[
                     "COMMON",
@@ -794,7 +794,7 @@ export function AdminConsoleClient({
                   onChange={(e) =>
                     setNewBadge((p) => ({ ...p, category: e.target.value }))
                   }
-                  className="rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-bold"
+                  className="rounded-xl bg-[#FAF6F0] px-3.5 py-2.5 text-xs font-bold"
                 >
                   {[
                     "READING",
@@ -820,7 +820,7 @@ export function AdminConsoleClient({
                     }))
                   }
                   placeholder="XP Reward"
-                  className="rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-bold"
+                  className="rounded-xl bg-[#FAF6F0] px-3.5 py-2.5 text-xs font-bold"
                 />
               </div>
               <input
@@ -830,7 +830,7 @@ export function AdminConsoleClient({
                   setNewBadge((p) => ({ ...p, description: e.target.value }))
                 }
                 placeholder="Unlock requirement description..."
-                className="w-full rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-medium"
+                className="w-full rounded-xl bg-[#FAF6F0] px-3.5 py-2.5 text-xs font-medium"
               />
               <button
                 type="submit"
@@ -871,7 +871,7 @@ export function AdminConsoleClient({
                   onChange={(e) =>
                     setXpAdjust((p) => ({ ...p, targetUserId: e.target.value }))
                   }
-                  className="rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-bold"
+                  className="rounded-xl bg-[#FAF6F0] px-3.5 py-2.5 text-xs font-bold"
                 >
                   {users.map((u) => (
                     <option key={u.id} value={u.id}>
@@ -889,7 +889,7 @@ export function AdminConsoleClient({
                     }))
                   }
                   placeholder="XP Delta (e.g. 50 or -50)"
-                  className="rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-bold"
+                  className="rounded-xl bg-[#FAF6F0] px-3.5 py-2.5 text-xs font-bold"
                 />
               </div>
               <input
@@ -899,7 +899,7 @@ export function AdminConsoleClient({
                   setXpAdjust((p) => ({ ...p, reason: e.target.value }))
                 }
                 placeholder="Mandatory audit reason (e.g., Campus Book Drive winner)..."
-                className="w-full rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-medium"
+                className="w-full rounded-xl bg-[#FAF6F0] px-3.5 py-2.5 text-xs font-medium"
               />
               <button
                 type="submit"
@@ -917,10 +917,10 @@ export function AdminConsoleClient({
             </h3>
             {!gamificationData ? (
               <div className="py-8 flex justify-center">
-                <Loader2 className="w-5 h-5 animate-spin text-[#86868b]" />
+                <Loader2 className="w-5 h-5 animate-spin text-[#5E5E63]" />
               </div>
             ) : gamificationData.recentTx.length === 0 ? (
-              <p className="text-xs text-[#86868b]">
+              <p className="text-xs text-[#5E5E63]">
                 No XP transactions recorded yet.
               </p>
             ) : (
@@ -935,13 +935,13 @@ export function AdminConsoleClient({
                         {tx.user?.name || tx.user?.email || "Reader"} ·{" "}
                         <span className="text-[#0066cc]">{tx.eventType}</span>
                       </p>
-                      <p className="text-[#86868b]">{tx.description}</p>
+                      <p className="text-[#5E5E63]">{tx.description}</p>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <span
                         className={`font-black ${
                           tx.reversedAt
-                            ? "line-through text-[#86868b]"
+                            ? "line-through text-[#5E5E63]"
                             : "text-[#0066cc]"
                         }`}
                       >
@@ -969,7 +969,7 @@ export function AdminConsoleClient({
                           <RotateCcw className="w-3 h-3" /> Reverse
                         </button>
                       ) : (
-                        <span className="text-[10px] font-bold text-red-600 uppercase">
+                        <span className="text-xs font-bold text-red-600 uppercase">
                           Reversed
                         </span>
                       )}
@@ -1023,7 +1023,7 @@ export function AdminConsoleClient({
                 setArticleForm((p) => ({ ...p, slug: e.target.value }))
               }
               placeholder="URL Slug (e.g. campus-pickup-tips)"
-              className="w-full rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-bold"
+              className="w-full rounded-xl bg-[#FAF6F0] px-3.5 py-2.5 text-xs font-bold"
             />
             <input
               required
@@ -1032,14 +1032,14 @@ export function AdminConsoleClient({
                 setArticleForm((p) => ({ ...p, title: e.target.value }))
               }
               placeholder="Article Title"
-              className="w-full rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-bold"
+              className="w-full rounded-xl bg-[#FAF6F0] px-3.5 py-2.5 text-xs font-bold"
             />
             <select
               value={articleForm.categorySlug}
               onChange={(e) =>
                 setArticleForm((p) => ({ ...p, categorySlug: e.target.value }))
               }
-              className="w-full rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-bold"
+              className="w-full rounded-xl bg-[#FAF6F0] px-3.5 py-2.5 text-xs font-bold"
             >
               <option value="getting-started">Getting Started</option>
               <option value="account-and-profiles">Account & Profiles</option>
@@ -1078,7 +1078,7 @@ export function AdminConsoleClient({
                 setArticleForm((p) => ({ ...p, summary: e.target.value }))
               }
               placeholder="Short summary for search cards"
-              className="w-full rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-xs font-medium"
+              className="w-full rounded-xl bg-[#FAF6F0] px-3.5 py-2.5 text-xs font-medium"
             />
             <textarea
               rows={4}
@@ -1091,7 +1091,7 @@ export function AdminConsoleClient({
                 }))
               }
               placeholder="Article paragraphs (separate paragraphs with a blank line)..."
-              className="w-full rounded-xl bg-[#f5f5f7] p-3.5 text-xs font-medium"
+              className="w-full rounded-xl bg-[#FAF6F0] p-3.5 text-xs font-medium"
             />
             <button
               type="submit"
@@ -1108,10 +1108,10 @@ export function AdminConsoleClient({
             </h3>
             {!supportData ? (
               <div className="py-8 flex justify-center">
-                <Loader2 className="w-5 h-5 animate-spin text-[#86868b]" />
+                <Loader2 className="w-5 h-5 animate-spin text-[#5E5E63]" />
               </div>
             ) : supportData.allTickets.length === 0 ? (
-              <p className="text-xs text-[#86868b] py-6 text-center">
+              <p className="text-xs text-[#5E5E63] py-6 text-center">
                 No support tickets in the queue.
               </p>
             ) : (
@@ -1119,7 +1119,7 @@ export function AdminConsoleClient({
                 {supportData.allTickets.map((t: any) => (
                   <div
                     key={t.id}
-                    className="rounded-2xl bg-[#f5f5f7] p-4 space-y-2.5 text-xs"
+                    className="rounded-2xl bg-[#FAF6F0] p-4 space-y-2.5 text-xs"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-mono font-bold text-[#0066cc]">
@@ -1143,7 +1143,7 @@ export function AdminConsoleClient({
                             loadSupportAdmin()
                           }
                         }}
-                        className="rounded-full bg-white px-3 py-1 text-[11px] font-bold border border-black/10"
+                        className="rounded-full bg-white px-3 py-1 text-xs font-bold border border-black/10"
                       >
                         {[
                           "OPEN",
@@ -1160,7 +1160,7 @@ export function AdminConsoleClient({
                     </div>
                     <div className="font-bold text-[#1d1d1f]">{t.subject}</div>
                     <p className="text-[#6e6e73]">{t.description}</p>
-                    <div className="text-[11px] text-[#86868b]">
+                    <div className="text-xs text-[#5E5E63]">
                       From: {t.contactEmail}
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2 pt-1">

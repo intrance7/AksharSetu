@@ -9,7 +9,6 @@ import {
   Loader2,
   Search,
   MapPin,
-  Sparkles,
   BookOpen,
   Quote,
   ArrowUpRight,
@@ -214,39 +213,45 @@ export function ConversationList() {
     <div className="flex flex-col gap-5">
       {/* Top Search & Mode Switcher Bar (hidden on mobile when actively inside a thread) */}
       <div
-        className={`bg-white rounded-2xl p-3.5 sm:p-4 border border-black/5 shadow-sm space-y-3 ${
+        className={`bg-white rounded-3xl p-4 sm:p-5 border border-[#1D1D1F]/[0.07] shadow-sm space-y-3.5 ${
           selectedThread ? "hidden lg:block" : "block"
         }`}
       >
         <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
           <div className="relative flex-1 min-w-0">
-            <Search className="w-4 h-4 text-[#86868b] absolute left-4 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[#6E6E73] absolute left-4 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search chats, @usernames, books, or readers..."
-              className="w-full h-11 pl-11 pr-4 rounded-full bg-[#FAF6F0] text-sm font-medium text-[#1D1D1F] placeholder:text-[#86868b] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] border border-black/5 transition-all"
+              className="w-full h-12 pl-11 pr-4 rounded-full bg-[#FAF6F0] text-sm sm:text-[15px] font-medium text-[#1D1D1F] placeholder:text-[#6E6E73] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#C84200]/15 focus:border-[#C84200] border border-[#1D1D1F]/[0.08] transition-all"
             />
           </div>
 
-          <div className="grid grid-cols-2 sm:flex items-center bg-[#FAF6F0] p-1 rounded-full border border-black/5 shrink-0">
+          <div className="grid grid-cols-2 sm:flex items-center bg-[#FAF6F0] p-1 rounded-full border border-[#1D1D1F]/[0.07] shrink-0">
             <button
               type="button"
               onClick={() => setActiveTab("chats")}
-              className={`px-3.5 sm:px-4 py-2 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-4 py-2.5 rounded-full text-xs sm:text-[13px] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
                 activeTab === "chats"
-                  ? "bg-[#1D1D1F] text-white shadow-sm"
-                  : "text-[#86868b] hover:text-[#1D1D1F]"
+                  ? "bg-[#1D1D1F] text-white shadow-xs"
+                  : "text-[#5E5E63] hover:text-[#1D1D1F]"
               }`}
             >
               <MessageSquare className="w-3.5 h-3.5 shrink-0" />
               <span>Chats</span>
-              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-white/15">
+              <span
+                className={`px-2 py-0.5 rounded-full font-mono text-xs ${
+                  activeTab === "chats"
+                    ? "bg-white/15 text-white"
+                    : "bg-[#1D1D1F]/[0.06] text-[#1D1D1F]"
+                }`}
+              >
                 {conversations.length}
               </span>
               {totalUnread > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-[#C84200] text-white">
+                <span className="px-2 py-0.5 rounded-full font-mono text-xs bg-[#C84200] text-white">
                   {totalUnread}
                 </span>
               )}
@@ -254,15 +259,21 @@ export function ConversationList() {
             <button
               type="button"
               onClick={() => setActiveTab("discover")}
-              className={`px-3.5 sm:px-4 py-2 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-4 py-2.5 rounded-full text-xs sm:text-[13px] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
                 activeTab === "discover"
-                  ? "bg-[#C84200] text-white shadow-sm"
-                  : "text-[#86868b] hover:text-[#1D1D1F]"
+                  ? "bg-[#C84200] text-white shadow-xs"
+                  : "text-[#5E5E63] hover:text-[#1D1D1F]"
               }`}
             >
               <Users className="w-3.5 h-3.5 shrink-0" />
               <span>Find Readers</span>
-              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-black/10">
+              <span
+                className={`px-2 py-0.5 rounded-full font-mono text-xs ${
+                  activeTab === "discover"
+                    ? "bg-white/20 text-white"
+                    : "bg-[#1D1D1F]/[0.06] text-[#1D1D1F]"
+                }`}
+              >
                 {readers.length}
               </span>
             </button>
@@ -271,7 +282,7 @@ export function ConversationList() {
 
         {/* Filter Chips: All | Unread | Buying | Selling | Archived */}
         {activeTab === "chats" && (
-          <div className="flex items-center gap-1.5 overflow-x-auto pt-0.5 scrollbar-hide">
+          <div className="flex items-center gap-2 overflow-x-auto pt-0.5 scrollbar-hide">
             {(
               [
                 { id: "all", label: "All Conversations" },
@@ -285,10 +296,10 @@ export function ConversationList() {
                 key={f.id}
                 type="button"
                 onClick={() => setActiveFilter(f.id)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
+                className={`px-4 py-1.5 rounded-full text-xs sm:text-[13px] font-semibold transition-colors whitespace-nowrap cursor-pointer ${
                   activeFilter === f.id
-                    ? "bg-[#0066cc] text-white"
-                    : "bg-[#FAF6F0] text-[#86868b] hover:text-[#1d1d1f]"
+                    ? "bg-[#C84200] text-white shadow-xs"
+                    : "bg-[#FAF6F0] text-[#5E5E63] hover:text-[#1D1D1F] border border-[#1D1D1F]/[0.06]"
                 }`}
               >
                 {f.label}
@@ -300,53 +311,53 @@ export function ConversationList() {
 
       {/* TAB 1: SPLIT-PANE INBOX (Desktop Split Pane + Smooth Mobile List <-> Thread Switch) */}
       {activeTab === "chats" && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:h-[calc(100vh-15.5rem)] lg:min-h-[540px]">
-          {/* LEFT PANE: Conversation List (full width on mobile when no thread active; 4 cols on desktop) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:h-[calc(100vh-17rem)] lg:min-h-[540px]">
+          {/* LEFT PANE: Conversation List */}
           <div
             className={`${
               selectedThread ? "hidden lg:flex" : "flex"
-            } lg:col-span-4 flex-col bg-white rounded-2xl border border-black/5 shadow-sm overflow-hidden`}
+            } lg:col-span-4 flex-col bg-white rounded-3xl border border-[#1D1D1F]/[0.07] shadow-sm overflow-hidden`}
           >
-            <div className="px-4 py-3 border-b border-black/5 flex items-center justify-between shrink-0 bg-[#FAF6F0]/60">
-              <span className="text-xs font-black uppercase tracking-wider text-[#1D1D1F]">
+            <div className="px-5 py-3.5 border-b border-[#1D1D1F]/[0.06] flex items-center justify-between shrink-0 bg-[#FAF6F0]/80">
+              <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#1D1D1F]">
                 Inbox ({conversations.length})
               </span>
               <button
                 type="button"
                 onClick={() => setActiveTab("discover")}
-                className="text-xs font-bold text-[#C84200] hover:underline cursor-pointer"
+                className="text-xs sm:text-[13px] font-bold text-[#C84200] hover:underline cursor-pointer"
               >
                 + New Message
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto divide-y divide-black/5">
+            <div className="flex-1 overflow-y-auto divide-y divide-[#1D1D1F]/[0.06]">
               {loadingConvos ? (
                 <div className="flex items-center justify-center py-20">
                   <Loader2 className="w-6 h-6 animate-spin text-[#1D1D1F]/30" />
                 </div>
               ) : conversations.length === 0 ? (
                 <div className="p-8 text-center">
-                  <div className="w-12 h-12 rounded-full bg-[#FAF6F0] flex items-center justify-center mx-auto mb-3">
-                    <MessageSquare className="w-5 h-5 text-[#86868b]" />
+                  <div className="w-14 h-14 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.06] flex items-center justify-center mx-auto mb-3.5">
+                    <MessageSquare className="w-6 h-6 text-[#C84200]" />
                   </div>
-                  <h2 className="text-base font-black text-[#1D1D1F] mb-1">
+                  <h2 className="text-lg font-bold text-[#1D1D1F] mb-1">
                     {searchQuery
                       ? "No matching chats"
                       : activeFilter !== "all"
                       ? `No ${activeFilter} chats`
                       : "No conversations yet"}
                   </h2>
-                  <p className="text-[#86868b] font-medium text-xs max-w-xs mx-auto mb-5">
-                    Message any seller from a listing or connect with fellow
-                    readers.
+                  <p className="text-[#5E5E63] text-sm max-w-xs mx-auto mb-5 leading-relaxed">
+                    Message any seller from a listing or connect directly with
+                    fellow readers.
                   </p>
                   <button
                     type="button"
                     onClick={() => setActiveTab("discover")}
-                    className="inline-flex items-center gap-2 bg-[#C84200] hover:bg-[#A33500] text-white px-5 py-2.5 rounded-full font-bold text-xs transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-2 bg-[#C84200] hover:bg-[#A33500] text-white px-5 py-2.5 rounded-full font-bold text-xs sm:text-sm transition-colors cursor-pointer"
                   >
-                    <Users className="w-3.5 h-3.5" /> Start a New Message
+                    <Users className="w-4 h-4" /> Start a New Message
                   </button>
                 </div>
               ) : (
@@ -363,13 +374,16 @@ export function ConversationList() {
                       key={conv.id}
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: Math.min(i * 0.02, 0.2), duration: 0.18 }}
-                      className={`flex items-center gap-3 p-3.5 transition-colors ${
+                      transition={{
+                        delay: Math.min(i * 0.02, 0.2),
+                        duration: 0.18,
+                      }}
+                      className={`flex items-center gap-3.5 p-4 transition-colors ${
                         isSelected
-                          ? "bg-[#0066cc]/8 border-l-4 border-[#0066cc]"
+                          ? "bg-[#FAF6F0] border-l-4 border-[#C84200]"
                           : hasUnread
                           ? "bg-[#C84200]/[0.04] hover:bg-[#FAF6F0]"
-                          : "hover:bg-[#FAF6F0]/80"
+                          : "hover:bg-[#FAF6F0]/75"
                       }`}
                     >
                       {/* Avatar */}
@@ -382,7 +396,7 @@ export function ConversationList() {
                             conv.id
                           )
                         }
-                        className="relative w-12 h-12 rounded-full bg-[#1D1D1F] flex items-center justify-center shrink-0 overflow-hidden cursor-pointer"
+                        className="relative w-12 h-12 rounded-full bg-[#1D1D1F] flex items-center justify-center shrink-0 overflow-hidden cursor-pointer ring-2 ring-[#FAF6F0]"
                       >
                         {conv.otherUser.image ? (
                           // eslint-disable-next-line @next/next/no-img-element
@@ -392,7 +406,7 @@ export function ConversationList() {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <span className="text-white font-black text-base">
+                          <span className="text-white font-bold text-base">
                             {(conv.otherUser.name || "R")
                               .charAt(0)
                               .toUpperCase()}
@@ -403,7 +417,7 @@ export function ConversationList() {
                         )}
                       </button>
 
-                      {/* Main Conversation Row (clicks into thread seamlessly!) */}
+                      {/* Main Conversation Row */}
                       <button
                         type="button"
                         onClick={() =>
@@ -418,16 +432,16 @@ export function ConversationList() {
                         <div className="flex items-center justify-between gap-2 mb-0.5">
                           <div className="flex items-center gap-1.5 min-w-0">
                             {conv.isPinned && (
-                              <Pin className="w-3 h-3 text-[#0066cc] shrink-0" />
+                              <Pin className="w-3.5 h-3.5 text-[#C84200] shrink-0" />
                             )}
-                            <h3 className="font-bold text-[#1D1D1F] text-sm truncate">
+                            <h3 className="font-bold text-[#1D1D1F] text-[15px] truncate">
                               {conv.otherUser.name}
                             </h3>
                             {conv.isMuted && (
-                              <BellOff className="w-3 h-3 text-[#86868b] shrink-0" />
+                              <BellOff className="w-3.5 h-3.5 text-[#6E6E73] shrink-0" />
                             )}
                           </div>
-                          <span className="text-[10px] font-medium text-[#86868b] shrink-0">
+                          <span className="font-mono text-xs text-[#6E6E73] shrink-0">
                             {formatDistanceToNow(
                               new Date(conv.lastMessage.createdAt),
                               { addSuffix: false }
@@ -436,32 +450,34 @@ export function ConversationList() {
                         </div>
 
                         {conv.book && (
-                          <p className="text-[11px] font-bold text-[#0066cc] truncate mb-0.5">
+                          <p className="text-xs font-semibold text-[#C84200] truncate mb-0.5">
                             {conv.book.title} ·{" "}
-                            {conv.book.price === 0
-                              ? "Free / Swap"
-                              : `₹${conv.book.price}`}
+                            <span className="font-mono">
+                              {conv.book.price === 0
+                                ? "Free / Swap"
+                                : `₹${conv.book.price}`}
+                            </span>
                           </p>
                         )}
 
                         <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-1 min-w-0">
+                          <div className="flex items-center gap-1.5 min-w-0">
                             {conv.lastMessage.isMine && (
                               <span className="inline-flex items-center shrink-0">
                                 {conv.lastMessage.state === "read" ? (
-                                  <CheckCheck className="w-3.5 h-3.5 text-[#0066cc]" />
+                                  <CheckCheck className="w-3.5 h-3.5 text-[#C84200]" />
                                 ) : conv.lastMessage.state === "delivered" ? (
-                                  <CheckCheck className="w-3.5 h-3.5 text-[#86868b]" />
+                                  <CheckCheck className="w-3.5 h-3.5 text-[#6E6E73]" />
                                 ) : (
-                                  <Check className="w-3.5 h-3.5 text-[#86868b]" />
+                                  <Check className="w-3.5 h-3.5 text-[#6E6E73]" />
                                 )}
                               </span>
                             )}
                             <p
-                              className={`text-xs truncate ${
+                              className={`text-[13px] truncate ${
                                 hasUnread
-                                  ? "font-bold text-[#1D1D1F]"
-                                  : "font-medium text-[#86868b]"
+                                  ? "font-semibold text-[#1D1D1F]"
+                                  : "font-normal text-[#5E5E63]"
                               }`}
                             >
                               {conv.lastMessage.isMine && "You: "}
@@ -470,7 +486,7 @@ export function ConversationList() {
                           </div>
 
                           {hasUnread && (
-                            <span className="min-w-[18px] h-[18px] px-1.5 rounded-full bg-[#C84200] text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+                            <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-[#C84200] text-white font-mono text-xs font-bold flex items-center justify-center shrink-0">
                               {conv.unreadCount}
                             </span>
                           )}
@@ -488,13 +504,13 @@ export function ConversationList() {
                             })
                           }}
                           title={conv.isPinned ? "Unpin" : "Pin conversation"}
-                          className={`p-1.5 rounded-full transition-colors cursor-pointer ${
+                          className={`p-2 rounded-full transition-colors cursor-pointer ${
                             conv.isPinned
-                              ? "bg-[#0066cc]/10 text-[#0066cc]"
-                              : "bg-[#FAF6F0] hover:bg-[#e8e8ed] text-[#86868b]"
+                              ? "bg-[#C84200]/12 text-[#C84200]"
+                              : "bg-[#FAF6F0] hover:bg-[#EFE7DC] text-[#6E6E73]"
                           }`}
                         >
-                          <Pin className="w-3 h-3" />
+                          <Pin className="w-3.5 h-3.5" />
                         </button>
                         <button
                           type="button"
@@ -505,11 +521,13 @@ export function ConversationList() {
                             })
                           }}
                           title={
-                            conv.isArchived ? "Unarchive" : "Archive conversation"
+                            conv.isArchived
+                              ? "Unarchive"
+                              : "Archive conversation"
                           }
-                          className="p-1.5 rounded-full bg-[#FAF6F0] hover:bg-[#e8e8ed] text-[#86868b] transition-colors cursor-pointer"
+                          className="p-2 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] text-[#6E6E73] transition-colors cursor-pointer"
                         >
-                          <Archive className="w-3 h-3" />
+                          <Archive className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </motion.div>
@@ -519,7 +537,7 @@ export function ConversationList() {
             </div>
           </div>
 
-          {/* RIGHT PANE: Active Thread (full width on mobile when selected; 8 cols on desktop) */}
+          {/* RIGHT PANE: Active Thread */}
           <div
             className={`${
               selectedThread
@@ -536,21 +554,24 @@ export function ConversationList() {
                 onBack={() => setSelectedThread(null)}
               />
             ) : (
-              <div className="h-full bg-white rounded-2xl border border-black/5 shadow-sm flex flex-col items-center justify-center p-10 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-[#1D1D1F] text-white flex items-center justify-center mb-5 shadow-md">
-                  <MessageSquare className="w-7 h-7 text-[#C84200]" />
+              <div className="h-full bg-white rounded-3xl border border-[#1D1D1F]/[0.07] shadow-sm flex flex-col items-center justify-center p-10 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-[#0B0B0D] text-white flex items-center justify-center mb-5 shadow-md">
+                  <MessageSquare className="w-7 h-7 text-[#FF7F45]" />
                 </div>
-                <h2 className="text-2xl font-black text-[#1D1D1F] tracking-tight mb-2">
-                  Select a conversation
+                <h2 className="text-2xl sm:text-3xl font-bold text-[#1D1D1F] tracking-tight mb-2">
+                  Select a{" "}
+                  <span className="font-serif italic font-medium text-[#C84200]">
+                    Conversation
+                  </span>
                 </h2>
-                <p className="text-sm text-[#86868b] max-w-sm mb-6 font-medium">
+                <p className="text-sm sm:text-[15px] text-[#5E5E63] max-w-md mb-6 leading-relaxed">
                   Choose any thread on the left to negotiate book prices, share
                   condition photos, or coordinate campus handoffs.
                 </p>
                 <button
                   type="button"
                   onClick={() => setActiveTab("discover")}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-xs font-bold transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-sm font-bold transition-colors cursor-pointer shadow-xs"
                 >
                   <Users className="w-4 h-4" /> Discover Community Readers
                 </button>
@@ -563,22 +584,22 @@ export function ConversationList() {
       {/* TAB 2 / DISCOVERY SECTION: Community Readers Directory */}
       {(activeTab === "discover" ||
         (!selectedThread && conversations.length === 0 && !loadingConvos)) && (
-        <div className="flex flex-col gap-4 pt-1">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-col gap-5 pt-2">
+          <div className="flex flex-wrap items-end justify-between gap-2">
             <div>
-              <h2 className="text-lg font-black text-[#1D1D1F] tracking-tight flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#C84200]" />
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1D1D1F] tracking-tight">
                 {searchQuery.trim()
                   ? `Matching Reader Profiles (${readers.length})`
                   : "Discover Community Readers"}
               </h2>
-              <p className="text-xs font-medium text-[#86868b]">
-                Explore reader profiles and start a real-time conversation.
+              <p className="text-sm text-[#5E5E63] mt-0.5">
+                Explore campus reader profiles and start a direct book
+                conversation.
               </p>
             </div>
             <Link
               href="/leaderboard?tab=directory"
-              className="text-xs font-bold text-[#0066cc] hover:underline flex items-center gap-1"
+              className="text-sm font-bold text-[#C84200] hover:underline flex items-center gap-1"
             >
               Full Directory &rarr;
             </Link>
@@ -589,22 +610,22 @@ export function ConversationList() {
               <Loader2 className="w-6 h-6 animate-spin text-[#1D1D1F]/30" />
             </div>
           ) : readers.length === 0 ? (
-            <div className="bg-white rounded-2xl p-8 text-center border border-black/5">
-              <p className="text-sm font-medium text-[#86868b]">
+            <div className="bg-white rounded-3xl p-10 text-center border border-[#1D1D1F]/[0.07]">
+              <p className="text-base font-medium text-[#5E5E63]">
                 No reader profiles matched &ldquo;{searchQuery}&rdquo;.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {readers.map((reader) => (
                 <div
                   key={reader.id}
-                  className="bg-white rounded-2xl p-5 border border-black/5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4"
+                  className="bg-white rounded-3xl p-6 border border-[#1D1D1F]/[0.07] shadow-sm hover:shadow-md hover:border-[#C84200]/30 transition-all flex flex-col justify-between gap-5"
                 >
                   <div className="flex items-start gap-3.5">
                     <Link
                       href={`/profile/${reader.id}`}
-                      className="relative w-12 h-12 rounded-full bg-[#1D1D1F] overflow-hidden shrink-0 flex items-center justify-center"
+                      className="relative w-12 h-12 rounded-full bg-[#1D1D1F] overflow-hidden shrink-0 flex items-center justify-center ring-2 ring-[#FAF6F0]"
                     >
                       {reader.image ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -614,68 +635,70 @@ export function ConversationList() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <span className="text-white font-black text-lg">
+                        <span className="text-white font-bold text-lg">
                           {reader.name.charAt(0).toUpperCase()}
                         </span>
                       )}
                     </Link>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Link
                           href={`/profile/${reader.id}`}
-                          className="font-black text-sm text-[#1D1D1F] hover:text-[#C84200] transition-colors truncate"
+                          className="font-bold text-base text-[#1D1D1F] hover:text-[#C84200] transition-colors truncate"
                         >
                           {reader.name}
                         </Link>
-                        <span className="px-2 py-0.5 rounded-full bg-[#C84200]/10 text-[#C84200] font-black text-[10px] uppercase tracking-wider">
+                        <span className="px-2.5 py-0.5 rounded-full bg-[#FAF6F0] border border-[#C84200]/20 text-[#C84200] font-mono font-bold text-xs">
                           LVL {reader.stats.level}
                         </span>
                       </div>
 
                       {reader.location && (
-                        <p className="text-[11px] font-bold text-[#86868b] flex items-center gap-1 mt-0.5 truncate">
-                          <MapPin className="w-3 h-3 text-[#C84200] shrink-0" />{" "}
+                        <p className="text-xs font-medium text-[#5E5E63] flex items-center gap-1 mt-1 truncate">
+                          <MapPin className="w-3.5 h-3.5 text-[#C84200] shrink-0" />{" "}
                           {reader.location}
                         </p>
                       )}
 
-                      <p className="text-xs font-medium text-[#1D1D1F]/70 line-clamp-2 mt-1.5">
+                      <p className="text-sm text-[#5E5E63] line-clamp-2 mt-2 leading-relaxed">
                         {reader.bio || "Fellow book lover on AksharSetu."}
                       </p>
 
                       {reader.favoriteQuote && (
-                        <p className="text-xs italic text-[#86868b] line-clamp-1 mt-2 flex items-center gap-1">
-                          <Quote className="w-3 h-3 text-[#C84200] shrink-0" />
-                          “{reader.favoriteQuote}”
-                        </p>
+                        <div className="mt-3 rounded-2xl bg-[#FAF6F0] px-3 py-2 border border-[#1D1D1F]/[0.05]">
+                          <p className="font-serif italic text-xs text-[#1D1D1F]/80 line-clamp-1 flex items-center gap-1.5">
+                            <Quote className="w-3 h-3 text-[#C84200] shrink-0" />
+                            “{reader.favoriteQuote}”
+                          </p>
+                        </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-black/5">
-                    <div className="flex items-center gap-2 text-[11px] font-bold text-[#86868b]">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-4 border-t border-[#1D1D1F]/[0.06]">
+                    <div className="flex items-center gap-2 font-mono text-xs font-semibold text-[#5E5E63]">
                       <span className="flex items-center gap-1">
-                        <BookOpen className="w-3 h-3 text-[#C84200]" />
+                        <BookOpen className="w-3.5 h-3.5 text-[#C84200]" />
                         {reader.stats.booksListed} listed
                       </span>
-                      <span>•</span>
+                      <span>·</span>
                       <span>{reader.stats.totalXP} XP</span>
                     </div>
 
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/profile/${reader.id}`}
-                        className="px-3 py-1.5 rounded-full bg-[#e8e8ed] hover:bg-[#d2d2d7] text-[#1D1D1F] text-xs font-bold transition-colors flex items-center gap-1"
+                        className="px-3.5 py-2 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] border border-[#1D1D1F]/[0.07] text-[#1D1D1F] text-xs font-bold transition-colors flex items-center gap-1"
                       >
-                        Profile <ArrowUpRight className="w-3 h-3" />
+                        Profile <ArrowUpRight className="w-3.5 h-3.5" />
                       </Link>
                       <button
                         type="button"
                         onClick={() => openThread(reader.id, null)}
-                        className="px-3.5 py-1.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="px-4 py-2 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
-                        <MessageSquare className="w-3 h-3" /> Message
+                        <MessageSquare className="w-3.5 h-3.5" /> Message
                       </button>
                     </div>
                   </div>

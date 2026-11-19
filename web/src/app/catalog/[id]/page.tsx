@@ -16,6 +16,10 @@ import {
   MessageCircle,
   ChevronRight,
   MapPin,
+  Package,
+  Handshake,
+  Truck,
+  Sparkles,
 } from "lucide-react"
 
 export const dynamic = "force-dynamic"
@@ -73,7 +77,9 @@ export async function generateMetadata({
       description: cleanDesc.slice(0, 200),
       url: `/catalog/${id}`,
       type: "book",
-      images: book.images?.[0] ? [{ url: book.images[0], alt: book.title }] : undefined,
+      images: book.images?.[0]
+        ? [{ url: book.images[0], alt: book.title }]
+        : undefined,
     },
     twitter: {
       card: "summary_large_image",
@@ -100,6 +106,7 @@ export default async function ListingDetailPage({
           select: {
             id: true,
             name: true,
+            username: true,
             image: true,
             location: true,
             sellerRating: true,
@@ -135,8 +142,18 @@ export default async function ListingDetailPage({
   const hasCover = Boolean(book.images && book.images.length > 0)
   const isDonation = book.price === 0 && !book.acceptsExchange
   const isExchange = book.acceptsExchange
+  const ownerHandle = book.owner.username || book.owner.id
   const baseUrl =
     process.env.AUTH_URL || "https://aksharsetu-iota.vercel.app"
+
+  const avgCondition = (
+    ((book.condCover || 5) +
+      (book.condPages || 5) +
+      (book.condHighlighting || 5) +
+      (book.condNotes || 5) +
+      (book.condBinding || 5)) /
+    5
+  ).toFixed(1)
 
   // Real Schema.org JSON-LD (Book + Offer + BreadcrumbList) grounded strictly in DB fields
   const conditionSchemaMap: Record<string, string> = {
@@ -229,8 +246,16 @@ export default async function ListingDetailPage({
     ],
   }
 
+  const conditionMetrics = [
+    { label: "Cover & Spine", score: book.condCover || 5 },
+    { label: "Pages & Crispness", score: book.condPages || 5 },
+    { label: "Clean of Highlights", score: book.condHighlighting || 5 },
+    { label: "Margin Notes", score: book.condNotes || 5 },
+    { label: "Binding Integrity", score: book.condBinding || 5 },
+  ]
+
   return (
-    <div className="min-h-screen bg-[#F2EBE1] pt-10 pb-20">
+    <div className="min-h-screen bg-[#F2EBE1] pt-8 sm:pt-12 pb-24">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(bookJsonLd) }}
@@ -240,19 +265,19 @@ export default async function ListingDetailPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      <div className="container mx-auto max-w-5xl px-4 md:px-8">
+      <div className="container mx-auto max-w-6xl px-4 md:px-8">
         {/* Breadcrumb Navigation */}
         <nav
           aria-label="Breadcrumb"
-          className="flex flex-wrap items-center gap-2 text-xs font-bold text-[#1D1D1F]/60 mb-6"
+          className="flex flex-wrap items-center gap-2 text-[13px] font-bold text-[#6e6e73] mb-6"
         >
           <Link
             href="/catalog"
             className="inline-flex items-center gap-1.5 text-[#1D1D1F] hover:text-[#C84200] transition-colors"
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> Catalog
+            <ArrowLeft className="w-4 h-4" /> Back to Catalog
           </Link>
-          <ChevronRight className="w-3.5 h-3.5 opacity-40" />
+          <ChevronRight className="w-4 h-4 opacity-40" />
           <Link
             href={`/catalog?category=${encodeURIComponent(
               book.category.toLowerCase()
@@ -261,15 +286,15 @@ export default async function ListingDetailPage({
           >
             {book.category}
           </Link>
-          <ChevronRight className="w-3.5 h-3.5 opacity-40" />
-          <span className="text-[#1D1D1F] truncate max-w-[160px] sm:max-w-[260px]">
+          <ChevronRight className="w-4 h-4 opacity-40" />
+          <span className="text-[#1D1D1F] truncate max-w-[180px] sm:max-w-[340px]">
             {book.title}
           </span>
         </nav>
 
-        <div className="bg-white rounded-3xl shadow-sm border border-[#1D1D1F]/10 overflow-hidden flex flex-col md:flex-row">
-          {/* Left Column: Editorial Cover Stage & Multi-Photo Gallery */}
-          <div className="w-full md:w-1/2 lg:w-5/12">
+        <div className="bg-white rounded-3xl shadow-[0_12px_48px_-18px_rgba(29,29,31,0.12)] border border-[#1D1D1F]/[0.07] overflow-hidden flex flex-col md:flex-row">
+          {/* Left Column: Museum-Grade Editorial Cover Stage */}
+          <div className="w-full md:w-5/12 lg:w-[44%] shrink-0">
             <BookGallery
               images={book.images || []}
               title={book.title}
@@ -280,228 +305,232 @@ export default async function ListingDetailPage({
             />
           </div>
 
-          {/* Right Column: Details */}
-          <div className="w-full md:w-1/2 lg:w-7/12 p-6 sm:p-8 md:p-10 flex flex-col">
+          {/* Right Column: Editorial Book Specification & Action Dock */}
+          <div className="w-full md:w-7/12 lg:w-[56%] p-6 sm:p-9 lg:p-11 flex flex-col">
             <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-2 mb-4">
-                <span className="bg-[#C84200]/10 text-[#C84200] text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full">
+              {/* Tag Strip */}
+              <div className="flex flex-wrap items-center gap-2 mb-5">
+                <span className="bg-[#C84200]/10 text-[#C84200] text-xs font-bold uppercase tracking-wider px-3.5 py-1 rounded-full">
                   {book.category}
                 </span>
-                <span className="bg-[#FAF6F0] text-[#1D1D1F] text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-black/10">
+                <span className="bg-[#FAF6F0] text-[#1D1D1F] text-xs font-bold uppercase tracking-wider px-3.5 py-1 rounded-full border border-[#1D1D1F]/[0.08]">
                   {book.condition.replace("_", " ")}
                 </span>
 
                 {book.isBundle && (
-                  <span className="bg-purple-50 text-purple-800 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-purple-200">
-                    Bundle: {book.booksInBundle} Books
+                  <span className="inline-flex items-center gap-1.5 bg-[#1D1D1F] text-white text-xs font-bold px-3.5 py-1 rounded-full">
+                    <Package className="w-3.5 h-3.5 text-[#FF7F45]" />
+                    Pack · <span className="font-mono">{book.booksInBundle}</span>{" "}
+                    Books
                   </span>
                 )}
 
                 {(book.deliveryType === "MEETUP" ||
                   book.deliveryType === "BOTH") && (
-                  <span className="bg-emerald-50 text-emerald-800 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-emerald-200">
-                    Campus / City Meetup
+                  <span className="inline-flex items-center gap-1 bg-[#0A7D4F]/10 text-[#0A7D4F] text-xs font-bold px-3.5 py-1 rounded-full border border-[#0A7D4F]/20">
+                    <Handshake className="w-3.5 h-3.5" /> Meetup
                   </span>
                 )}
                 {(book.deliveryType === "SHIPPING" ||
                   book.deliveryType === "BOTH") && (
-                  <span className="bg-[#0066cc]/10 text-[#0066cc] text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-                    Courier Delivery
+                  <span className="inline-flex items-center gap-1 bg-[#0066cc]/10 text-[#0066cc] text-xs font-bold px-3.5 py-1 rounded-full border border-[#0066cc]/20">
+                    <Truck className="w-3.5 h-3.5" /> Courier
                   </span>
                 )}
+              </div>
 
+              {/* Headline & Literary Author Credit */}
+              <h1 className="text-3xl sm:text-4xl lg:text-[2.6rem] font-black text-[#1D1D1F] leading-[1.08] tracking-tight mb-3">
+                {book.title}
+              </h1>
+
+              <p className="text-lg text-[#4a4a4f] mb-4 flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-[#C84200] shrink-0" />
+                <span>
+                  by{" "}
+                  <span className="font-serif italic font-medium text-[#1D1D1F]">
+                    {book.author}
+                  </span>
+                </span>
+              </p>
+
+              {/* Academic & Metadata Row */}
+              <div className="flex flex-wrap items-center gap-2.5 text-[13px] font-semibold text-[#6e6e73] mb-6">
+                {book.isbn && (
+                  <span className="font-mono text-xs bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] text-[#1D1D1F]/80 px-3 py-1 rounded-full">
+                    ISBN {book.isbn}
+                  </span>
+                )}
+                {book.owner.location && (
+                  <span className="inline-flex items-center gap-1.5 bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] text-[#1D1D1F]/80 px-3 py-1 rounded-full">
+                    <MapPin className="w-3.5 h-3.5 text-[#C84200]" />
+                    {book.owner.location}
+                  </span>
+                )}
                 {book.university && (
-                  <span className="bg-[#FAF6F0] text-[#1D1D1F] text-[11px] font-bold px-3 py-1 rounded-full border border-black/10">
+                  <span className="bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] text-[#1D1D1F] px-3 py-1 rounded-full">
                     {book.university}
                   </span>
                 )}
                 {book.course && (
-                  <span className="bg-[#FAF6F0] text-[#1D1D1F] text-[11px] font-bold px-3 py-1 rounded-full border border-black/10">
+                  <span className="bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] text-[#1D1D1F] px-3 py-1 rounded-full">
                     {book.course}
                   </span>
                 )}
                 {book.semester && (
-                  <span className="bg-[#FAF6F0] text-[#C84200] text-[11px] font-bold px-3 py-1 rounded-full border border-[#C84200]/20">
+                  <span className="bg-[#FAF6F0] border border-[#C84200]/20 text-[#C84200] font-mono px-3 py-1 rounded-full">
                     Semester {book.semester}
                   </span>
                 )}
               </div>
 
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#1D1D1F] leading-tight mb-2 tracking-tight">
-                {book.title}
-              </h1>
+              <div className="my-6 h-px w-full bg-[#1D1D1F]/[0.08]" />
 
-              <p className="text-base text-[#86868b] font-semibold mb-3 flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-[#C84200]" />
-                by {book.author}
-              </p>
-
-              <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-[#86868b] mb-5">
-                {book.isbn && <span>ISBN: {book.isbn}</span>}
-                {book.owner.location && (
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-[#C84200]" />{" "}
-                    {book.owner.location}
-                  </span>
-                )}
-              </div>
-
-              <div className="my-5 h-px w-full bg-black/[0.08]" />
-
-              <div className="mb-6">
-                <h2 className="text-xs font-black uppercase tracking-widest text-[#86868b] mb-2">
-                  Seller Notes & Description
+              {/* Seller Notes */}
+              <div className="mb-7">
+                <h2 className="text-xs font-black uppercase tracking-[0.14em] text-[#86868b] mb-2.5">
+                  Reader Notes &amp; Edition Details
                 </h2>
-                <p className="text-[#1D1D1F]/85 leading-relaxed text-sm whitespace-pre-wrap">
+                <p className="text-[#1D1D1F]/85 leading-relaxed text-[15px] whitespace-pre-wrap">
                   {book.description ||
-                    "No additional notes provided by the seller."}
+                    "No additional notes provided by the reader. Message them directly to inspect spine photos or meetup times."}
                 </p>
                 {book.isBundle && book.bundleDescription && (
-                  <div className="mt-4 p-4 bg-[#FAF6F0] rounded-2xl border border-black/10">
-                    <p className="text-xs font-bold uppercase tracking-widest text-purple-800 mb-1">
-                      Books Included in Bundle:
+                  <div className="mt-4 p-5 bg-[#FAF6F0] rounded-2xl border border-[#1D1D1F]/[0.08]">
+                    <p className="text-xs font-black uppercase tracking-[0.12em] text-[#C84200] mb-1.5 flex items-center gap-1.5">
+                      <Package className="w-3.5 h-3.5" /> Books Included in
+                      Semester Pack
                     </p>
-                    <p className="text-[#1D1D1F] text-sm whitespace-pre-wrap">
+                    <p className="text-[#1D1D1F] text-sm sm:text-[15px] leading-relaxed whitespace-pre-wrap">
                       {book.bundleDescription}
                     </p>
                   </div>
                 )}
               </div>
 
-              <div className="mb-6 p-5 bg-[#FAF6F0] rounded-2xl border border-black/[0.08]">
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <h2 className="text-xs font-black uppercase tracking-widest text-[#86868b]">
-                    5-Point Condition Breakdown
+              {/* 5-Point Condition Radar */}
+              <div className="mb-7 p-5 sm:p-6 bg-[#FAF6F0] rounded-3xl border border-[#1D1D1F]/[0.07]">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                  <h2 className="text-xs font-black uppercase tracking-[0.14em] text-[#1D1D1F]/70 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#C84200]" />
+                    5-Point Condition Radar
                   </h2>
-                  <span className="text-[11px] font-black text-emerald-800 bg-emerald-50 border border-emerald-200/70 px-2.5 py-0.5 rounded-full">
-                    {(
-                      ((book.condCover || 5) +
-                        (book.condPages || 5) +
-                        (book.condHighlighting || 5) +
-                        (book.condNotes || 5) +
-                        (book.condBinding || 5)) /
-                      5
-                    ).toFixed(1)}
-                    ★ Avg
+                  <span className="font-mono text-xs font-black text-[#0A7D4F] bg-[#0A7D4F]/10 border border-[#0A7D4F]/20 px-3 py-1 rounded-full">
+                    {avgCondition} / 5.0 ★
                   </span>
                 </div>
-                <div className="space-y-2.5">
-                  {[
-                    { label: "Cover & Spine", score: book.condCover || 5 },
-                    { label: "Pages", score: book.condPages || 5 },
-                    {
-                      label: "Highlighting",
-                      score: book.condHighlighting || 5,
-                    },
-                    { label: "Margin Notes", score: book.condNotes || 5 },
-                    { label: "Binding", score: book.condBinding || 5 },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className="flex items-center justify-between gap-3 text-xs font-semibold"
-                    >
-                      <span className="text-[#1D1D1F]/80 min-w-[104px] sm:w-1/3">
-                        {item.label}
-                      </span>
-                      <div className="flex-1 flex items-center gap-1 justify-end sm:justify-start">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <svg
-                            key={star}
-                            className={`w-3.5 h-3.5 ${
-                              item.score >= star
-                                ? "text-amber-500 fill-amber-500"
-                                : "text-black/15 fill-black/15"
-                            }`}
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                            />
-                          </svg>
-                        ))}
+
+                <div className="space-y-3">
+                  {conditionMetrics.map((item) => {
+                    const pct = Math.max(0, Math.min(100, (item.score / 5) * 100))
+                    return (
+                      <div
+                        key={item.label}
+                        className="grid grid-cols-[128px_1fr_auto] sm:grid-cols-[150px_1fr_auto] items-center gap-3 text-[13px]"
+                      >
+                        <span className="font-semibold text-[#1D1D1F]/80 truncate">
+                          {item.label}
+                        </span>
+                        <div className="h-2 rounded-full bg-white border border-[#1D1D1F]/[0.06] overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-[#C84200] to-[#FF7F45]"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="font-mono text-xs font-bold text-[#1D1D1F] w-8 text-right">
+                          {item.score}/5
+                        </span>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
 
-              <div className="mb-6 p-4 rounded-2xl bg-[#FAF6F0] border border-black/[0.08] flex flex-wrap sm:flex-nowrap items-center gap-3">
-                <Link href={`/profile/${book.owner.id}`} className="shrink-0">
+              {/* Seller Header Strip */}
+              <div className="mb-5 p-4 sm:p-5 rounded-3xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] flex flex-wrap sm:flex-nowrap items-center gap-3.5">
+                <Link href={`/profile/${ownerHandle}`} className="shrink-0">
                   {book.owner.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={book.owner.image}
                       alt={book.owner.name || "Owner"}
-                      className="w-11 h-11 rounded-full object-cover"
+                      className="w-12 h-12 rounded-full object-cover border border-[#1D1D1F]/10"
                     />
                   ) : (
-                    <div className="w-11 h-11 rounded-full bg-white border border-black/10 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-white border border-[#1D1D1F]/10 flex items-center justify-center">
                       <User className="w-5 h-5 text-[#C84200]" />
                     </div>
                   )}
                 </Link>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#86868b]">
+                  <p className="text-xs font-semibold text-[#6e6e73]">
                     Listed by
                   </p>
                   <Link
-                    href={`/profile/${book.owner.id}`}
-                    className="font-bold text-sm text-[#1D1D1F] hover:text-[#C84200] truncate block"
+                    href={`/profile/${ownerHandle}`}
+                    className="font-black text-base text-[#1D1D1F] hover:text-[#C84200] transition-colors truncate block"
                   >
-                    {book.owner.name || "Reader"}
+                    {book.owner.name || "Community Reader"}
                   </Link>
+                  {book.owner.username && (
+                    <span className="font-mono text-xs text-[#86868b]">
+                      @{book.owner.username}
+                    </span>
+                  )}
                 </div>
                 {!isOwner && session && (
                   <Link
                     href={`/messages/${book.owner.id}?book=${book.id}`}
-                    className="flex items-center gap-1.5 bg-[#1D1D1F] hover:bg-[#C84200] text-white text-xs font-bold px-4 py-2.5 rounded-full transition-colors shrink-0"
+                    className="inline-flex items-center gap-2 bg-[#1D1D1F] hover:bg-[#C84200] text-white text-[13px] font-bold px-5 py-2.5 rounded-full transition-colors shrink-0"
                   >
-                    <MessageCircle className="w-3.5 h-3.5" />
+                    <MessageCircle className="w-4 h-4" />
                     Message Seller
                   </Link>
                 )}
               </div>
 
-              <div className="mb-6">
+              {/* Reputation Card */}
+              <div className="mb-7">
                 <SellerReputationCard user={book.owner as any} />
               </div>
             </div>
 
-            <div className="mt-auto pt-6 border-t border-black/10">
-              <div className="flex items-end justify-between mb-5">
+            {/* Primary Action Dock */}
+            <div className="mt-auto pt-6 border-t border-[#1D1D1F]/[0.09]">
+              <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-[#86868b] mb-1">
-                    Listing Price
+                  <p className="text-xs font-black uppercase tracking-[0.14em] text-[#86868b] mb-1.5">
+                    {isDonation
+                      ? "Vidya Daan Gift"
+                      : isExchange && book.price === 0
+                      ? "1-for-1 Barter Exchange"
+                      : "Listing Price"}
                   </p>
-                  <p className="text-3xl font-black text-[#1D1D1F]">
+                  <div className="font-mono text-3xl sm:text-4xl font-black tracking-tight text-[#1D1D1F]">
                     {isDonation ? (
-                      <span className="text-emerald-700 flex items-center gap-2">
-                        Free Donation <Tag className="w-5 h-5" />
+                      <span className="text-[#0A7D4F] inline-flex items-center gap-2.5">
+                        Free <Tag className="w-6 h-6" />
                       </span>
                     ) : isExchange && book.price === 0 ? (
                       <span className="text-[#0066cc]">1-for-1 Swap</span>
                     ) : (
                       `₹${book.price}`
                     )}
-                  </p>
+                  </div>
                 </div>
                 {book.status !== "AVAILABLE" && (
-                  <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold uppercase">
+                  <span className="px-4 py-1.5 rounded-full bg-amber-100 text-amber-900 font-mono text-xs font-bold uppercase">
                     {book.status}
                   </span>
                 )}
               </div>
 
               {isExchange && book.exchangePreferences && (
-                <div className="mb-5 p-3.5 bg-[#0066cc]/[0.06] rounded-2xl border border-[#0066cc]/20">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#0066cc] mb-0.5">
-                    Seller is Looking For:
+                <div className="mb-5 p-4 bg-[#0066cc]/[0.06] rounded-2xl border border-[#0066cc]/20">
+                  <p className="text-xs font-black uppercase tracking-[0.12em] text-[#0066cc] mb-1">
+                    Reader Is Looking To Swap For
                   </p>
-                  <p className="text-xs font-medium text-[#1D1D1F]">
+                  <p className="text-sm font-medium text-[#1D1D1F] leading-relaxed">
                     {book.exchangePreferences}
                   </p>
                 </div>
@@ -511,7 +540,7 @@ export default async function ListingDetailPage({
                 isOwner ? (
                   <OwnerListingControls book={book} />
                 ) : book.status !== "AVAILABLE" ? (
-                  <div className="w-full py-3.5 px-6 bg-[#FAF6F0] text-[#86868b] rounded-full text-sm font-bold flex items-center justify-center">
+                  <div className="w-full py-4 px-6 bg-[#FAF6F0] text-[#6e6e73] border border-[#1D1D1F]/[0.08] rounded-full text-sm font-bold flex items-center justify-center">
                     Currently {book.status.toLowerCase()}
                   </div>
                 ) : isDonation ? (
@@ -528,12 +557,13 @@ export default async function ListingDetailPage({
                     myBooks={myAvailableBooks}
                   />
                 ) : (
-                  <div className="space-y-2.5">
+                  <div className="space-y-3">
                     <Link
                       href={`/checkout/${book.id}`}
-                      className="w-full py-4 px-6 bg-[#C84200] hover:bg-[#A33500] text-white rounded-full font-bold flex items-center justify-center gap-2 transition-colors text-center shadow-sm"
+                      className="w-full py-4 px-6 bg-[#C84200] hover:bg-[#A33500] text-white rounded-full text-[15px] font-bold flex items-center justify-center gap-2 transition-colors text-center shadow-sm"
                     >
-                      Buy or Reserve Meetup for ₹{book.price}
+                      Buy or Reserve Meetup for{" "}
+                      <span className="font-mono">₹{book.price}</span>
                     </Link>
                     <ProposeSwapModal
                       targetBook={{
@@ -551,10 +581,14 @@ export default async function ListingDetailPage({
               ) : (
                 <Link
                   href={`/login?callbackUrl=/catalog/${book.id}`}
-                  className="w-full py-4 px-6 bg-[#1D1D1F] hover:bg-[#C84200] text-white rounded-full font-bold flex items-center justify-center gap-2 transition-colors text-center"
+                  className="w-full py-4 px-6 bg-[#1D1D1F] hover:bg-[#C84200] text-white rounded-full text-[15px] font-bold flex items-center justify-center gap-2 transition-colors text-center shadow-sm"
                 >
-                  Log in to{" "}
-                  {isDonation ? "Request Donation" : isExchange ? "Propose Swap" : "Buy or Reserve"}
+                  Sign In to{" "}
+                  {isDonation
+                    ? "Request Free Book"
+                    : isExchange
+                    ? "Propose 1-for-1 Swap"
+                    : "Buy or Reserve Meetup"}
                 </Link>
               )}
             </div>

@@ -82,39 +82,40 @@ export default async function EbooksPage({
 
   return (
     <div className="min-h-screen bg-[#F2EBE1] pb-24">
-      {/* High-Contrast Hero Banner */}
-      <section className="relative bg-black text-[#f5f5f7] overflow-hidden border-b border-white/10">
+      {/* High-Contrast Editorial Obsidian Hero */}
+      <section className="relative bg-[#0B0B0D] bg-[radial-gradient(ellipse_at_top_right,rgba(200,66,0,0.22),transparent_55%),radial-gradient(ellipse_at_bottom_left,rgba(244,178,43,0.08),transparent_50%)] text-[#F5F5F7] overflow-hidden border-b border-white/10">
         <div
-          className="absolute inset-0 opacity-30 pointer-events-none"
+          className="absolute inset-0 pointer-events-none opacity-[0.06]"
           style={{
-            background:
-              "radial-gradient(circle at 20% 20%, rgba(200, 66, 0, 0.35), transparent 50%), radial-gradient(circle at 80% 70%, rgba(0, 102, 204, 0.28), transparent 55%)",
+            backgroundImage:
+              "radial-gradient(#F2EBE1 1.25px, transparent 1.25px)",
+            backgroundSize: "24px 24px",
           }}
         />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-16 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-16 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             <div className="lg:col-span-7 space-y-5 min-w-0">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-bold uppercase tracking-widest text-[#FF8A4C] max-w-full">
-                <Globe className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">Open Archives · Public Domain &amp; Classic Editions</span>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs sm:text-[13px] font-bold uppercase tracking-widest text-[#FF8A4C] max-w-full">
+                <Globe className="w-4 h-4 shrink-0" />
+                <span className="truncate">Open Archives · 70,000+ Public Domain Editions</span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter leading-none">
-                70,000+ Classics.{" "}
-                <span className="bg-gradient-to-r from-[#FF8A4C] via-amber-200 to-sky-300 bg-clip-text text-transparent">
-                  Open Like Paper.
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter leading-none text-white">
+                Open{" "}
+                <span className="font-serif italic font-medium text-[#FF7F45]">
+                  E-Library.
                 </span>
               </h1>
 
-              <p className="text-base sm:text-lg text-[#86868b] max-w-2xl leading-relaxed">
+              <p className="text-base sm:text-lg text-white/75 max-w-2xl leading-relaxed">
                 Browse unabridged public-domain works from{" "}
-                <span className="text-white font-medium">Project Gutenberg</span>,{" "}
-                <span className="text-white font-medium">Internet Archive</span>,{" "}
-                <span className="text-white font-medium">Open Library</span>, and{" "}
-                <span className="text-white font-medium">Google Books</span>—formatted
-                for a calm two-page <span className="text-white font-medium">Book Spread</span>{" "}
-                or clean <span className="text-white font-medium">Classic Scroll</span>.
+                <span className="text-white font-semibold">Project Gutenberg</span>,{" "}
+                <span className="text-white font-semibold">Internet Archive</span>,{" "}
+                <span className="text-white font-semibold">Open Library</span>, and{" "}
+                <span className="text-white font-semibold">Google Books</span>—formatted
+                for a calm two-page <span className="text-white font-semibold">Book Spread</span>{" "}
+                or clean <span className="text-white font-semibold">Classic Scroll</span>.
               </p>
 
               {/* Search Bar */}
@@ -123,16 +124,16 @@ export default async function EbooksPage({
                   <input type="hidden" name="source" value={activeSource} />
                 )}
                 <div className="flex items-center bg-white/10 backdrop-blur-md border border-white/15 rounded-full p-1.5 focus-within:border-[#C84200] focus-within:bg-white/15 transition">
-                  <Search className="w-4 h-4 text-[#86868b] ml-3 sm:ml-4 mr-2 shrink-0" />
+                  <Search className="w-4.5 h-4.5 text-white/60 ml-3 sm:ml-4 mr-2 shrink-0" />
                   <input
                     name="q"
                     defaultValue={activeQuery}
                     placeholder="Search book, author, or topic..."
-                    className="flex-1 min-w-0 bg-transparent text-sm text-white placeholder:text-[#86868b] focus:outline-none py-2 pr-2 sm:pr-3"
+                    className="flex-1 min-w-0 bg-transparent text-sm sm:text-base text-white placeholder:text-white/50 focus:outline-none py-2 pr-2 sm:pr-3"
                   />
                   <button
                     type="submit"
-                    className="px-4 sm:px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider bg-[#C84200] hover:bg-[#A33500] text-white transition shrink-0 cursor-pointer"
+                    className="px-5 sm:px-6 py-2.5 rounded-full text-sm font-bold bg-[#C84200] hover:bg-[#A33500] text-white transition shrink-0 cursor-pointer"
                   >
                     Search
                   </button>
@@ -141,7 +142,7 @@ export default async function EbooksPage({
 
               {/* Quick Author & Title Chips */}
               <div className="flex flex-wrap items-center gap-2 pt-1">
-                <span className="text-[11px] uppercase tracking-wider text-[#86868b] mr-1">
+                <span className="text-xs sm:text-[13px] font-bold uppercase tracking-wider text-white/55 mr-1">
                   Try:
                 </span>
                 {QUICK_SEARCHES.map((author) => (
@@ -150,7 +151,7 @@ export default async function EbooksPage({
                     href={`/ebooks?q=${encodeURIComponent(author)}${
                       activeSource !== "all" ? `&source=${activeSource}` : ""
                     }`}
-                    className="text-xs px-3 py-1 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 text-white/80 hover:text-white transition"
+                    className="text-xs sm:text-[13px] font-medium px-3.5 py-1.5 rounded-full bg-white/8 hover:bg-white/16 border border-white/12 text-white/85 hover:text-white transition"
                   >
                     {author}
                   </Link>
@@ -171,7 +172,7 @@ export default async function EbooksPage({
         <LiveReadersStrip />
 
         {/* Source Filter Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-white rounded-2xl p-3 border border-black/5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white rounded-3xl p-4 border border-[#1D1D1F]/[0.07] shadow-sm">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 w-full lg:w-auto lg:flex-1 min-w-0 scrollbar-hide">
             {SOURCES.map((src) => {
               const isSelected = activeSource === src.id
@@ -183,16 +184,16 @@ export default async function EbooksPage({
                 <Link
                   key={src.id}
                   href={href}
-                  className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+                  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition ${
                     isSelected
-                      ? "bg-[#0066cc] text-white shadow-sm"
-                      : "bg-[#f5f5f7] text-[#1d1d1f] hover:bg-[#e8e8ed]"
+                      ? "bg-[#1D1D1F] text-[#F2EBE1] shadow-sm"
+                      : "bg-[#FAF6F0] text-[#1d1d1f] hover:bg-[#EFE7DC]"
                   }`}
                 >
                   <span>{src.label}</span>
                   <span
-                    className={`text-[10px] px-2 py-0.5 rounded-full ${
-                      isSelected ? "bg-white/20 text-white" : "bg-black/5 text-[#86868b]"
+                    className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${
+                      isSelected ? "bg-white/15 text-[#F2EBE1]" : "bg-black/5 text-[#6e6e73]"
                     }`}
                   >
                     {src.badge}
@@ -204,15 +205,15 @@ export default async function EbooksPage({
 
           <Link
             href="/library"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold bg-[#1d1d1f] text-white hover:bg-[#0066cc] transition shrink-0"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold bg-[#C84200] text-white hover:bg-[#A33500] transition shrink-0"
           >
-            <Library className="w-3.5 h-3.5 text-amber-400" />
+            <Library className="w-4 h-4 text-amber-200" />
             Open My Shelf
           </Link>
         </div>
 
         {/* Category Filter Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
           {CATEGORIES.map((cat) => {
             const Icon = cat.icon
             const isActive = activeQuery.toLowerCase() === cat.query.toLowerCase()
@@ -225,13 +226,13 @@ export default async function EbooksPage({
               <Link
                 key={cat.label}
                 href={href}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition ${
                   isActive
-                    ? "bg-[#1d1d1f] text-white shadow-sm"
-                    : "bg-white text-[#1d1d1f] hover:bg-[#e8e8ed] border border-black/5"
+                    ? "bg-[#1d1d1f] text-[#F2EBE1] shadow-sm"
+                    : "bg-white text-[#1d1d1f] hover:bg-[#FAF6F0] border border-[#1D1D1F]/[0.07]"
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <Icon className="w-4 h-4" />
                 {cat.label}
               </Link>
             )
@@ -241,18 +242,18 @@ export default async function EbooksPage({
         {/* Curated Indian Classics Shelf (shown when on default landing) */}
         {!activeQuery && activeSource === "all" && (
           <section className="space-y-5">
-            <div className="flex items-end justify-between">
+            <div className="flex flex-wrap items-end justify-between gap-2">
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-[#0066cc]">
+                <p className="text-xs sm:text-[13px] font-black uppercase tracking-widest text-[#C84200]">
                   Curated Stack
                 </p>
-                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1d1d1f]">
+                <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-[#1d1d1f] mt-0.5">
                   Indian Classics Worth Keeping
                 </h2>
               </div>
               <Link
                 href="/ebooks?q=india"
-                className="text-xs font-semibold text-[#0066cc] hover:underline"
+                className="text-sm font-bold text-[#C84200] hover:underline"
               >
                 Browse Indian Heritage →
               </Link>
@@ -265,14 +266,14 @@ export default async function EbooksPage({
         <section className="space-y-5">
           <div className="flex flex-wrap items-end justify-between gap-2">
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-[#86868b]">
+              <p className="text-xs sm:text-[13px] font-black uppercase tracking-widest text-[#6e6e73]">
                 {activeQuery ? "Archive Results" : "Open Stacks"}
               </p>
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1d1d1f]">
+              <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-[#1d1d1f] mt-0.5">
                 {activeQuery ? (
                   <>
                     Results for &ldquo;{activeQuery}&rdquo;{" "}
-                    <span className="text-base font-normal text-[#86868b]">
+                    <span className="text-base font-medium text-[#6e6e73]">
                       ({books.length})
                     </span>
                   </>
@@ -284,7 +285,7 @@ export default async function EbooksPage({
             {(activeQuery || activeSource !== "all") && (
               <Link
                 href="/ebooks"
-                className="text-xs font-semibold text-[#0066cc] hover:underline"
+                className="text-sm font-bold text-[#C84200] hover:underline"
               >
                 Reset filters
               </Link>
@@ -292,25 +293,25 @@ export default async function EbooksPage({
           </div>
 
           {books.length === 0 ? (
-            <div className="bg-white rounded-2xl p-8 sm:p-12 text-center border border-black/5 shadow-sm max-w-xl mx-auto my-8">
-              <BookOpen className="w-10 h-10 text-[#86868b] mx-auto mb-3" />
-              <h3 className="text-lg font-bold text-[#1d1d1f] mb-1">
+            <div className="bg-white rounded-3xl p-8 sm:p-12 text-center border border-[#1D1D1F]/[0.07] shadow-sm max-w-xl mx-auto my-8">
+              <BookOpen className="w-11 h-11 text-[#6e6e73] mx-auto mb-3" />
+              <h3 className="text-xl font-black text-[#1d1d1f] mb-2">
                 No editions matched &ldquo;{activeQuery}&rdquo;
               </h3>
-              <p className="text-sm text-[#86868b] mb-6">
+              <p className="text-sm sm:text-base text-[#6e6e73] mb-6 leading-relaxed">
                 Try switching the source filter to &ldquo;All Free Libraries&rdquo; or searching by
                 author name.
               </p>
               <div className="flex flex-wrap justify-center gap-3">
                 <Link
                   href="/ebooks"
-                  className="px-5 py-2.5 rounded-full text-xs font-semibold bg-[#C84200] text-white hover:bg-[#A33500] transition"
+                  className="px-5 py-2.5 rounded-full text-sm font-bold bg-[#C84200] text-white hover:bg-[#A33500] transition"
                 >
                   Browse All Free Libraries
                 </Link>
                 <Link
                   href={`/catalog?q=${encodeURIComponent(activeQuery)}`}
-                  className="px-5 py-2.5 rounded-full text-xs font-semibold bg-[#e8e8ed] text-[#1d1d1f] hover:bg-[#d2d2d7] transition"
+                  className="px-5 py-2.5 rounded-full text-sm font-bold bg-[#FAF6F0] text-[#1d1d1f] hover:bg-[#EFE7DC] border border-black/8 transition"
                 >
                   Search Physical Catalog
                 </Link>
@@ -322,15 +323,26 @@ export default async function EbooksPage({
         </section>
 
         {/* Bottom Info Banner */}
-        <section className="bg-black text-white rounded-2xl p-8 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-2 max-w-xl">
-            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-400">
+        <section className="relative bg-[#0B0B0D] bg-[radial-gradient(ellipse_at_top_right,rgba(200,66,0,0.22),transparent_55%)] text-white rounded-3xl p-8 sm:p-10 border border-white/10 overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div
+            className="absolute inset-0 pointer-events-none opacity-[0.06]"
+            style={{
+              backgroundImage:
+                "radial-gradient(#F2EBE1 1.25px, transparent 1.25px)",
+              backgroundSize: "24px 24px",
+            }}
+          />
+          <div className="relative z-10 space-y-2.5 max-w-xl">
+            <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-widest text-[#FF8A4C]">
               <BookOpen className="w-4 h-4" /> Two-Page Spread · Shanti Audio
             </div>
-            <h3 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              Turn pages like a quiet midnight library.
+            <h3 className="text-2xl sm:text-3xl font-black tracking-tight">
+              Turn pages like a{" "}
+              <span className="font-serif italic font-medium text-[#FF7F45]">
+                quiet midnight library.
+              </span>
             </h3>
-            <p className="text-sm text-[#86868b] leading-relaxed">
+            <p className="text-sm sm:text-base text-white/70 leading-relaxed">
               Every edition supports <strong className="text-white">Book Read</strong>{" "}
               (a two-page hardcover spread with natural gutter depth),{" "}
               <strong className="text-white">Classic Scroll</strong>, and{" "}
@@ -339,7 +351,7 @@ export default async function EbooksPage({
           </div>
           <Link
             href="/library"
-            className="px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider bg-[#0066cc] hover:bg-[#0071e3] text-white transition shrink-0"
+            className="relative z-10 px-6 py-3.5 rounded-full text-sm font-bold bg-[#C84200] hover:bg-[#A33500] text-white transition shrink-0 shadow-lg shadow-[#C84200]/20"
           >
             Open My Shelf →
           </Link>

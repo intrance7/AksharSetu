@@ -41,27 +41,27 @@ function HeroBookCard({ book, index }: { book: EBookSummary; index: number }) {
             className={`w-full h-full bg-gradient-to-br ${gradient} p-3.5 flex flex-col justify-between text-white relative`}
           >
             <div className="absolute inset-y-0 left-0 w-2.5 bg-black/30" />
-            <div className="pl-2 text-[9px] uppercase tracking-widest text-amber-200/80 font-bold">
+            <div className="pl-2 text-[11px] uppercase tracking-wider text-amber-200/85 font-bold">
               Classic Edition
             </div>
             <div className="pl-2 my-auto">
-              <p className="font-serif text-sm font-bold leading-snug line-clamp-3 drop-shadow">
+              <p className="font-serif text-base font-bold leading-snug line-clamp-3 drop-shadow">
                 {book.title}
               </p>
               <div className="w-6 h-0.5 bg-amber-300/70 my-2" />
-              <p className="text-[10px] text-white/80 line-clamp-2">
+              <p className="text-xs text-white/85 line-clamp-2">
                 {book.author}
               </p>
             </div>
-            <div className="pl-2 text-[8px] text-white/50 uppercase tracking-wider">
+            <div className="pl-2 text-[11px] text-white/60 uppercase tracking-wider font-semibold">
               AksharSetu
             </div>
           </div>
         )}
       </div>
-      <div className="p-2.5 bg-[#1D1D1F]/95 backdrop-blur-md">
-        <p className="text-[11px] font-bold text-white truncate">{book.title}</p>
-        <p className="text-[10px] text-[#86868b] truncate">{book.author}</p>
+      <div className="p-3 bg-[#1D1D1F]/95 backdrop-blur-md">
+        <p className="text-xs sm:text-[13px] font-bold text-white truncate">{book.title}</p>
+        <p className="text-xs text-white/60 truncate mt-0.5">{book.author}</p>
       </div>
     </Link>
   )

@@ -122,7 +122,7 @@ export function RazorpayButton({
           type="button"
           onClick={handlePayment}
           disabled={loading}
-          className={`w-full py-4 px-6 rounded-full font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer ${
+          className={`w-full py-4 px-6 rounded-full text-[15px] font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer ${
             loading
               ? "bg-[#1d1d1f]/20 text-[#1d1d1f]/60 cursor-not-allowed"
               : "bg-[#C84200] hover:bg-[#A33500] text-white shadow-sm"
@@ -134,7 +134,8 @@ export function RazorpayButton({
             </>
           ) : (
             <>
-              <ShieldCheck className="w-4 h-4" /> Pay ₹{amount} via Razorpay
+              <ShieldCheck className="w-4 h-4" /> Pay{" "}
+              <span className="font-mono">₹{amount}</span> via Razorpay
             </>
           )}
         </button>

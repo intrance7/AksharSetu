@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react"
 import { signIn, getProviders } from "next-auth/react"
 import { Button } from "@/components/ui/Button"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Eye, EyeOff, AlertCircle, BookOpen } from "lucide-react"
+import { Eye, EyeOff, AlertCircle, BookOpen, ArrowRight } from "lucide-react"
 import { LoginCarousel } from "@/components/auth/LoginCarousel"
 import Link from "next/link"
 
@@ -102,86 +102,106 @@ function LoginFormContent() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] relative flex items-center justify-center p-4 sm:p-8 bg-[#F2EBE1]">
-      <div className="w-full max-w-[1120px] min-h-[600px] bg-white rounded-[32px] shadow-[0_12px_40px_-12px_rgba(29,29,31,0.12)] border border-[#1D1D1F]/10 flex overflow-hidden relative z-10">
+    <div className="min-h-[calc(100vh-4rem)] relative flex items-center justify-center p-4 sm:p-6 md:p-10 bg-[#F2EBE1]">
+      <div className="w-full max-w-[1140px] min-h-[620px] bg-white rounded-[32px] shadow-[0_24px_60px_-20px_rgba(29,29,31,0.14)] border border-[#1D1D1F]/[0.07] flex overflow-hidden relative z-10">
         {/* Left Column - Editorial Carousel */}
-        <div className="hidden lg:block lg:w-[50%] p-3 relative">
-          <div className="w-full h-full rounded-[24px] overflow-hidden relative bg-[#000000]">
+        <div className="hidden lg:block lg:w-[50%] p-3.5 relative">
+          <div className="w-full h-full rounded-[24px] overflow-hidden relative bg-[#0B0B0D]">
             <LoginCarousel />
           </div>
         </div>
 
-        {/* Right Column - Form */}
+        {/* Right Column - Editorial Sign-In Studio */}
         <div className="w-full lg:w-[50%] flex flex-col p-6 sm:p-10 md:p-14 relative justify-center">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-[#1D1D1F] mb-8 self-start"
-          >
-            <BookOpen className="w-6 h-6 text-[#C84200]" />
-            <span className="font-black text-2xl tracking-tight">
-              Aksharसेतु
-            </span>
-          </Link>
+          <div className="w-full max-w-md mx-auto flex flex-col gap-7">
+            <div className="flex items-center justify-between">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2.5 text-[#1D1D1F] group"
+              >
+                <span className="w-9 h-9 rounded-xl bg-[#0B0B0D] text-[#FF7F45] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                  <BookOpen className="w-4 h-4" />
+                </span>
+                <span className="font-display font-extrabold text-xl tracking-tight">
+                  Aksharसेतु
+                </span>
+              </Link>
+              <span className="rounded-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] px-3 py-1 font-mono text-xs font-semibold uppercase tracking-wider text-[#5E5E63]">
+                Member Access
+              </span>
+            </div>
 
-          <div className="w-full max-w-sm mx-auto flex flex-col gap-6">
-            <div>
-              <h1 className="text-3xl font-black text-[#1D1D1F] tracking-tight">
-                Welcome Back
+            <div className="space-y-2">
+              <h1 className="text-3xl sm:text-4xl font-bold text-[#1D1D1F] tracking-tight leading-[1.08]">
+                Welcome back to the{" "}
+                <span className="font-serif italic font-medium text-[#C84200]">
+                  Stacks
+                </span>
+                .
               </h1>
-              <p className="text-[#86868B] text-sm mt-1">
-                Sign in to access your reading room, messages, and listings.
+              <p className="text-[#5E5E63] text-sm sm:text-[15px] leading-relaxed">
+                Sign in to open your reading room, reply to book offers, and
+                manage your campus shelf.
               </p>
             </div>
 
             {error && (
-              <div className="flex items-start gap-2 text-red-700 bg-red-50 p-3.5 rounded-xl text-xs font-bold border border-red-200">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2.5 text-red-800 bg-red-50/90 px-4 py-3.5 rounded-2xl text-sm font-medium border border-red-200/80">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
                 <span>{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-[#1D1D1F]">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+              <div className="flex flex-col gap-2">
+                <label
+                  htmlFor="login-email"
+                  className="text-xs font-bold uppercase tracking-wider text-[#1D1D1F]/80"
+                >
                   Email Address
                 </label>
                 <input
+                  id="login-email"
                   type="email"
                   required
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-[#FAF6F0] border border-[#1D1D1F]/10 text-[#1D1D1F] rounded-xl px-4 py-3 text-sm font-medium focus:bg-white focus:outline-none focus:border-[#C84200] transition-all placeholder:text-[#86868B]"
+                  className="w-full rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/10 text-[#1D1D1F] px-4 py-3.5 text-sm sm:text-base font-medium focus:bg-white focus:outline-none focus:border-[#C84200] focus:ring-2 focus:ring-[#C84200]/15 transition-all placeholder:text-[#86868B]"
                   placeholder="reader@university.edu"
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <div className="flex flex-wrap justify-between items-center gap-1">
-                  <label className="text-xs font-bold uppercase tracking-wider text-[#1D1D1F]">
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap justify-between items-center gap-2">
+                  <label
+                    htmlFor="login-password"
+                    className="text-xs font-bold uppercase tracking-wider text-[#1D1D1F]/80"
+                  >
                     Password
                   </label>
                   <Link
                     href="/forgot-password"
-                    className="text-xs font-bold text-[#C84200] hover:underline"
+                    className="text-xs sm:text-[13px] font-semibold text-[#C84200] hover:underline"
                   >
                     Forgot / Change password?
                   </Link>
                 </div>
                 <div className="relative">
                   <input
+                    id="login-password"
                     type={showPassword ? "text" : "password"}
                     required
                     autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-[#FAF6F0] border border-[#1D1D1F]/10 text-[#1D1D1F] rounded-xl px-4 py-3 pr-11 text-sm font-medium focus:bg-white focus:outline-none focus:border-[#C84200] transition-all placeholder:text-[#86868B]"
+                    className="w-full rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/10 text-[#1D1D1F] px-4 py-3.5 pr-12 text-sm sm:text-base font-medium focus:bg-white focus:outline-none focus:border-[#C84200] focus:ring-2 focus:ring-[#C84200]/15 transition-all placeholder:text-[#86868B]"
                     placeholder="Enter your password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#86868B] hover:text-[#1D1D1F] cursor-pointer"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-[#6E6E73] hover:text-[#1D1D1F] hover:bg-black/5 transition-colors cursor-pointer"
                     aria-label="Toggle password visibility"
                   >
                     {showPassword ? (
@@ -196,17 +216,24 @@ function LoginFormContent() {
               <Button
                 type="submit"
                 disabled={isLoading || oauthLoading}
-                className="w-full mt-2 bg-[#C84200] hover:bg-[#A33500] text-white rounded-full py-5 font-bold text-sm transition-colors shadow-sm cursor-pointer"
+                className="w-full mt-1 bg-[#C84200] hover:bg-[#A33500] text-white rounded-full py-6 font-bold text-sm sm:text-[15px] transition-colors shadow-sm cursor-pointer inline-flex items-center justify-center gap-2"
               >
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading ? (
+                  "Signing in..."
+                ) : (
+                  <>
+                    Sign In to Aksharसेतु
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </Button>
             </form>
 
             {googleEnabled && (
-              <div className="flex flex-col gap-3">
-                <div className="relative flex items-center py-1">
+              <div className="flex flex-col gap-3.5">
+                <div className="relative flex items-center">
                   <div className="flex-grow border-t border-[#1D1D1F]/10" />
-                  <span className="flex-shrink-0 mx-3 text-[#86868B] text-xs font-semibold">
+                  <span className="flex-shrink-0 mx-3.5 text-[#6E6E73] text-xs font-semibold uppercase tracking-wider">
                     Or continue with
                   </span>
                   <div className="flex-grow border-t border-[#1D1D1F]/10" />
@@ -216,7 +243,7 @@ function LoginFormContent() {
                   type="button"
                   disabled={oauthLoading || isLoading}
                   onClick={handleGoogleSignIn}
-                  className="w-full flex items-center justify-center gap-2.5 bg-[#FAF6F0] hover:bg-[#F2EBE1] border border-[#1D1D1F]/10 py-3 px-4 rounded-full transition-colors text-xs sm:text-sm font-bold text-[#1D1D1F] cursor-pointer disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2.5 bg-[#FAF6F0] hover:bg-[#F2EBE1] border border-[#1D1D1F]/10 py-3.5 px-5 rounded-full transition-colors text-sm font-bold text-[#1D1D1F] cursor-pointer disabled:opacity-50"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
                     <path
@@ -236,13 +263,15 @@ function LoginFormContent() {
                       fill="#EA4335"
                     />
                   </svg>
-                  {oauthLoading ? "Connecting to Google..." : "Continue with Google"}
+                  {oauthLoading
+                    ? "Connecting to Google..."
+                    : "Continue with Google"}
                 </button>
               </div>
             )}
 
-            <p className="text-xs font-medium text-[#86868B] text-center pt-2">
-              Don&apos;t have an account?{" "}
+            <p className="text-sm font-medium text-[#5E5E63] text-center pt-1">
+              New to Aksharसेतु?{" "}
               <Link
                 href={
                   callbackUrl !== "/catalog"
@@ -251,7 +280,7 @@ function LoginFormContent() {
                 }
                 className="text-[#C84200] font-bold hover:underline"
               >
-                Create an account
+                Create your reader account
               </Link>
             </p>
           </div>
@@ -265,7 +294,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-[calc(100vh-4rem)] bg-[#F2EBE1] flex items-center justify-center text-sm font-bold text-[#1D1D1F]/60">
+        <div className="min-h-[calc(100vh-4rem)] bg-[#F2EBE1] flex items-center justify-center text-sm font-semibold text-[#5E5E63]">
           Loading sign-in...
         </div>
       }

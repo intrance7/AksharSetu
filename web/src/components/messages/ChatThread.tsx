@@ -187,14 +187,14 @@ function LinkPreviewInline({ url }: { url: string }) {
       href={preview.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="mt-2 block rounded-xl bg-black/5 hover:bg-black/10 p-2.5 text-left transition-colors border border-black/10"
+      className="mt-2.5 block rounded-xl bg-black/10 hover:bg-black/15 p-3 text-left transition-colors border border-current/15"
     >
-      <p className="text-[10px] font-bold uppercase tracking-wider opacity-70 truncate">
+      <p className="font-mono text-xs font-semibold uppercase tracking-wider opacity-75 truncate">
         {preview.siteName || preview.hostname}
       </p>
-      <p className="text-xs font-bold line-clamp-1 mt-0.5">{preview.title}</p>
+      <p className="text-sm font-bold line-clamp-1 mt-0.5">{preview.title}</p>
       {preview.description && (
-        <p className="text-[11px] opacity-80 line-clamp-2 mt-0.5">
+        <p className="text-xs opacity-85 line-clamp-2 mt-0.5 leading-relaxed">
           {preview.description}
         </p>
       )}
@@ -1017,31 +1017,31 @@ export function ChatThread({
   if (loading) {
     if (embedded) {
       return (
-        <div className="h-full bg-white rounded-2xl border border-black/5 flex items-center justify-center min-h-[420px]">
-          <Loader2 className="w-6 h-6 animate-spin text-[#1d1d1f]/30" />
+        <div className="h-full bg-white rounded-3xl border border-[#1D1D1F]/[0.07] flex items-center justify-center min-h-[420px]">
+          <Loader2 className="w-6 h-6 animate-spin text-[#1D1D1F]/30" />
         </div>
       )
     }
     return (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-6rem)] min-h-[540px]">
-        <div className="hidden lg:block lg:col-span-3 bg-white rounded-2xl border border-black/5 p-4 space-y-3 animate-pulse">
-          <div className="h-9 bg-[#f5f5f7] rounded-full" />
-          <div className="h-14 bg-[#f5f5f7] rounded-2xl" />
-          <div className="h-14 bg-[#f5f5f7] rounded-2xl" />
-          <div className="h-14 bg-[#f5f5f7] rounded-2xl" />
+        <div className="hidden lg:block lg:col-span-3 bg-white rounded-3xl border border-[#1D1D1F]/[0.07] p-4 space-y-3 animate-pulse">
+          <div className="h-9 bg-[#FAF6F0] rounded-full" />
+          <div className="h-14 bg-[#FAF6F0] rounded-2xl" />
+          <div className="h-14 bg-[#FAF6F0] rounded-2xl" />
+          <div className="h-14 bg-[#FAF6F0] rounded-2xl" />
         </div>
-        <div className="lg:col-span-9 bg-white rounded-2xl border border-black/5 flex items-center justify-center">
-          <Loader2 className="w-6 h-6 animate-spin text-[#1d1d1f]/30" />
+        <div className="lg:col-span-9 bg-white rounded-3xl border border-[#1D1D1F]/[0.07] flex items-center justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-[#1D1D1F]/30" />
         </div>
       </div>
     )
   }
 
   const infoPanelContent = (
-    <div className="flex flex-col h-full overflow-y-auto divide-y divide-black/5 text-xs">
+    <div className="flex flex-col h-full overflow-y-auto divide-y divide-[#1D1D1F]/[0.06] text-xs sm:text-[13px]">
       {/* User Identity Summary */}
       <div className="p-5 flex flex-col items-center text-center">
-        <div className="relative w-16 h-16 rounded-full bg-[#1d1d1f] flex items-center justify-center overflow-hidden mb-3">
+        <div className="relative w-16 h-16 rounded-full bg-[#1D1D1F] flex items-center justify-center overflow-hidden mb-3 ring-2 ring-[#FAF6F0]">
           {otherUser?.image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -1058,17 +1058,17 @@ export function ChatThread({
             <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white" />
           )}
         </div>
-        <h3 className="font-bold text-base text-[#1d1d1f]">
+        <h3 className="font-bold text-lg text-[#1D1D1F]">
           {otherUser?.name || "Reader"}
         </h3>
-        <p className="text-[#86868b] font-medium">@{otherUser?.username}</p>
+        <p className="font-mono text-xs text-[#6E6E73]">@{otherUser?.username}</p>
 
-        <div className="flex items-center gap-2 mt-2">
+        <div className="flex items-center gap-2 mt-2.5">
           <span
-            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
               otherUser?.online
-                ? "bg-emerald-50 text-emerald-700"
-                : "bg-[#f5f5f7] text-[#86868b]"
+                ? "bg-emerald-50 text-[#0A7D4F] border border-emerald-200/70"
+                : "bg-[#FAF6F0] text-[#5E5E63]"
             }`}
           >
             <span
@@ -1087,32 +1087,32 @@ export function ChatThread({
               : "Offline"}
           </span>
           {otherUser?.sellerRating !== undefined && (
-            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold">
-              <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200/70 font-mono text-xs font-bold">
+              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
               {Number(otherUser.sellerRating).toFixed(1)}
             </span>
           )}
         </div>
 
         {otherUser?.location && (
-          <p className="text-[#86868b] font-medium flex items-center gap-1 mt-2">
-            <MapPin className="w-3 h-3 text-[#0066cc]" /> {otherUser.location}
+          <p className="text-[#5E5E63] font-medium flex items-center gap-1 mt-2.5 text-xs">
+            <MapPin className="w-3.5 h-3.5 text-[#C84200]" /> {otherUser.location}
           </p>
         )}
 
         {otherUser?.bio && (
-          <p className="text-[#1d1d1f]/80 font-medium mt-3 leading-relaxed line-clamp-3">
+          <p className="text-[#1D1D1F]/80 text-sm mt-3 leading-relaxed line-clamp-3">
             {otherUser.bio}
           </p>
         )}
 
         {otherUser?.favoriteQuote && (
-          <div className="mt-3 p-2.5 rounded-xl bg-[#f5f5f7] text-left w-full">
-            <p className="italic text-[11px] text-[#1d1d1f]/80 line-clamp-2">
+          <div className="mt-3 p-3 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.06] text-left w-full">
+            <p className="font-serif italic text-xs text-[#1D1D1F]/85 line-clamp-2 leading-relaxed">
               “{otherUser.favoriteQuote}”
             </p>
             {otherUser.quoteAuthor && (
-              <p className="text-[10px] font-bold text-[#86868b] mt-0.5">
+              <p className="text-xs font-semibold text-[#6E6E73] mt-1">
                 — {otherUser.quoteAuthor}
               </p>
             )}
@@ -1120,21 +1120,21 @@ export function ChatThread({
         )}
 
         <Link
-          href={`/profile/${otherUser?.id || userId}`}
-          className="mt-4 w-full py-2 px-4 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] font-bold text-[#1d1d1f] flex items-center justify-center gap-1.5 transition-colors"
+          href={`/profile/${otherUser?.username || otherUser?.id || userId}`}
+          className="mt-4 w-full py-2.5 px-4 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] border border-[#1D1D1F]/[0.07] font-bold text-[#1D1D1F] flex items-center justify-center gap-1.5 transition-colors text-xs sm:text-[13px]"
         >
-          View Full Profile <ExternalLink className="w-3 h-3" />
+          View Full Profile <ExternalLink className="w-3.5 h-3.5" />
         </Link>
       </div>
 
       {/* Shared / Listed Books */}
-      <div className="p-4 space-y-2.5">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-[#86868b]">
+      <div className="p-4 space-y-3">
+        <p className="font-mono text-xs font-bold uppercase tracking-wider text-[#6E6E73]">
           {otherUser?.name?.split(" ")[0] || "Reader"}&apos;s Books (
           {otherUser?.books?.length || 0})
         </p>
         {!otherUser?.books || otherUser.books.length === 0 ? (
-          <p className="text-[#86868b] py-2">No active book listings.</p>
+          <p className="text-[#6E6E73] text-xs py-1">No active book listings.</p>
         ) : (
           <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
             {otherUser.books.map((b: any) => {
@@ -1147,22 +1147,25 @@ export function ChatThread({
               return (
                 <div
                   key={b.id}
-                  className="p-2 rounded-xl bg-[#f5f5f7] flex items-center justify-between gap-2"
+                  className="p-2.5 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.05] flex items-center justify-between gap-2"
                 >
                   <div className="min-w-0 flex-1">
                     <Link
                       href={`/catalog/${b.id}`}
-                      className="font-bold text-[#1d1d1f] hover:text-[#0066cc] truncate block"
+                      className="font-bold text-xs text-[#1D1D1F] hover:text-[#C84200] truncate block"
                     >
                       {b.title}
                     </Link>
-                    <p className="text-[10px] text-[#86868b] truncate">
-                      {priceLabel} · {b.condition.replace("_", " ")} · {b.status}
+                    <p className="text-xs text-[#6E6E73] truncate mt-0.5">
+                      <span className="font-mono font-semibold text-[#1D1D1F]">
+                        {priceLabel}
+                      </span>{" "}
+                      · {b.condition.replace("_", " ")} · {b.status}
                     </p>
                   </div>
                   <Link
                     href={`/messages/${otherUser.id}?book=${b.id}`}
-                    className="px-2.5 py-1 rounded-full bg-[#0066cc] text-white text-[10px] font-bold shrink-0"
+                    className="px-3 py-1 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-xs font-bold shrink-0"
                   >
                     Select
                   </Link>
@@ -1174,23 +1177,23 @@ export function ChatThread({
       </div>
 
       {/* Shared Media & Files */}
-      <div className="p-4 space-y-2.5">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-[#86868b]">
-          Shared Media & Files ({convMeta?.sharedMedia?.length || 0})
+      <div className="p-4 space-y-3">
+        <p className="font-mono text-xs font-bold uppercase tracking-wider text-[#6E6E73]">
+          Shared Media &amp; Files ({convMeta?.sharedMedia?.length || 0})
         </p>
         {!convMeta?.sharedMedia || convMeta.sharedMedia.length === 0 ? (
-          <p className="text-[#86868b] py-2">
+          <p className="text-[#6E6E73] text-xs py-1 leading-relaxed">
             Photos and documents shared in this chat will appear here.
           </p>
         ) : (
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-3 gap-2">
             {convMeta.sharedMedia.slice(0, 9).map((m: any) =>
               m.kind === "IMAGE" ? (
                 <button
                   key={m.id}
                   type="button"
                   onClick={() => setLightboxImage(m.url)}
-                  className="aspect-square rounded-lg overflow-hidden bg-[#f5f5f7] border border-black/5 cursor-pointer"
+                  className="aspect-square rounded-xl overflow-hidden bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] cursor-pointer"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -1206,10 +1209,10 @@ export function ChatThread({
                   href={m.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="aspect-square rounded-lg bg-[#f5f5f7] p-1.5 flex flex-col items-center justify-center text-center border border-black/5 hover:bg-[#e8e8ed]"
+                  className="aspect-square rounded-xl bg-[#FAF6F0] p-2 flex flex-col items-center justify-center text-center border border-[#1D1D1F]/[0.07] hover:bg-[#EFE7DC]"
                 >
-                  <FileText className="w-4 h-4 text-[#0066cc] mb-1" />
-                  <span className="text-[9px] font-semibold truncate w-full">
+                  <FileText className="w-4 h-4 text-[#C84200] mb-1" />
+                  <span className="text-xs font-medium truncate w-full">
                     {m.fileName}
                   </span>
                 </a>
@@ -1221,8 +1224,8 @@ export function ChatThread({
 
       {/* Conversation Controls & Privacy */}
       <div className="p-4 space-y-1.5">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-[#86868b] mb-2">
-          Conversation & Privacy
+        <p className="font-mono text-xs font-bold uppercase tracking-wider text-[#6E6E73] mb-2">
+          Conversation &amp; Privacy
         </p>
 
         <button
@@ -1230,10 +1233,10 @@ export function ChatThread({
           onClick={() =>
             handleConversationSetting({ isPinned: !convMeta?.me?.isPinned })
           }
-          className="w-full py-2 px-3 rounded-xl hover:bg-[#f5f5f7] flex items-center justify-between font-semibold text-[#1d1d1f] transition-colors cursor-pointer"
+          className="w-full py-2.5 px-3 rounded-xl hover:bg-[#FAF6F0] flex items-center justify-between font-semibold text-[#1D1D1F] transition-colors cursor-pointer"
         >
-          <span className="flex items-center gap-2">
-            <Pin className="w-3.5 h-3.5 text-[#0066cc]" />
+          <span className="flex items-center gap-2.5">
+            <Pin className="w-4 h-4 text-[#C84200]" />
             {convMeta?.me?.isPinned ? "Unpin Conversation" : "Pin Conversation"}
           </span>
         </button>
@@ -1243,13 +1246,13 @@ export function ChatThread({
           onClick={() =>
             handleConversationSetting({ isMuted: !convMeta?.me?.isMuted })
           }
-          className="w-full py-2 px-3 rounded-xl hover:bg-[#f5f5f7] flex items-center justify-between font-semibold text-[#1d1d1f] transition-colors cursor-pointer"
+          className="w-full py-2.5 px-3 rounded-xl hover:bg-[#FAF6F0] flex items-center justify-between font-semibold text-[#1D1D1F] transition-colors cursor-pointer"
         >
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-2.5">
             {convMeta?.me?.isMuted ? (
-              <Bell className="w-3.5 h-3.5 text-[#0066cc]" />
+              <Bell className="w-4 h-4 text-[#C84200]" />
             ) : (
-              <BellOff className="w-3.5 h-3.5 text-[#86868b]" />
+              <BellOff className="w-4 h-4 text-[#6E6E73]" />
             )}
             {convMeta?.me?.isMuted
               ? "Unmute Notifications"
@@ -1264,10 +1267,10 @@ export function ChatThread({
               isArchived: !convMeta?.me?.isArchived,
             })
           }
-          className="w-full py-2 px-3 rounded-xl hover:bg-[#f5f5f7] flex items-center justify-between font-semibold text-[#1d1d1f] transition-colors cursor-pointer"
+          className="w-full py-2.5 px-3 rounded-xl hover:bg-[#FAF6F0] flex items-center justify-between font-semibold text-[#1D1D1F] transition-colors cursor-pointer"
         >
-          <span className="flex items-center gap-2">
-            <Archive className="w-3.5 h-3.5 text-[#86868b]" />
+          <span className="flex items-center gap-2.5">
+            <Archive className="w-4 h-4 text-[#6E6E73]" />
             {convMeta?.me?.isArchived
               ? "Unarchive Conversation"
               : "Archive Conversation"}
@@ -1278,10 +1281,10 @@ export function ChatThread({
           <button
             type="button"
             onClick={requestBrowserNotifications}
-            className="w-full py-2 px-3 rounded-xl hover:bg-[#f5f5f7] flex items-center justify-between font-semibold text-[#0066cc] transition-colors cursor-pointer"
+            className="w-full py-2.5 px-3 rounded-xl hover:bg-[#FAF6F0] flex items-center justify-between font-semibold text-[#0066cc] transition-colors cursor-pointer"
           >
-            <span className="flex items-center gap-2">
-              <Bell className="w-3.5 h-3.5" /> Enable Desktop Alerts
+            <span className="flex items-center gap-2.5">
+              <Bell className="w-4 h-4" /> Enable Desktop Alerts
             </span>
           </button>
         )}
@@ -1289,10 +1292,10 @@ export function ChatThread({
         <button
           type="button"
           onClick={handleBlockToggle}
-          className="w-full py-2 px-3 rounded-xl hover:bg-red-50 flex items-center justify-between font-semibold text-red-600 transition-colors cursor-pointer"
+          className="w-full py-2.5 px-3 rounded-xl hover:bg-red-50 flex items-center justify-between font-semibold text-red-600 transition-colors cursor-pointer"
         >
-          <span className="flex items-center gap-2">
-            <Ban className="w-3.5 h-3.5" />
+          <span className="flex items-center gap-2.5">
+            <Ban className="w-4 h-4" />
             {convMeta?.block?.blockedByMe ? "Unblock User" : "Block User"}
           </span>
         </button>
@@ -1300,10 +1303,10 @@ export function ChatThread({
         <button
           type="button"
           onClick={() => setShowReportModal(true)}
-          className="w-full py-2 px-3 rounded-xl hover:bg-red-50 flex items-center justify-between font-semibold text-red-600 transition-colors cursor-pointer"
+          className="w-full py-2.5 px-3 rounded-xl hover:bg-red-50 flex items-center justify-between font-semibold text-red-600 transition-colors cursor-pointer"
         >
-          <span className="flex items-center gap-2">
-            <ShieldAlert className="w-3.5 h-3.5" /> Report Conversation
+          <span className="flex items-center gap-2.5">
+            <ShieldAlert className="w-4 h-4" /> Report Conversation
           </span>
         </button>
       </div>
@@ -1320,37 +1323,37 @@ export function ChatThread({
     >
       {/* A. LEFT CONVERSATION SIDEBAR (Desktop standalone view) */}
       {!embedded && (
-      <div className="hidden lg:flex lg:col-span-3 bg-white rounded-2xl border border-black/5 shadow-sm flex-col overflow-hidden">
-        <div className="p-3.5 border-b border-black/5 space-y-2.5">
+      <div className="hidden lg:flex lg:col-span-3 bg-white rounded-3xl border border-[#1D1D1F]/[0.07] shadow-sm flex-col overflow-hidden">
+        <div className="p-4 border-b border-[#1D1D1F]/[0.06] space-y-3 bg-[#FAF6F0]/50">
           <div className="flex items-center justify-between">
             <Link
               href="/messages"
-              className="flex items-center gap-2 text-sm font-black text-[#1d1d1f] hover:text-[#0066cc] transition-colors"
+              className="flex items-center gap-2 text-base font-bold text-[#1D1D1F] hover:text-[#C84200] transition-colors"
             >
-              <MessageSquare className="w-4 h-4 text-[#0066cc]" />
+              <MessageSquare className="w-4 h-4 text-[#C84200]" />
               Messages
             </Link>
             <Link
               href="/messages?tab=discover"
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-[11px] font-bold text-white transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#C84200] hover:bg-[#A33500] text-xs font-bold text-white transition-colors"
             >
-              <Plus className="w-3 h-3" /> New
+              <Plus className="w-3.5 h-3.5" /> New
             </Link>
           </div>
 
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-[#86868b] absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-[#6E6E73] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={sidebarSearch}
               onChange={(e) => setSidebarSearch(e.target.value)}
               placeholder="Search chats or books..."
-              className="w-full h-8 pl-8 pr-3 rounded-full bg-[#f5f5f7] text-xs font-medium text-[#1d1d1f] placeholder:text-[#86868b] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 border border-transparent focus:border-[#0066cc]"
+              className="w-full h-9 pl-9 pr-3 rounded-full bg-white text-xs font-medium text-[#1D1D1F] placeholder:text-[#6E6E73] outline-none focus:ring-2 focus:ring-[#C84200]/15 border border-[#1D1D1F]/[0.08] focus:border-[#C84200]"
             />
           </div>
 
           {/* Filter Pills: All | Unread | Buying | Selling | Archived */}
-          <div className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-hide">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
             {(
               [
                 { id: "all", label: "All" },
@@ -1364,10 +1367,10 @@ export function ChatThread({
                 key={tab.id}
                 type="button"
                 onClick={() => setSidebarFilter(tab.id)}
-                className={`px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
                   sidebarFilter === tab.id
-                    ? "bg-[#1d1d1f] text-white"
-                    : "bg-[#f5f5f7] text-[#86868b] hover:text-[#1d1d1f]"
+                    ? "bg-[#1D1D1F] text-white"
+                    : "bg-white text-[#5E5E63] hover:text-[#1D1D1F] border border-[#1D1D1F]/[0.07]"
                 }`}
               >
                 {tab.label}
@@ -1376,16 +1379,16 @@ export function ChatThread({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto divide-y divide-black/5">
+        <div className="flex-1 overflow-y-auto divide-y divide-[#1D1D1F]/[0.06]">
           {sidebarConvos.length === 0 ? (
             <div className="p-6 text-center space-y-2">
-              <p className="text-xs font-semibold text-[#86868b]">
+              <p className="text-xs font-semibold text-[#6E6E73]">
                 No {sidebarFilter !== "all" ? sidebarFilter : ""} conversations
                 found.
               </p>
               <Link
                 href="/messages?tab=discover"
-                className="inline-block text-xs font-bold text-[#0066cc] hover:underline"
+                className="inline-block text-xs font-bold text-[#C84200] hover:underline"
               >
                 Discover Readers &rarr;
               </Link>
@@ -1400,15 +1403,15 @@ export function ChatThread({
                   href={`/messages/${c.otherUser.id}${
                     c.book ? `?book=${c.book.id}` : ""
                   }`}
-                  className={`flex items-center gap-2.5 p-3 transition-colors ${
+                  className={`flex items-center gap-3 p-3.5 transition-colors ${
                     isSelected
-                      ? "bg-[#0066cc]/8 border-l-4 border-[#0066cc]"
+                      ? "bg-[#FAF6F0] border-l-4 border-[#C84200]"
                       : c.unreadCount > 0
-                      ? "bg-[#0066cc]/[0.03] hover:bg-[#f5f5f7]"
-                      : "hover:bg-[#f5f5f7]/80"
+                      ? "bg-[#C84200]/[0.04] hover:bg-[#FAF6F0]"
+                      : "hover:bg-[#FAF6F0]/70"
                   }`}
                 >
-                  <div className="relative w-10 h-10 rounded-full bg-[#1d1d1f] flex items-center justify-center shrink-0 overflow-hidden">
+                  <div className="relative w-10 h-10 rounded-full bg-[#1D1D1F] flex items-center justify-center shrink-0 overflow-hidden">
                     {c.otherUser.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -1428,13 +1431,13 @@ export function ChatThread({
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1">
-                      <span className="font-bold text-xs text-[#1d1d1f] truncate flex items-center gap-1">
+                      <span className="font-bold text-[13px] text-[#1D1D1F] truncate flex items-center gap-1">
                         {c.isPinned && (
-                          <Pin className="w-2.5 h-2.5 text-[#0066cc] shrink-0" />
+                          <Pin className="w-3 h-3 text-[#C84200] shrink-0" />
                         )}
                         {c.otherUser.name}
                       </span>
-                      <span className="text-[10px] font-medium text-[#86868b] shrink-0">
+                      <span className="font-mono text-xs text-[#6E6E73] shrink-0">
                         {formatDistanceToNow(
                           new Date(c.lastMessage.createdAt),
                           { addSuffix: false }
@@ -1443,24 +1446,24 @@ export function ChatThread({
                     </div>
 
                     {c.book && (
-                      <p className="text-[10px] font-semibold text-[#0066cc] truncate">
-                        📚 {c.book.title}
+                      <p className="text-xs font-semibold text-[#C84200] truncate">
+                        {c.book.title}
                       </p>
                     )}
 
                     <div className="flex items-center justify-between gap-1 mt-0.5">
                       <p
-                        className={`text-[11px] truncate ${
+                        className={`text-xs truncate ${
                           c.unreadCount > 0
-                            ? "font-bold text-[#1d1d1f]"
-                            : "font-medium text-[#86868b]"
+                            ? "font-semibold text-[#1D1D1F]"
+                            : "font-normal text-[#5E5E63]"
                         }`}
                       >
                         {c.lastMessage.isMine ? "You: " : ""}
                         {c.lastMessage.content}
                       </p>
                       {c.unreadCount > 0 && (
-                        <span className="min-w-[16px] h-4 px-1 rounded-full bg-[#0066cc] text-white text-[9px] font-bold flex items-center justify-center shrink-0">
+                        <span className="min-w-[18px] h-[18px] px-1.5 rounded-full bg-[#C84200] text-white font-mono text-xs font-bold flex items-center justify-center shrink-0">
                           {c.unreadCount}
                         </span>
                       )}
@@ -1472,7 +1475,7 @@ export function ChatThread({
                     <img
                       src={c.book.image}
                       alt=""
-                      className="w-8 h-10 rounded object-cover shrink-0 border border-black/10"
+                      className="w-8 h-10 rounded-lg object-cover shrink-0 border border-[#1D1D1F]/10"
                     />
                   )}
                 </Link>
@@ -1493,34 +1496,34 @@ export function ChatThread({
             : showInfoPanel
             ? "lg:col-span-6"
             : "lg:col-span-9"
-        } bg-white rounded-2xl border border-black/5 shadow-sm flex flex-col h-full overflow-hidden`}
+        } bg-white rounded-3xl border border-[#1D1D1F]/[0.07] shadow-sm flex flex-col h-full overflow-hidden`}
       >
         {/* Chat Header */}
-        <div className="px-3 sm:px-4 py-3 border-b border-black/5 flex items-center justify-between gap-2 shrink-0">
-          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+        <div className="px-4 sm:px-5 py-3.5 border-b border-[#1D1D1F]/[0.06] flex items-center justify-between gap-2 shrink-0 bg-white">
+          <div className="flex items-center gap-3 min-w-0">
             {onBack ? (
               <button
                 type="button"
                 onClick={onBack}
-                className="lg:hidden w-8 h-8 rounded-full bg-[#f5f5f7] flex items-center justify-center hover:bg-[#e8e8ed] transition-colors shrink-0 cursor-pointer"
+                className="lg:hidden w-9 h-9 rounded-full bg-[#FAF6F0] flex items-center justify-center hover:bg-[#EFE7DC] transition-colors shrink-0 cursor-pointer"
                 title="Back to Conversations"
                 aria-label="Back to Conversations"
               >
-                <ArrowLeft className="w-4 h-4 text-[#1d1d1f]" />
+                <ArrowLeft className="w-4 h-4 text-[#1D1D1F]" />
               </button>
             ) : (
               <Link
                 href="/messages"
-                className="w-8 h-8 rounded-full bg-[#f5f5f7] flex items-center justify-center hover:bg-[#e8e8ed] transition-colors shrink-0"
+                className="w-9 h-9 rounded-full bg-[#FAF6F0] flex items-center justify-center hover:bg-[#EFE7DC] transition-colors shrink-0"
                 title="Back to Conversations"
               >
-                <ArrowLeft className="w-4 h-4 text-[#1d1d1f]" />
+                <ArrowLeft className="w-4 h-4 text-[#1D1D1F]" />
               </Link>
             )}
 
             <Link
-              href={`/profile/${otherUser?.id || userId}`}
-              className="relative w-10 h-10 rounded-full bg-[#1d1d1f] flex items-center justify-center shrink-0 overflow-hidden"
+              href={`/profile/${otherUser?.username || otherUser?.id || userId}`}
+              className="relative w-11 h-11 rounded-full bg-[#1D1D1F] flex items-center justify-center shrink-0 overflow-hidden ring-2 ring-[#FAF6F0]"
             >
               {otherUser?.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -1535,29 +1538,31 @@ export function ChatThread({
                 </span>
               )}
               {otherUser?.online && (
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+                <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white" />
               )}
             </Link>
 
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <Link
-                  href={`/profile/${otherUser?.id || userId}`}
-                  className="font-bold text-sm md:text-base text-[#1d1d1f] hover:text-[#0066cc] truncate"
+                  href={`/profile/${otherUser?.username || otherUser?.id || userId}`}
+                  className="font-bold text-[15px] md:text-base text-[#1D1D1F] hover:text-[#C84200] truncate transition-colors"
                 >
                   {otherUser?.name || "Reader"}
                 </Link>
-                <span className="text-[11px] font-medium text-[#86868b] hidden sm:inline">
-                  @{otherUser?.username}
-                </span>
+                {otherUser?.username && (
+                  <span className="font-mono text-xs text-[#6E6E73] hidden sm:inline">
+                    @{otherUser.username}
+                  </span>
+                )}
               </div>
-              <p className="text-[11px] font-medium text-[#86868b] truncate">
+              <p className="text-xs font-medium text-[#5E5E63] truncate">
                 {otherTypingName ? (
-                  <span className="text-[#0066cc] font-semibold">
+                  <span className="text-[#C84200] font-semibold">
                     typing...
                   </span>
                 ) : otherUser?.online ? (
-                  <span className="text-emerald-600 font-semibold">
+                  <span className="text-[#0A7D4F] font-semibold">
                     {otherUser?.liveStatus || "Online"}
                   </span>
                 ) : otherUser?.lastSeenAt ? (
@@ -1572,7 +1577,7 @@ export function ChatThread({
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => {
@@ -1582,10 +1587,10 @@ export function ChatThread({
                   fetchThread("")
                 }
               }}
-              className={`p-2 rounded-full transition-colors cursor-pointer ${
+              className={`p-2.5 rounded-full transition-colors cursor-pointer ${
                 showSearchInChat
-                  ? "bg-[#0066cc] text-white"
-                  : "bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f]"
+                  ? "bg-[#C84200] text-white"
+                  : "bg-[#FAF6F0] hover:bg-[#EFE7DC] text-[#1D1D1F]"
               }`}
               title="Search in conversation"
             >
@@ -1601,10 +1606,10 @@ export function ChatThread({
                   setShowInfoPanel((prev) => !prev)
                 }
               }}
-              className={`p-2 rounded-full transition-colors cursor-pointer ${
+              className={`p-2.5 rounded-full transition-colors cursor-pointer ${
                 showInfoPanel
-                  ? "bg-[#1d1d1f] text-white"
-                  : "bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f]"
+                  ? "bg-[#1D1D1F] text-white"
+                  : "bg-[#FAF6F0] hover:bg-[#EFE7DC] text-[#1D1D1F]"
               }`}
               title="Conversation Info & Safety"
             >
@@ -1615,8 +1620,8 @@ export function ChatThread({
 
         {/* In-Chat Search Bar */}
         {showSearchInChat && (
-          <div className="px-4 py-2 bg-[#f5f5f7] border-b border-black/5 flex items-center gap-2 shrink-0">
-            <Search className="w-3.5 h-3.5 text-[#86868b]" />
+          <div className="px-4 py-2.5 bg-[#FAF6F0] border-b border-[#1D1D1F]/[0.06] flex items-center gap-2.5 shrink-0">
+            <Search className="w-4 h-4 text-[#6E6E73]" />
             <input
               type="text"
               value={chatSearchQuery}
@@ -1625,7 +1630,7 @@ export function ChatThread({
                 fetchThread(e.target.value)
               }}
               placeholder="Search messages in this conversation..."
-              className="flex-1 bg-transparent text-xs font-medium text-[#1d1d1f] outline-none"
+              className="flex-1 bg-transparent text-sm font-medium text-[#1D1D1F] outline-none placeholder:text-[#6E6E73]"
             />
             {chatSearchQuery && (
               <button
@@ -1634,7 +1639,7 @@ export function ChatThread({
                   setChatSearchQuery("")
                   fetchThread("")
                 }}
-                className="text-xs font-bold text-[#86868b] hover:text-[#1d1d1f]"
+                className="text-xs font-bold text-[#C84200] hover:underline cursor-pointer"
               >
                 Clear
               </button>
@@ -1644,33 +1649,33 @@ export function ChatThread({
 
         {/* BOOK MARKETPLACE CONTEXT CARD */}
         {activeBook && (
-          <div className="px-3 sm:px-4 py-2.5 bg-[#f5f5f7]/90 border-b border-black/5 shrink-0 space-y-2">
-            <div className="flex flex-wrap items-center justify-between gap-2.5">
+          <div className="px-4 sm:px-5 py-3 bg-[#FAF6F0]/90 border-b border-[#1D1D1F]/[0.07] shrink-0 space-y-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 {activeBook.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={activeBook.image}
                     alt={activeBook.title}
-                    className="w-10 h-12 rounded-lg object-cover border border-black/10 shrink-0"
+                    className="w-11 h-14 rounded-xl object-cover border border-[#1D1D1F]/10 shrink-0 shadow-xs"
                   />
                 ) : (
-                  <div className="w-10 h-12 rounded-lg bg-[#e8e8ed] flex items-center justify-center shrink-0">
-                    <BookOpen className="w-4 h-4 text-[#86868b]" />
+                  <div className="w-11 h-14 rounded-xl bg-white border border-[#1D1D1F]/[0.08] flex items-center justify-center shrink-0">
+                    <BookOpen className="w-4 h-4 text-[#C84200]" />
                   </div>
                 )}
                 <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Link
                       href={`/catalog/${activeBook.id}`}
-                      className="font-bold text-xs md:text-sm text-[#1d1d1f] hover:text-[#0066cc] truncate"
+                      className="font-bold text-sm md:text-[15px] text-[#1D1D1F] hover:text-[#C84200] truncate"
                     >
                       {activeBook.title}
                     </Link>
                     <span
-                      className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
+                      className={`px-2.5 py-0.5 rounded-full font-mono text-xs font-bold uppercase ${
                         activeBook.status === "AVAILABLE"
-                          ? "bg-emerald-100 text-emerald-800"
+                          ? "bg-emerald-100 text-[#0A7D4F]"
                           : activeBook.status === "RESERVED"
                           ? "bg-amber-100 text-amber-800"
                           : "bg-red-100 text-red-800"
@@ -1679,9 +1684,9 @@ export function ChatThread({
                       {activeBook.status}
                     </span>
                   </div>
-                  <p className="text-[11px] font-medium text-[#86868b] truncate">
+                  <p className="text-xs font-medium text-[#5E5E63] truncate mt-0.5">
                     {activeBook.author} ·{" "}
-                    <span className="font-bold text-[#1d1d1f]">
+                    <span className="font-mono font-bold text-[#1D1D1F]">
                       {activeBook.price === 0
                         ? activeBook.acceptsExchange
                           ? "1-for-1 Swap"
@@ -1694,7 +1699,7 @@ export function ChatThread({
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5 shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 {!isSellerOfActiveBook &&
                   activeBook.price > 0 &&
                   activeBook.status !== "SOLD" && (
@@ -1707,14 +1712,14 @@ export function ChatThread({
                             String(Math.round(activeBook.price * 0.9))
                           )
                       }}
-                      className="px-3 py-1.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                      className="px-3.5 py-2 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
-                      <Tag className="w-3 h-3" /> Make Offer
+                      <Tag className="w-3.5 h-3.5" /> Make Offer
                     </button>
                   )}
                 <Link
                   href={`/catalog/${activeBook.id}`}
-                  className="px-3 py-1.5 rounded-full bg-white hover:bg-[#e8e8ed] text-[#1d1d1f] border border-black/10 text-[11px] font-bold transition-colors"
+                  className="px-3.5 py-2 rounded-full bg-white hover:bg-[#F2EBE1] text-[#1D1D1F] border border-[#1D1D1F]/10 text-xs font-bold transition-colors"
                 >
                   View Listing
                 </Link>
@@ -1723,9 +1728,9 @@ export function ChatThread({
 
             {/* Accepted Offer Checkout Banner */}
             {acceptedOffer && (
-              <div className="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between gap-2 text-xs">
-                <span className="font-bold text-emerald-900">
-                  ✅ Offer Accepted: ₹{acceptedOffer.amount}{" "}
+              <div className="px-4 py-2.5 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-between gap-2 text-xs sm:text-sm">
+                <span className="font-bold text-[#0A7D4F]">
+                  Offer Accepted: ₹{acceptedOffer.amount}{" "}
                   <span className="line-through text-emerald-700/70 font-normal">
                     ₹{acceptedOffer.listPrice}
                   </span>
@@ -1733,7 +1738,7 @@ export function ChatThread({
                 {!isSellerOfActiveBook && activeBook.status !== "SOLD" && (
                   <Link
                     href={`/checkout/${activeBook.id}`}
-                    className="px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shrink-0"
+                    className="px-3.5 py-1.5 rounded-full bg-[#0A7D4F] hover:bg-emerald-800 text-white text-xs font-bold shrink-0"
                   >
                     Proceed to Checkout &rarr;
                   </Link>
@@ -1745,14 +1750,14 @@ export function ChatThread({
             {showOfferForm && !isSellerOfActiveBook && (
               <form
                 onSubmit={handleSubmitOffer}
-                className="p-3 rounded-xl bg-white border border-[#0066cc]/30 space-y-2.5"
+                className="p-3.5 rounded-2xl bg-white border border-[#C84200]/25 shadow-xs space-y-3"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-[11px] font-bold text-[#1d1d1f] flex items-center gap-1">
-                    <IndianRupee className="w-3.5 h-3.5 text-[#0066cc]" />
+                  <span className="text-xs font-bold text-[#1D1D1F] flex items-center gap-1">
+                    <IndianRupee className="w-3.5 h-3.5 text-[#C84200]" />
                     Propose a Price (Listed at ₹{activeBook.price})
                   </span>
-                  <div className="flex flex-wrap items-center gap-1">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     {[0.9, 0.85, 0.8].map((pct) => {
                       const val = Math.max(1, Math.round(activeBook.price * pct))
                       return (
@@ -1760,7 +1765,7 @@ export function ChatThread({
                           key={pct}
                           type="button"
                           onClick={() => setOfferAmount(String(val))}
-                          className="px-2 py-0.5 rounded-full bg-[#f5f5f7] hover:bg-[#0066cc] hover:text-white text-[10px] font-bold text-[#1d1d1f] transition-colors cursor-pointer"
+                          className="px-2.5 py-1 rounded-full bg-[#FAF6F0] hover:bg-[#C84200] hover:text-white font-mono text-xs font-bold text-[#1D1D1F] transition-colors cursor-pointer"
                         >
                           ₹{val} (-{Math.round((1 - pct) * 100)}%)
                         </button>
@@ -1769,9 +1774,9 @@ export function ChatThread({
                     <button
                       type="button"
                       onClick={() => setShowOfferForm(false)}
-                      className="p-1 text-[#86868b] hover:text-[#1d1d1f] cursor-pointer"
+                      className="p-1 text-[#6E6E73] hover:text-[#1D1D1F] cursor-pointer"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -1784,19 +1789,19 @@ export function ChatThread({
                     value={offerAmount}
                     onChange={(e) => setOfferAmount(e.target.value)}
                     placeholder="Offer ₹"
-                    className="w-24 sm:w-28 rounded-xl bg-[#f5f5f7] px-3 py-1.5 text-xs font-bold text-[#1d1d1f] outline-none focus:ring-2 focus:ring-[#0066cc]"
+                    className="w-28 rounded-xl bg-[#FAF6F0] border border-[#1D1D1F]/10 px-3.5 py-2 text-sm font-mono font-bold text-[#1D1D1F] outline-none focus:bg-white focus:border-[#C84200]"
                   />
                   <input
                     type="text"
                     value={offerNote}
                     onChange={(e) => setOfferNote(e.target.value)}
                     placeholder="Optional note (e.g., pickup today)"
-                    className="flex-1 min-w-[140px] rounded-xl bg-[#f5f5f7] px-3 py-1.5 text-xs font-medium text-[#1d1d1f] outline-none focus:ring-2 focus:ring-[#0066cc]"
+                    className="flex-1 min-w-[140px] rounded-xl bg-[#FAF6F0] border border-[#1D1D1F]/10 px-3.5 py-2 text-sm font-medium text-[#1D1D1F] outline-none focus:bg-white focus:border-[#C84200]"
                   />
                   <button
                     type="submit"
                     disabled={submittingOffer}
-                    className="px-3.5 py-1.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-bold shrink-0 cursor-pointer disabled:opacity-50"
+                    className="px-4 py-2 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-xs sm:text-sm font-bold shrink-0 cursor-pointer disabled:opacity-50"
                   >
                     {submittingOffer ? "Sending..." : "Send Offer"}
                   </button>
@@ -1806,9 +1811,9 @@ export function ChatThread({
 
             {/* Contextual Buyer OR Seller Action Bar */}
             {isSellerOfActiveBook ? (
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#86868b] shrink-0 mr-1">
-                  Seller Actions:
+              <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
+                <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#6E6E73] shrink-0 mr-1">
+                  Seller:
                 </span>
                 <button
                   type="button"
@@ -1816,9 +1821,9 @@ export function ChatThread({
                     updatingListingStatus || activeBook.status === "AVAILABLE"
                   }
                   onClick={() => handleSellerListingStatus("AVAILABLE")}
-                  className="px-2.5 py-1 rounded-full bg-white hover:bg-emerald-50 border border-black/10 text-[10px] font-bold text-emerald-700 whitespace-nowrap disabled:opacity-40 cursor-pointer"
+                  className="px-3 py-1.5 rounded-full bg-white hover:bg-emerald-50 border border-[#1D1D1F]/10 text-xs font-semibold text-[#0A7D4F] whitespace-nowrap disabled:opacity-40 cursor-pointer"
                 >
-                  ✓ Confirm Available
+                  Confirm Available
                 </button>
                 <button
                   type="button"
@@ -1826,9 +1831,9 @@ export function ChatThread({
                     updatingListingStatus || activeBook.status === "RESERVED"
                   }
                   onClick={() => handleSellerListingStatus("RESERVED")}
-                  className="px-2.5 py-1 rounded-full bg-white hover:bg-amber-50 border border-black/10 text-[10px] font-bold text-amber-700 whitespace-nowrap disabled:opacity-40 cursor-pointer"
+                  className="px-3 py-1.5 rounded-full bg-white hover:bg-amber-50 border border-[#1D1D1F]/10 text-xs font-semibold text-amber-800 whitespace-nowrap disabled:opacity-40 cursor-pointer"
                 >
-                  ⏳ Mark Reserved
+                  Mark Reserved
                 </button>
                 <button
                   type="button"
@@ -1836,16 +1841,16 @@ export function ChatThread({
                     updatingListingStatus || activeBook.status === "SOLD"
                   }
                   onClick={() => handleSellerListingStatus("SOLD")}
-                  className="px-2.5 py-1 rounded-full bg-white hover:bg-red-50 border border-black/10 text-[10px] font-bold text-red-700 whitespace-nowrap disabled:opacity-40 cursor-pointer"
+                  className="px-3 py-1.5 rounded-full bg-white hover:bg-red-50 border border-[#1D1D1F]/10 text-xs font-semibold text-red-700 whitespace-nowrap disabled:opacity-40 cursor-pointer"
                 >
-                  🏷️ Mark Sold
+                  Mark Sold
                 </button>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-2.5 py-1 rounded-full bg-white hover:bg-[#e8e8ed] border border-black/10 text-[10px] font-bold text-[#1d1d1f] whitespace-nowrap flex items-center gap-1 cursor-pointer"
+                  className="px-3 py-1.5 rounded-full bg-white hover:bg-[#EFE7DC] border border-[#1D1D1F]/10 text-xs font-semibold text-[#1D1D1F] whitespace-nowrap flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Camera className="w-3 h-3 text-[#0066cc]" /> Share Photos
+                  <Camera className="w-3.5 h-3.5 text-[#C84200]" /> Share Photos
                 </button>
                 <button
                   type="button"
@@ -1857,13 +1862,13 @@ export function ChatThread({
                     )
                     textareaRef.current?.focus()
                   }}
-                  className="px-2.5 py-1 rounded-full bg-white hover:bg-[#e8e8ed] border border-black/10 text-[10px] font-bold text-[#1d1d1f] whitespace-nowrap cursor-pointer"
+                  className="px-3 py-1.5 rounded-full bg-white hover:bg-[#EFE7DC] border border-[#1D1D1F]/10 text-xs font-semibold text-[#1D1D1F] whitespace-nowrap cursor-pointer"
                 >
-                  📍 Send Pickup Info
+                  Send Pickup Info
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
+              <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
                 {BUYER_QUICK_PROMPTS.map((p) => (
                   <button
                     key={p.label}
@@ -1872,7 +1877,7 @@ export function ChatThread({
                       setNewMessage(p.text)
                       textareaRef.current?.focus()
                     }}
-                    className="px-2.5 py-1 rounded-full bg-white hover:bg-[#0066cc] hover:text-white border border-black/10 text-[10px] font-semibold text-[#1d1d1f] whitespace-nowrap transition-colors cursor-pointer"
+                    className="px-3 py-1.5 rounded-full bg-white hover:bg-[#1D1D1F] hover:text-white border border-[#1D1D1F]/10 text-xs font-semibold text-[#1D1D1F] whitespace-nowrap transition-colors cursor-pointer"
                   >
                     {p.label}
                   </button>
@@ -1884,12 +1889,12 @@ export function ChatThread({
 
         {/* Optional External Context Banner (Fulfill Request / Swap / Quote) */}
         {activeContext && !activeBook && (
-          <div className="mx-4 mt-2.5 p-3 rounded-2xl bg-[#0066cc]/8 border border-[#0066cc]/20 flex items-center justify-between gap-2 shrink-0">
+          <div className="mx-4 mt-3 p-3.5 rounded-2xl bg-[#FAF6F0] border border-[#C84200]/25 flex items-center justify-between gap-3 shrink-0">
             <div className="min-w-0">
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#0066cc]">
-                <Sparkles className="w-3 h-3" /> {activeContext.badge}
+              <span className="inline-flex items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-wider text-[#C84200]">
+                <Sparkles className="w-3.5 h-3.5" /> {activeContext.badge}
               </span>
-              <p className="text-xs font-bold text-[#1d1d1f] truncate">
+              <p className="text-sm font-bold text-[#1D1D1F] truncate mt-0.5">
                 {activeContext.title}
               </p>
             </div>
@@ -1900,7 +1905,7 @@ export function ChatThread({
                   sendMessageContent(activeContext.prefillMessage)
                   setActiveContext(null)
                 }}
-                className="px-3 py-1 rounded-full bg-[#0066cc] text-white text-xs font-semibold cursor-pointer"
+                className="px-3.5 py-1.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-xs font-bold cursor-pointer"
               >
                 Send
               </button>
@@ -1910,30 +1915,30 @@ export function ChatThread({
                   setNewMessage(activeContext.prefillMessage)
                   setActiveContext(null)
                 }}
-                className="px-2.5 py-1 rounded-full bg-white text-[#1d1d1f] text-xs font-semibold border border-black/10 cursor-pointer"
+                className="px-3 py-1.5 rounded-full bg-white text-[#1D1D1F] text-xs font-bold border border-[#1D1D1F]/10 cursor-pointer"
               >
                 Edit
               </button>
               <button
                 type="button"
                 onClick={() => setActiveContext(null)}
-                className="p-1 text-[#86868b]"
+                className="p-1 text-[#6E6E73] hover:text-[#1D1D1F] cursor-pointer"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>
         )}
 
         {/* MESSAGES STREAM */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-5 space-y-3.5 bg-white">
           {hasMore && (
             <div className="flex justify-center pb-2">
               <button
                 type="button"
                 disabled={loadingOlder}
                 onClick={loadOlderMessages}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-xs font-bold text-[#1d1d1f] transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] border border-[#1D1D1F]/[0.07] text-xs font-bold text-[#1D1D1F] transition-colors cursor-pointer"
               >
                 {loadingOlder ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -1946,14 +1951,14 @@ export function ChatThread({
           )}
 
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center px-4">
-              <div className="w-12 h-12 rounded-full bg-[#f5f5f7] flex items-center justify-center mb-3">
-                <User className="w-5 h-5 text-[#86868b]" />
+            <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
+              <div className="w-14 h-14 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] flex items-center justify-center mb-4">
+                <User className="w-6 h-6 text-[#C84200]" />
               </div>
-              <p className="text-[#1d1d1f] font-bold text-base mb-1">
+              <p className="text-[#1D1D1F] font-bold text-lg mb-1.5">
                 Start a conversation with {otherUser?.name || "this reader"}
               </p>
-              <p className="text-[#86868b] font-medium text-xs max-w-sm mb-5">
+              <p className="text-[#5E5E63] text-sm max-w-sm mb-6 leading-relaxed">
                 Ask about book condition, propose a price offer, or coordinate a
                 campus handoff.
               </p>
@@ -1966,7 +1971,7 @@ export function ChatThread({
                       setNewMessage(p.text)
                       textareaRef.current?.focus()
                     }}
-                    className="text-xs font-semibold px-3.5 py-2 rounded-full bg-[#f5f5f7] hover:bg-[#0066cc] hover:text-white text-[#1d1d1f] transition-colors cursor-pointer"
+                    className="text-xs sm:text-[13px] font-semibold px-4 py-2 rounded-full bg-[#FAF6F0] hover:bg-[#1D1D1F] hover:text-white border border-[#1D1D1F]/[0.07] text-[#1D1D1F] transition-colors cursor-pointer"
                   >
                     “{p.text}”
                   </button>
@@ -1995,27 +2000,27 @@ export function ChatThread({
               return (
                 <div key={msg.id} id={`msg-${msg.id}`} className="space-y-2.5">
                   {showDateDivider && (
-                    <div className="flex items-center justify-center my-2">
-                      <span className="px-3 py-0.5 rounded-full bg-[#f5f5f7] text-[10px] font-bold text-[#86868b]">
+                    <div className="flex items-center justify-center my-3">
+                      <span className="px-3.5 py-1 rounded-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.06] font-mono text-xs font-semibold text-[#5E5E63]">
                         {formatDaySeparator(msg.createdAt)}
                       </span>
                     </div>
                   )}
 
                   {isUnreadBoundary && (
-                    <div className="flex items-center gap-2 my-2">
-                      <div className="h-px flex-1 bg-[#0066cc]/30" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#0066cc]">
+                    <div className="flex items-center gap-2.5 my-3">
+                      <div className="h-px flex-1 bg-[#C84200]/30" />
+                      <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#C84200]">
                         New messages
                       </span>
-                      <div className="h-px flex-1 bg-[#0066cc]/30" />
+                      <div className="h-px flex-1 bg-[#C84200]/30" />
                     </div>
                   )}
 
                   {/* SYSTEM MESSAGE */}
                   {msg.type === "SYSTEM" ? (
-                    <div className="flex justify-center my-1.5">
-                      <span className="px-3.5 py-1 rounded-full bg-[#f5f5f7] border border-black/5 text-[11px] font-semibold text-[#1d1d1f]/80">
+                    <div className="flex justify-center my-2">
+                      <span className="px-4 py-1.5 rounded-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] text-xs font-semibold text-[#5E5E63]">
                         {msg.content}
                       </span>
                     </div>
@@ -2026,18 +2031,18 @@ export function ChatThread({
                         isMine ? "justify-end" : "justify-start"
                       }`}
                     >
-                      <div className="w-full max-w-xs rounded-2xl border border-black/10 bg-white shadow-sm overflow-hidden">
-                        <div className="px-4 py-2.5 bg-[#1d1d1f] text-white flex items-center justify-between">
-                          <span className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                            <Tag className="w-3 h-3 text-[#E8B27A]" /> Price
+                      <div className="w-full max-w-sm rounded-3xl border border-[#1D1D1F]/10 bg-white shadow-sm overflow-hidden">
+                        <div className="px-5 py-3 bg-[#0B0B0D] text-white flex items-center justify-between">
+                          <span className="font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                            <Tag className="w-3.5 h-3.5 text-[#FF7F45]" /> Price
                             Offer
                           </span>
                           <span
-                            className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
+                            className={`px-2.5 py-0.5 rounded-full font-mono text-xs font-bold uppercase ${
                               msg.offer.status === "ACCEPTED"
-                                ? "bg-emerald-500 text-white"
+                                ? "bg-[#0A7D4F] text-white"
                                 : msg.offer.status === "PENDING"
-                                ? "bg-amber-400 text-[#1d1d1f]"
+                                ? "bg-[#FF7F45] text-[#0B0B0D]"
                                 : "bg-white/20 text-white"
                             }`}
                           >
@@ -2045,34 +2050,34 @@ export function ChatThread({
                           </span>
                         </div>
 
-                        <div className="p-4 space-y-2.5">
+                        <div className="p-5 space-y-3">
                           <div className="flex items-baseline justify-between">
                             <div>
-                              <p className="text-[10px] font-bold uppercase text-[#86868b]">
+                              <p className="text-xs font-semibold uppercase tracking-wider text-[#6E6E73]">
                                 Offered Price
                               </p>
-                              <p className="text-2xl font-black text-[#1d1d1f]">
+                              <p className="font-mono text-2xl sm:text-3xl font-bold text-[#1D1D1F] mt-0.5">
                                 ₹{msg.offer.amount}
                               </p>
                             </div>
                             <div className="text-right">
-                              <p className="text-[10px] font-bold uppercase text-[#86868b]">
+                              <p className="text-xs font-semibold uppercase tracking-wider text-[#6E6E73]">
                                 Listed Price
                               </p>
-                              <p className="text-sm font-bold text-[#86868b] line-through">
+                              <p className="font-mono text-sm font-bold text-[#6E6E73] line-through mt-0.5">
                                 ₹{msg.offer.listPrice}
                               </p>
                             </div>
                           </div>
 
                           {msg.offer.note && (
-                            <p className="text-xs text-[#1d1d1f]/80 bg-[#f5f5f7] rounded-xl p-2.5 italic">
+                            <p className="text-sm text-[#1D1D1F]/85 bg-[#FAF6F0] border border-[#1D1D1F]/[0.06] rounded-2xl p-3 font-serif italic leading-relaxed">
                               “{msg.offer.note}”
                             </p>
                           )}
 
-                          <p className="text-[10px] text-[#86868b] flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
+                          <p className="font-mono text-xs text-[#6E6E73] flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5" />
                             {msg.offer.status === "PENDING"
                               ? `Expires ${formatDistanceToNow(
                                   new Date(msg.offer.expiresAt),
@@ -2089,7 +2094,7 @@ export function ChatThread({
                           {/* Seller Accept / Reject Buttons */}
                           {msg.offer.status === "PENDING" &&
                             msg.offer.sellerId === session?.user?.id && (
-                              <div className="grid grid-cols-2 gap-2 pt-1">
+                              <div className="grid grid-cols-2 gap-2.5 pt-1">
                                 <button
                                   type="button"
                                   disabled={busyOfferId === msg.offer.id}
@@ -2099,10 +2104,9 @@ export function ChatThread({
                                       "ACCEPTED"
                                     )
                                   }
-                                  className="py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1 cursor-pointer"
+                                  className="py-2.5 rounded-full bg-[#0A7D4F] hover:bg-emerald-800 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                                 >
-                                  <CheckCircle2 className="w-3.5 h-3.5" />{" "}
-                                  Accept
+                                  <CheckCircle2 className="w-4 h-4" /> Accept
                                 </button>
                                 <button
                                   type="button"
@@ -2113,9 +2117,9 @@ export function ChatThread({
                                       "REJECTED"
                                     )
                                   }
-                                  className="py-2 rounded-full bg-[#f5f5f7] hover:bg-red-50 hover:text-red-600 text-[#1d1d1f] text-xs font-bold flex items-center justify-center gap-1 cursor-pointer"
+                                  className="py-2.5 rounded-full bg-[#FAF6F0] hover:bg-red-50 hover:text-red-600 text-[#1D1D1F] border border-[#1D1D1F]/[0.08] text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                                 >
-                                  <XCircle className="w-3.5 h-3.5" /> Decline
+                                  <XCircle className="w-4 h-4" /> Decline
                                 </button>
                               </div>
                             )}
@@ -2132,7 +2136,7 @@ export function ChatThread({
                                     "WITHDRAWN"
                                   )
                                 }
-                                className="w-full py-1.5 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-xs font-bold text-[#1d1d1f] cursor-pointer"
+                                className="w-full py-2.5 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] border border-[#1D1D1F]/[0.08] text-xs sm:text-sm font-bold text-[#1D1D1F] cursor-pointer transition-colors"
                               >
                                 Withdraw Offer
                               </button>
@@ -2142,7 +2146,7 @@ export function ChatThread({
                             msg.offer.buyerId === session?.user?.id && (
                               <Link
                                 href={`/checkout/${msg.offer.bookId}`}
-                                className="block w-full py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-bold text-center"
+                                className="block w-full py-2.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-sm font-bold text-center transition-colors"
                               >
                                 Proceed to Checkout
                               </Link>
@@ -2161,7 +2165,7 @@ export function ChatThread({
                       }`}
                     >
                       <div
-                        className={`max-w-[78%] flex flex-col gap-1 ${
+                        className={`max-w-[82%] sm:max-w-[76%] flex flex-col gap-1.5 ${
                           isMine ? "items-end" : "items-start"
                         }`}
                       >
@@ -2177,9 +2181,9 @@ export function ChatThread({
                                   block: "center",
                                 })
                             }}
-                            className={`text-left px-3 py-1.5 rounded-xl text-[11px] border-l-2 border-[#0066cc] bg-[#f5f5f7] text-[#1d1d1f]/80 max-w-full truncate cursor-pointer`}
+                            className="text-left px-3.5 py-2 rounded-2xl text-xs border-l-2 border-[#C84200] bg-[#FAF6F0] text-[#1D1D1F]/80 max-w-full truncate cursor-pointer"
                           >
-                            <span className="font-bold text-[#0066cc] mr-1">
+                            <span className="font-bold text-[#C84200] mr-1.5">
                               {msg.replyTo.senderName}:
                             </span>
                             {msg.replyTo.content || "Attachment"}
@@ -2189,7 +2193,7 @@ export function ChatThread({
                         <div className="flex items-center gap-1.5">
                           {/* Hover Actions (Left side for own messages) */}
                           {isMine && !isDeleted && !msg.id.startsWith("temp-") && (
-                            <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 bg-white border border-black/10 rounded-full px-1.5 py-0.5 shadow-sm transition-opacity">
+                            <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 bg-white border border-[#1D1D1F]/10 rounded-full px-1.5 py-1 shadow-sm transition-opacity">
                               <button
                                 type="button"
                                 onClick={() =>
@@ -2199,7 +2203,7 @@ export function ChatThread({
                                       : msg.id
                                   )
                                 }
-                                className="p-1 text-[#86868b] hover:text-[#1d1d1f]"
+                                className="p-1 text-[#6E6E73] hover:text-[#1D1D1F] cursor-pointer"
                                 title="React"
                               >
                                 <Smile className="w-3.5 h-3.5" />
@@ -2210,7 +2214,7 @@ export function ChatThread({
                                   setReplyTarget(msg)
                                   textareaRef.current?.focus()
                                 }}
-                                className="p-1 text-[#86868b] hover:text-[#1d1d1f]"
+                                className="p-1 text-[#6E6E73] hover:text-[#1D1D1F] cursor-pointer"
                                 title="Reply"
                               >
                                 <Reply className="w-3.5 h-3.5" />
@@ -2222,7 +2226,7 @@ export function ChatThread({
                                   setNewMessage(msg.content)
                                   textareaRef.current?.focus()
                                 }}
-                                className="p-1 text-[#86868b] hover:text-[#1d1d1f]"
+                                className="p-1 text-[#6E6E73] hover:text-[#1D1D1F] cursor-pointer"
                                 title="Edit"
                               >
                                 <Pencil className="w-3.5 h-3.5" />
@@ -2233,7 +2237,7 @@ export function ChatThread({
                                   navigator.clipboard.writeText(msg.content)
                                   toast.success("Copied message text")
                                 }}
-                                className="p-1 text-[#86868b] hover:text-[#1d1d1f]"
+                                className="p-1 text-[#6E6E73] hover:text-[#1D1D1F] cursor-pointer"
                                 title="Copy"
                               >
                                 <Copy className="w-3.5 h-3.5" />
@@ -2241,7 +2245,7 @@ export function ChatThread({
                               <button
                                 type="button"
                                 onClick={() => handleDeleteMessage(msg.id)}
-                                className="p-1 text-[#86868b] hover:text-red-600"
+                                className="p-1 text-[#6E6E73] hover:text-red-600 cursor-pointer"
                                 title="Delete"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -2251,17 +2255,17 @@ export function ChatThread({
 
                           {/* Bubble Content */}
                           <div
-                            className={`px-4 py-2.5 rounded-2xl text-sm font-medium leading-relaxed whitespace-pre-wrap break-words ${
+                            className={`px-4 py-3 rounded-2xl text-[15px] leading-relaxed whitespace-pre-wrap break-words ${
                               isDeleted
-                                ? "bg-[#f5f5f7] text-[#86868b] italic border border-black/5"
+                                ? "bg-[#FAF6F0] text-[#6E6E73] italic border border-[#1D1D1F]/[0.06]"
                                 : isMine
-                                ? "bg-[#0066cc] text-white rounded-br-sm"
-                                : "bg-[#f5f5f7] text-[#1d1d1f] rounded-bl-sm"
+                                ? "bg-[#1D1D1F] text-[#FAF6F0] rounded-br-sm shadow-xs"
+                                : "bg-[#FAF6F0] text-[#1D1D1F] border border-[#1D1D1F]/[0.07] rounded-bl-sm"
                             }`}
                           >
                             {/* Attachments inside bubble */}
                             {msg.attachments && msg.attachments.length > 0 && (
-                              <div className="space-y-2 mb-2">
+                              <div className="space-y-2 mb-2.5">
                                 {msg.attachments.map((att) =>
                                   att.kind === "IMAGE" ? (
                                     <button
@@ -2286,8 +2290,8 @@ export function ChatThread({
                                       rel="noopener noreferrer"
                                       className={`flex items-center gap-2.5 p-2.5 rounded-xl border ${
                                         isMine
-                                          ? "bg-white/15 border-white/20 text-white"
-                                          : "bg-white border-black/10 text-[#1d1d1f]"
+                                          ? "bg-white/10 border-white/15 text-white"
+                                          : "bg-white border-[#1D1D1F]/10 text-[#1D1D1F]"
                                       }`}
                                     >
                                       <FileText className="w-4 h-4 shrink-0" />
@@ -2295,7 +2299,7 @@ export function ChatThread({
                                         <p className="text-xs font-bold truncate">
                                           {att.fileName}
                                         </p>
-                                        <p className="text-[10px] opacity-75">
+                                        <p className="font-mono text-xs opacity-75">
                                           {formatFileSize(att.size)}
                                         </p>
                                       </div>
@@ -2314,7 +2318,7 @@ export function ChatThread({
 
                           {/* Hover Actions (Right side for incoming messages) */}
                           {!isMine && !isDeleted && (
-                            <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 bg-white border border-black/10 rounded-full px-1.5 py-0.5 shadow-sm transition-opacity">
+                            <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 bg-white border border-[#1D1D1F]/10 rounded-full px-1.5 py-1 shadow-sm transition-opacity">
                               <button
                                 type="button"
                                 onClick={() =>
@@ -2324,7 +2328,7 @@ export function ChatThread({
                                       : msg.id
                                   )
                                 }
-                                className="p-1 text-[#86868b] hover:text-[#1d1d1f]"
+                                className="p-1 text-[#6E6E73] hover:text-[#1D1D1F] cursor-pointer"
                                 title="React"
                               >
                                 <Smile className="w-3.5 h-3.5" />
@@ -2335,7 +2339,7 @@ export function ChatThread({
                                   setReplyTarget(msg)
                                   textareaRef.current?.focus()
                                 }}
-                                className="p-1 text-[#86868b] hover:text-[#1d1d1f]"
+                                className="p-1 text-[#6E6E73] hover:text-[#1D1D1F] cursor-pointer"
                                 title="Reply"
                               >
                                 <Reply className="w-3.5 h-3.5" />
@@ -2346,7 +2350,7 @@ export function ChatThread({
                                   navigator.clipboard.writeText(msg.content)
                                   toast.success("Copied message text")
                                 }}
-                                className="p-1 text-[#86868b] hover:text-[#1d1d1f]"
+                                className="p-1 text-[#6E6E73] hover:text-[#1D1D1F] cursor-pointer"
                                 title="Copy"
                               >
                                 <Copy className="w-3.5 h-3.5" />
@@ -2357,7 +2361,7 @@ export function ChatThread({
 
                         {/* Quick Reaction Picker Popover */}
                         {activeReactionMsgId === msg.id && (
-                          <div className="flex items-center gap-1 bg-white border border-black/10 rounded-full px-2.5 py-1 shadow-md z-20">
+                          <div className="flex items-center gap-1 bg-white border border-[#1D1D1F]/10 rounded-full px-3 py-1.5 shadow-md z-20">
                             {QUICK_REACTIONS.map((emoji) => (
                               <button
                                 key={emoji}
@@ -2365,7 +2369,7 @@ export function ChatThread({
                                 onClick={() =>
                                   handleToggleReaction(msg.id, emoji)
                                 }
-                                className="hover:scale-125 transition-transform text-sm px-1 cursor-pointer"
+                                className="hover:scale-125 transition-transform text-base px-1 cursor-pointer"
                               >
                                 {emoji}
                               </button>
@@ -2375,7 +2379,7 @@ export function ChatThread({
 
                         {/* Existing Reactions Pills */}
                         {msg.reactions && msg.reactions.length > 0 && (
-                          <div className="flex flex-wrap gap-1 px-1">
+                          <div className="flex flex-wrap gap-1.5 px-1">
                             {msg.reactions.map((r) => {
                               const iReacted = r.userIds.includes(
                                 session?.user?.id || ""
@@ -2387,14 +2391,16 @@ export function ChatThread({
                                   onClick={() =>
                                     handleToggleReaction(msg.id, r.emoji)
                                   }
-                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold border transition-colors cursor-pointer ${
+                                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border transition-colors cursor-pointer ${
                                     iReacted
-                                      ? "bg-[#0066cc]/10 border-[#0066cc]/40 text-[#0066cc]"
-                                      : "bg-[#f5f5f7] border-black/5 text-[#1d1d1f]"
+                                      ? "bg-[#C84200]/10 border-[#C84200]/35 text-[#C84200]"
+                                      : "bg-[#FAF6F0] border-[#1D1D1F]/[0.07] text-[#1D1D1F]"
                                   }`}
                                 >
                                   <span>{r.emoji}</span>
-                                  <span>{r.userIds.length}</span>
+                                  <span className="font-mono">
+                                    {r.userIds.length}
+                                  </span>
                                 </button>
                               )
                             })}
@@ -2403,17 +2409,17 @@ export function ChatThread({
 
                         {/* Timestamp + Edited + Sent/Delivered/Read Receipt */}
                         <div className="flex items-center gap-1.5 px-1">
-                          <span className="text-[10px] font-medium text-[#86868b]">
+                          <span className="font-mono text-xs text-[#6E6E73]">
                             {format(new Date(msg.createdAt), "h:mm a")}
                           </span>
                           {msg.editedAt && !isDeleted && (
-                            <span className="text-[10px] italic text-[#86868b]">
+                            <span className="text-xs italic text-[#6E6E73]">
                               · edited
                             </span>
                           )}
                           {isMine && !isDeleted && (
                             <span
-                              className="inline-flex items-center text-[10px] font-semibold"
+                              className="inline-flex items-center"
                               title={
                                 deliveryState === "read"
                                   ? "Read"
@@ -2423,11 +2429,11 @@ export function ChatThread({
                               }
                             >
                               {deliveryState === "read" ? (
-                                <CheckCheck className="w-3.5 h-3.5 text-[#0066cc]" />
+                                <CheckCheck className="w-3.5 h-3.5 text-[#C84200]" />
                               ) : deliveryState === "delivered" ? (
-                                <CheckCheck className="w-3.5 h-3.5 text-[#86868b]" />
+                                <CheckCheck className="w-3.5 h-3.5 text-[#6E6E73]" />
                               ) : (
-                                <Check className="w-3 h-3 text-[#86868b]" />
+                                <Check className="w-3.5 h-3.5 text-[#6E6E73]" />
                               )}
                             </span>
                           )}
@@ -2441,11 +2447,11 @@ export function ChatThread({
           )}
 
           {otherTypingName && (
-            <div className="flex items-center gap-2 text-xs text-[#86868b] font-medium pl-2">
+            <div className="flex items-center gap-2 text-xs text-[#5E5E63] font-medium pl-2">
               <span className="flex gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#0066cc] animate-bounce" />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#0066cc] animate-bounce [animation-delay:150ms]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#0066cc] animate-bounce [animation-delay:300ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#C84200] animate-bounce" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#C84200] animate-bounce [animation-delay:150ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#C84200] animate-bounce [animation-delay:300ms]" />
               </span>
               {otherTypingName} is typing...
             </div>
@@ -2455,17 +2461,17 @@ export function ChatThread({
         </div>
 
         {/* MESSAGE COMPOSER */}
-        <div className="p-3 border-t border-black/5 bg-white shrink-0 space-y-2 relative">
+        <div className="p-3.5 sm:p-4 border-t border-[#1D1D1F]/[0.07] bg-white shrink-0 space-y-2.5 relative">
           {/* Reply or Edit Banner */}
           {(replyTarget || editingMessage) && (
-            <div className="px-3 py-1.5 rounded-xl bg-[#f5f5f7] flex items-center justify-between gap-2 text-xs">
+            <div className="px-3.5 py-2 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.06] flex items-center justify-between gap-2 text-xs sm:text-[13px]">
               <div className="min-w-0">
-                <span className="font-bold text-[#0066cc] mr-1.5">
+                <span className="font-bold text-[#C84200] mr-1.5">
                   {editingMessage
                     ? "Editing message"
                     : `Replying to ${replyTarget?.sender.name}`}
                 </span>
-                <span className="text-[#86868b] truncate">
+                <span className="text-[#5E5E63] truncate">
                   {(editingMessage || replyTarget)?.content}
                 </span>
               </div>
@@ -2476,9 +2482,9 @@ export function ChatThread({
                   setEditingMessage(null)
                   if (editingMessage) setNewMessage("")
                 }}
-                className="p-1 text-[#86868b] hover:text-[#1d1d1f]"
+                className="p-1 text-[#6E6E73] hover:text-[#1D1D1F] cursor-pointer"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           )}
@@ -2489,7 +2495,7 @@ export function ChatThread({
               {pendingAttachments.map((att) => (
                 <div
                   key={att.id}
-                  className="relative group rounded-xl bg-[#f5f5f7] border border-black/10 p-1.5 flex items-center gap-2 shrink-0"
+                  className="relative group rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/10 p-2 flex items-center gap-2 shrink-0"
                 >
                   {att.kind === "IMAGE" ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -2499,9 +2505,9 @@ export function ChatThread({
                       className="w-10 h-10 rounded-lg object-cover"
                     />
                   ) : (
-                    <FileText className="w-5 h-5 text-[#0066cc]" />
+                    <FileText className="w-5 h-5 text-[#C84200]" />
                   )}
-                  <span className="text-[11px] font-semibold text-[#1d1d1f] max-w-[100px] truncate">
+                  <span className="text-xs font-semibold text-[#1D1D1F] max-w-[110px] truncate">
                     {att.fileName}
                   </span>
                   <button
@@ -2511,7 +2517,7 @@ export function ChatThread({
                         prev.filter((x) => x.id !== att.id)
                       )
                     }
-                    className="p-0.5 rounded-full bg-black/70 text-white hover:bg-black"
+                    className="p-1 rounded-full bg-[#1D1D1F] text-white hover:bg-black cursor-pointer"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -2522,18 +2528,18 @@ export function ChatThread({
 
           {/* Emoji Picker Popover */}
           {showEmojiPicker && (
-            <div className="absolute bottom-16 left-3 w-72 max-w-[calc(100vw-2.5rem)] bg-white rounded-2xl shadow-xl border border-black/10 p-3 z-30 space-y-2">
-              <div className="flex items-center justify-between border-b border-black/5 pb-1.5">
+            <div className="absolute bottom-18 left-4 w-72 max-w-[calc(100vw-2.5rem)] bg-white rounded-3xl shadow-xl border border-[#1D1D1F]/10 p-3.5 z-30 space-y-2.5">
+              <div className="flex items-center justify-between border-b border-[#1D1D1F]/[0.06] pb-2">
                 <div className="flex items-center gap-1 overflow-x-auto">
                   {EMOJI_CATEGORIES.map((cat) => (
                     <button
                       key={cat.id}
                       type="button"
                       onClick={() => setActiveEmojiCat(cat.id)}
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold cursor-pointer ${
+                      className={`px-2.5 py-1 rounded-full text-xs font-bold cursor-pointer ${
                         activeEmojiCat === cat.id
-                          ? "bg-[#1d1d1f] text-white"
-                          : "text-[#86868b] hover:text-[#1d1d1f]"
+                          ? "bg-[#1D1D1F] text-white"
+                          : "text-[#6E6E73] hover:text-[#1D1D1F]"
                       }`}
                     >
                       {cat.label}
@@ -2543,9 +2549,9 @@ export function ChatThread({
                 <button
                   type="button"
                   onClick={() => setShowEmojiPicker(false)}
-                  className="p-1 text-[#86868b]"
+                  className="p-1 text-[#6E6E73] hover:text-[#1D1D1F] cursor-pointer"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
               <div className="grid grid-cols-8 gap-1 max-h-40 overflow-y-auto">
@@ -2559,7 +2565,7 @@ export function ChatThread({
                       setNewMessage((prev) => prev + em)
                       textareaRef.current?.focus()
                     }}
-                    className="p-1 text-base hover:bg-[#f5f5f7] rounded-lg cursor-pointer"
+                    className="p-1 text-base hover:bg-[#FAF6F0] rounded-lg cursor-pointer"
                   >
                     {em}
                   </button>
@@ -2570,7 +2576,7 @@ export function ChatThread({
 
           {/* Blocked state vs Active Composer */}
           {convMeta?.block?.isBlocked ? (
-            <div className="p-3 rounded-2xl bg-[#f5f5f7] text-center flex items-center justify-between gap-2 text-xs font-semibold text-[#86868b]">
+            <div className="p-3.5 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] text-center flex items-center justify-between gap-2 text-sm font-medium text-[#5E5E63]">
               <span>
                 {convMeta.block.blockedByMe
                   ? `You have blocked ${otherUser?.name || "this user"}.`
@@ -2580,7 +2586,7 @@ export function ChatThread({
                 <button
                   type="button"
                   onClick={handleBlockToggle}
-                  className="px-3 py-1 rounded-full bg-[#1d1d1f] text-white text-xs font-bold cursor-pointer"
+                  className="px-4 py-1.5 rounded-full bg-[#1D1D1F] text-white text-xs font-bold cursor-pointer"
                 >
                   Unblock
                 </button>
@@ -2592,7 +2598,7 @@ export function ChatThread({
                 e.preventDefault()
                 sendMessageContent()
               }}
-              className="flex items-end gap-2"
+              className="flex items-end gap-2.5"
             >
               <input
                 ref={fileInputRef}
@@ -2606,7 +2612,7 @@ export function ChatThread({
                 type="button"
                 disabled={uploadingFile || !conversationId}
                 onClick={() => fileInputRef.current?.click()}
-                className="w-10 h-10 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] flex items-center justify-center shrink-0 transition-colors cursor-pointer disabled:opacity-40"
+                className="w-11 h-11 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] border border-[#1D1D1F]/[0.07] text-[#1D1D1F] flex items-center justify-center shrink-0 transition-colors cursor-pointer disabled:opacity-40"
                 title="Attach photo or document"
               >
                 {uploadingFile ? (
@@ -2619,7 +2625,7 @@ export function ChatThread({
               <button
                 type="button"
                 onClick={() => setShowEmojiPicker((prev) => !prev)}
-                className="w-10 h-10 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] flex items-center justify-center shrink-0 transition-colors cursor-pointer"
+                className="w-11 h-11 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] border border-[#1D1D1F]/[0.07] text-[#1D1D1F] flex items-center justify-center shrink-0 transition-colors cursor-pointer"
                 title="Emoji picker"
               >
                 <Smile className="w-4 h-4" />
@@ -2639,8 +2645,8 @@ export function ChatThread({
                     sendMessageContent()
                   }
                 }}
-                placeholder={`Message ${otherUser?.name || "reader"}...`}
-                className="flex-1 max-h-32 bg-[#f5f5f7] border border-transparent focus:border-[#0066cc] focus:bg-white text-[#1d1d1f] rounded-2xl px-4 py-2.5 text-sm outline-none transition-all placeholder:text-[#86868b] font-medium resize-none"
+                placeholder={`Write a message to ${otherUser?.name || "reader"}...`}
+                className="flex-1 max-h-32 bg-[#FAF6F0] border border-[#1D1D1F]/[0.09] focus:border-[#C84200] focus:ring-2 focus:ring-[#C84200]/15 focus:bg-white text-[#1D1D1F] rounded-2xl px-4 py-3 text-[15px] leading-relaxed outline-none transition-all placeholder:text-[#6E6E73] resize-none"
               />
 
               <button
@@ -2650,7 +2656,7 @@ export function ChatThread({
                   uploadingFile ||
                   (!newMessage.trim() && pendingAttachments.length === 0)
                 }
-                className="w-10 h-10 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed shrink-0 cursor-pointer"
+                className="w-11 h-11 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white flex items-center justify-center transition-colors disabled:opacity-35 disabled:cursor-not-allowed shrink-0 cursor-pointer shadow-xs"
                 aria-label="Send message"
               >
                 {sending ? (
@@ -2669,7 +2675,7 @@ export function ChatThread({
         <div
           className={`hidden lg:flex ${
             embedded ? "lg:col-span-4" : "lg:col-span-3"
-          } bg-white rounded-2xl border border-black/5 shadow-sm flex-col overflow-hidden`}
+          } bg-white rounded-3xl border border-[#1D1D1F]/[0.07] shadow-sm flex-col overflow-hidden`}
         >
           {infoPanelContent}
         </div>
@@ -2684,7 +2690,7 @@ export function ChatThread({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMobileInfoDrawer(false)}
-              className="fixed inset-0 bg-black/40"
+              className="fixed inset-0 bg-black/45"
             />
             <motion.div
               initial={{ x: "100%" }}
@@ -2693,14 +2699,14 @@ export function ChatThread({
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
               className="relative z-10 w-80 max-w-[88vw] bg-white h-full shadow-2xl flex flex-col"
             >
-              <div className="p-4 border-b border-black/5 flex items-center justify-between">
-                <span className="font-bold text-sm text-[#1d1d1f]">
+              <div className="p-4 border-b border-[#1D1D1F]/[0.06] flex items-center justify-between">
+                <span className="font-bold text-base text-[#1D1D1F]">
                   Conversation Details
                 </span>
                 <button
                   type="button"
                   onClick={() => setMobileInfoDrawer(false)}
-                  className="p-1.5 rounded-full bg-[#f5f5f7]"
+                  className="p-2 rounded-full bg-[#FAF6F0] cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -2720,7 +2726,7 @@ export function ChatThread({
           <button
             type="button"
             onClick={() => setLightboxImage(null)}
-            className="absolute top-6 right-6 p-2 rounded-full bg-white/10 text-white hover:bg-white/20"
+            className="absolute top-6 right-6 p-2.5 rounded-full bg-white/10 text-white hover:bg-white/20 cursor-pointer"
           >
             <X className="w-6 h-6" />
           </button>
@@ -2735,27 +2741,27 @@ export function ChatThread({
 
       {/* Report Modal */}
       {showReportModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl border border-black/5">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 space-y-5 shadow-2xl border border-[#1D1D1F]/10">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-base text-[#1d1d1f] flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-red-600" /> Report{" "}
+              <h3 className="font-bold text-lg text-[#1D1D1F] flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5 text-red-600" /> Report{" "}
                 {otherUser?.name || "User"}
               </h3>
               <button
                 type="button"
                 onClick={() => setShowReportModal(false)}
-                className="p-1 text-[#86868b]"
+                className="p-1.5 rounded-full bg-[#FAF6F0] text-[#5E5E63] hover:text-[#1D1D1F] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <form onSubmit={handleSubmitReport} className="space-y-3">
-              <div className="space-y-1.5">
+            <form onSubmit={handleSubmitReport} className="space-y-4">
+              <div className="space-y-2">
                 {REPORT_REASONS.map((r) => (
                   <label
                     key={r.value}
-                    className="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#f5f5f7] text-xs font-semibold text-[#1d1d1f] cursor-pointer"
+                    className="flex items-center gap-3 p-3 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.06] text-sm font-medium text-[#1D1D1F] cursor-pointer"
                   >
                     <input
                       type="radio"
@@ -2763,6 +2769,7 @@ export function ChatThread({
                       value={r.value}
                       checked={reportReason === r.value}
                       onChange={() => setReportReason(r.value)}
+                      className="accent-[#C84200]"
                     />
                     {r.label}
                   </label>
@@ -2773,20 +2780,20 @@ export function ChatThread({
                 value={reportDetails}
                 onChange={(e) => setReportDetails(e.target.value)}
                 placeholder="Additional context (optional)..."
-                className="w-full rounded-xl bg-[#f5f5f7] p-3 text-xs font-medium text-[#1d1d1f] outline-none"
+                className="w-full rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/10 p-3.5 text-sm font-medium text-[#1D1D1F] outline-none focus:bg-white focus:border-[#C84200]"
               />
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowReportModal(false)}
-                  className="px-4 py-2 rounded-full bg-[#f5f5f7] text-xs font-bold text-[#1d1d1f]"
+                  className="px-5 py-2.5 rounded-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] text-sm font-bold text-[#1D1D1F] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submittingReport}
-                  className="px-4 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold cursor-pointer"
+                  className="px-5 py-2.5 rounded-full bg-red-600 hover:bg-red-700 text-white text-sm font-bold cursor-pointer"
                 >
                   {submittingReport ? "Submitting..." : "Submit Report"}
                 </button>

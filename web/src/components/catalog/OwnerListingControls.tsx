@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Edit3, Trash2, CheckCircle2, X, Loader2 } from "lucide-react"
+import { Edit3, Trash2, CheckCircle2, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
 interface OwnerListingControlsProps {
@@ -36,7 +36,7 @@ export function OwnerListingControls({ book }: OwnerListingControlsProps) {
   const [status, setStatus] = useState(book.status)
   const [description, setDescription] = useState(book.description || "")
   const [university, setUniversity] = useState(book.university || "")
-  const [course, setCourse] = useState(book.course || "")
+  const [course] = useState(book.course || "")
   const [semester, setSemester] = useState(
     book.semester ? String(book.semester) : ""
   )
@@ -113,13 +113,13 @@ export function OwnerListingControls({ book }: OwnerListingControlsProps) {
 
   return (
     <div className="space-y-3">
-      <div className="p-4 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/10 space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-black uppercase tracking-wider text-[#1D1D1F]">
+      <div className="p-5 rounded-3xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-xs font-black uppercase tracking-[0.14em] text-[#1D1D1F]">
             Seller Listing Controls
           </span>
-          <span className="px-2.5 py-0.5 rounded-full bg-white border border-black/10 text-[11px] font-bold text-[#C84200]">
-            Status: {status}
+          <span className="px-3 py-1 rounded-full bg-white border border-[#1D1D1F]/[0.08] font-mono text-xs font-bold text-[#C84200]">
+            {status}
           </span>
         </div>
 
@@ -127,7 +127,7 @@ export function OwnerListingControls({ book }: OwnerListingControlsProps) {
           <button
             type="button"
             onClick={() => setEditing((v) => !v)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1D1D1F] text-white text-xs font-bold hover:bg-[#C84200] transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-[#1D1D1F] text-white text-[13px] font-bold hover:bg-[#C84200] transition-colors cursor-pointer"
           >
             <Edit3 className="w-3.5 h-3.5" />
             {editing ? "Close Editor" : "Edit Listing"}
@@ -138,7 +138,7 @@ export function OwnerListingControls({ book }: OwnerListingControlsProps) {
               type="button"
               disabled={saving}
               onClick={() => handleQuickStatus("SOLD")}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-700 text-white text-xs font-bold hover:bg-emerald-800 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-[#0A7D4F] text-white text-[13px] font-bold hover:bg-[#08633F] transition-colors cursor-pointer"
             >
               <CheckCircle2 className="w-3.5 h-3.5" /> Mark Sold
             </button>
@@ -149,7 +149,7 @@ export function OwnerListingControls({ book }: OwnerListingControlsProps) {
               type="button"
               disabled={saving}
               onClick={() => handleQuickStatus("AVAILABLE")}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-black/15 text-[#1D1D1F] text-xs font-bold hover:bg-black/5 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white border border-[#1D1D1F]/15 text-[#1D1D1F] text-[13px] font-bold hover:bg-black/5 transition-colors cursor-pointer"
             >
               Relist as Available
             </button>
@@ -159,7 +159,7 @@ export function OwnerListingControls({ book }: OwnerListingControlsProps) {
             type="button"
             disabled={deleting}
             onClick={handleDelete}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold hover:bg-rose-600 hover:text-white transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-[13px] font-bold hover:bg-rose-600 hover:text-white transition-colors cursor-pointer"
           >
             {deleting ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -173,33 +173,33 @@ export function OwnerListingControls({ book }: OwnerListingControlsProps) {
         {editing && (
           <form
             onSubmit={handleSave}
-            className="pt-3 border-t border-black/10 space-y-3"
+            className="pt-4 border-t border-[#1D1D1F]/[0.08] space-y-3.5"
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-bold uppercase text-[#86868b] mb-1">
+                <label className="block text-xs font-bold text-[#6e6e73] mb-1">
                   Title
                 </label>
                 <input
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded-xl bg-white border border-black/10 px-3 py-2 text-xs font-bold"
+                  className="w-full rounded-2xl bg-white border border-[#1D1D1F]/10 px-3.5 py-2.5 text-sm font-semibold outline-none focus:border-[#C84200]"
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase text-[#86868b] mb-1">
+                <label className="block text-xs font-bold text-[#6e6e73] mb-1">
                   Author
                 </label>
                 <input
                   required
                   value={author}
                   onChange={(e) => setAuthor(e.target.value)}
-                  className="w-full rounded-xl bg-white border border-black/10 px-3 py-2 text-xs font-bold"
+                  className="w-full rounded-2xl bg-white border border-[#1D1D1F]/10 px-3.5 py-2.5 text-sm font-semibold outline-none focus:border-[#C84200]"
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase text-[#86868b] mb-1">
+                <label className="block text-xs font-bold text-[#6e6e73] mb-1">
                   Price (₹)
                 </label>
                 <input
@@ -207,17 +207,17 @@ export function OwnerListingControls({ book }: OwnerListingControlsProps) {
                   min={0}
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  className="w-full rounded-xl bg-white border border-black/10 px-3 py-2 text-xs font-bold"
+                  className="w-full rounded-2xl bg-white border border-[#1D1D1F]/10 px-3.5 py-2.5 font-mono text-sm font-bold outline-none focus:border-[#C84200]"
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase text-[#86868b] mb-1">
+                <label className="block text-xs font-bold text-[#6e6e73] mb-1">
                   Condition
                 </label>
                 <select
                   value={condition}
                   onChange={(e) => setCondition(e.target.value)}
-                  className="w-full rounded-xl bg-white border border-black/10 px-3 py-2 text-xs font-bold"
+                  className="w-full rounded-2xl bg-white border border-[#1D1D1F]/10 px-3.5 py-2.5 text-sm font-semibold outline-none focus:border-[#C84200]"
                 >
                   <option value="NEW">Brand New</option>
                   <option value="LIKE_NEW">Like New</option>
@@ -227,18 +227,18 @@ export function OwnerListingControls({ book }: OwnerListingControlsProps) {
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase text-[#86868b] mb-1">
+                <label className="block text-xs font-bold text-[#6e6e73] mb-1">
                   University
                 </label>
                 <input
                   value={university}
                   onChange={(e) => setUniversity(e.target.value)}
                   placeholder="Optional"
-                  className="w-full rounded-xl bg-white border border-black/10 px-3 py-2 text-xs font-medium"
+                  className="w-full rounded-2xl bg-white border border-[#1D1D1F]/10 px-3.5 py-2.5 text-sm font-medium outline-none focus:border-[#C84200]"
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase text-[#86868b] mb-1">
+                <label className="block text-xs font-bold text-[#6e6e73] mb-1">
                   Semester
                 </label>
                 <input
@@ -248,20 +248,20 @@ export function OwnerListingControls({ book }: OwnerListingControlsProps) {
                   value={semester}
                   onChange={(e) => setSemester(e.target.value)}
                   placeholder="1-8"
-                  className="w-full rounded-xl bg-white border border-black/10 px-3 py-2 text-xs font-medium"
+                  className="w-full rounded-2xl bg-white border border-[#1D1D1F]/10 px-3.5 py-2.5 font-mono text-sm font-medium outline-none focus:border-[#C84200]"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold uppercase text-[#86868b] mb-1">
+              <label className="block text-xs font-bold text-[#6e6e73] mb-1">
                 Description
               </label>
               <textarea
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full rounded-xl bg-white border border-black/10 p-3 text-xs font-medium"
+                className="w-full rounded-2xl bg-white border border-[#1D1D1F]/10 p-3.5 text-sm font-medium outline-none focus:border-[#C84200]"
               />
             </div>
 
@@ -269,14 +269,14 @@ export function OwnerListingControls({ book }: OwnerListingControlsProps) {
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="px-4 py-2 rounded-full bg-white border border-black/10 text-xs font-bold cursor-pointer hover:bg-black/5 transition-colors"
+                className="px-4 py-2.5 rounded-full bg-white border border-[#1D1D1F]/10 text-[13px] font-bold cursor-pointer hover:bg-black/5 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="px-5 py-2 rounded-full bg-[#C84200] text-white text-xs font-bold cursor-pointer"
+                className="px-5 py-2.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-[13px] font-bold cursor-pointer transition-colors"
               >
                 {saving ? "Saving..." : "Save Changes"}
               </button>

@@ -221,7 +221,7 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
   return (
     <>
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 border-b border-black/10 scrollbar-hide">
+      <div className="flex items-center gap-2.5 overflow-x-auto pb-4 mb-8 border-b border-[#1D1D1F]/10 scrollbar-hide">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id
           return (
@@ -229,10 +229,10 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all cursor-pointer ${
                 isActive
-                  ? "bg-[#0066cc] text-white shadow-sm"
-                  : "bg-white text-[#1d1d1f] hover:bg-[#e8e8ed] border border-black/5"
+                  ? "bg-[#1D1D1F] text-[#F2EBE1] shadow-sm"
+                  : "bg-white text-[#1d1d1f] hover:bg-[#FAF6F0] border border-[#1D1D1F]/[0.07]"
               }`}
             >
               {tab.label}
@@ -247,17 +247,17 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="min-h-[380px] rounded-2xl border-2 border-dashed border-black/15 bg-white/50 flex flex-col items-center justify-center gap-4 hover:border-[#0066cc] hover:bg-white transition-all group p-6 cursor-pointer"
+          className="min-h-[380px] rounded-3xl border-2 border-dashed border-[#1D1D1F]/15 bg-white/55 flex flex-col items-center justify-center gap-4 hover:border-[#C84200] hover:bg-white transition-all group p-6 cursor-pointer"
         >
-          <div className="w-14 h-14 rounded-full bg-[#e8e8ed] group-hover:bg-[#0066cc] flex items-center justify-center transition-colors">
-            <Plus className="w-6 h-6 text-[#1d1d1f] group-hover:text-white transition-colors" />
+          <div className="w-15 h-15 rounded-full bg-[#FAF6F0] group-hover:bg-[#C84200] flex items-center justify-center transition-colors border border-black/5">
+            <Plus className="w-7 h-7 text-[#1d1d1f] group-hover:text-white transition-colors" />
           </div>
           <div className="text-center">
-            <span className="block font-bold text-base text-[#1d1d1f] group-hover:text-[#0066cc] transition-colors">
+            <span className="block font-black text-lg text-[#1d1d1f] group-hover:text-[#C84200] transition-colors">
               Add Physical Book
             </span>
-            <span className="text-xs font-medium text-[#86868b] mt-1 block">
-              Scan ISBN or enter title · AI fetches cover & pages
+            <span className="text-sm font-medium text-[#6e6e73] mt-1.5 block max-w-[210px] leading-snug">
+              Scan ISBN or enter title · automatically fetches cover &amp; pages
             </span>
           </div>
         </button>
@@ -280,24 +280,24 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
           return (
             <div
               key={book.id}
-              className="group flex flex-col bg-white rounded-2xl p-5 shadow-sm border border-black/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              className="group flex flex-col bg-white rounded-3xl p-5 shadow-sm border border-[#1D1D1F]/[0.07] hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
             >
               {/* Top Row */}
               <div className="flex items-center justify-between gap-2 mb-3 z-20">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#f5f5f7] text-[#1d1d1f] text-[10px] font-bold uppercase tracking-wider">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF6F0] text-[#1d1d1f] text-xs font-bold uppercase tracking-wider">
                   {digital ? (
                     <>
-                      <Tablet className="w-3 h-3 text-[#0066cc]" /> E-Book
+                      <Tablet className="w-3.5 h-3.5 text-[#0066cc]" /> E-Book
                     </>
                   ) : (
                     <>
-                      <BookOpen className="w-3 h-3 text-emerald-600" /> Physical
+                      <BookOpen className="w-3.5 h-3.5 text-[#0A7D4F]" /> Physical
                     </>
                   )}
                 </span>
 
                 <select
-                  className="bg-[#f5f5f7] hover:bg-[#e8e8ed] rounded-full px-3 py-1 text-[11px] font-semibold text-[#1d1d1f] outline-none cursor-pointer transition-colors"
+                  className="bg-[#FAF6F0] hover:bg-[#EFE7DC] rounded-full px-3 py-1.5 text-xs sm:text-[13px] font-bold text-[#1d1d1f] outline-none cursor-pointer transition-colors"
                   value={book.status}
                   onChange={async (e) => {
                     const newStatus = e.target.value
@@ -365,17 +365,17 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
               <div className="flex flex-col flex-1 pt-1">
                 <h3
                   title={book.title}
-                  className="font-bold text-[#1d1d1f] text-base leading-snug mb-0.5 line-clamp-2"
+                  className="font-bold text-[#1d1d1f] text-base sm:text-lg leading-snug mb-1 line-clamp-2"
                 >
                   {book.title}
                 </h3>
-                <p className="text-[#86868b] text-xs font-medium mb-3 line-clamp-1">
+                <p className="text-[#6e6e73] text-sm font-medium mb-3.5 line-clamp-1">
                   {book.author}
                 </p>
 
                 {/* Cloud Reading Progress Bar */}
-                <div className="mb-3">
-                  <div className="flex items-center justify-between text-[11px] text-[#86868b] mb-1">
+                <div className="mb-4">
+                  <div className="flex items-center justify-between text-xs sm:text-[13px] text-[#6e6e73] mb-1.5">
                     <span>
                       Page{" "}
                       <strong className="text-[#1d1d1f]">
@@ -384,14 +384,14 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
                       / {total}
                     </span>
                     <div className="flex items-center gap-1.5">
-                      <span className="font-semibold text-[#0066cc]">
+                      <span className="font-bold text-[#C84200]">
                         {pct}%
                       </span>
                       {!digital && book.status !== "READ" && (
                         <button
                           type="button"
                           onClick={() => handleQuickProgress(book, 10)}
-                          className="px-2 py-0.5 rounded-full bg-[#f5f5f7] hover:bg-[#0066cc] hover:text-white text-[10px] font-bold text-[#1d1d1f] transition cursor-pointer"
+                          className="px-2.5 py-0.5 rounded-full bg-[#FAF6F0] hover:bg-[#C84200] hover:text-white text-xs font-bold text-[#1d1d1f] transition cursor-pointer"
                           title="Log +10 pages read"
                         >
                           +10p
@@ -399,21 +399,21 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
                       )}
                     </div>
                   </div>
-                  <div className="h-1.5 w-full rounded-full bg-[#f5f5f7] overflow-hidden">
+                  <div className="h-2 w-full rounded-full bg-[#EFE7DC] overflow-hidden">
                     <div
-                      className="h-full bg-[#0066cc] transition-all duration-300"
+                      className="h-full bg-[#C84200] transition-all duration-300 rounded-full"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="mt-auto pt-3 border-t border-black/5 flex items-center justify-between gap-2">
+                <div className="mt-auto pt-3.5 border-t border-[#1D1D1F]/[0.06] flex items-center justify-between gap-2">
                   <Link
                     href={`/library/shanti/${book.id}`}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 bg-[#1d1d1f] hover:bg-[#0066cc] text-white text-xs font-semibold px-3.5 py-2 rounded-full transition-colors"
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 bg-[#1d1d1f] hover:bg-[#C84200] text-white text-sm font-bold px-4 py-2.5 rounded-full transition-colors"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <Sparkles className="w-4 h-4 text-[#F4B22B]" />
                     Shanti
                   </Link>
 
@@ -422,9 +422,9 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
                       href={`/ebooks/${encodeURIComponent(
                         ebookRouteId
                       )}?view=book`}
-                      className="inline-flex items-center gap-1 bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] text-xs font-semibold px-3.5 py-2 rounded-full transition-colors"
+                      className="inline-flex items-center gap-1.5 bg-[#FAF6F0] hover:bg-[#EFE7DC] text-[#1d1d1f] text-sm font-bold px-4 py-2.5 rounded-full transition-colors"
                     >
-                      <BookOpen className="w-3.5 h-3.5 text-[#0066cc]" />
+                      <BookOpen className="w-4 h-4 text-[#C84200]" />
                       Book Read
                     </Link>
                   )}
@@ -462,21 +462,19 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
                   setShowScanner(false)
                   setIsModalOpen(false)
                 }}
-                className="absolute top-6 right-6 w-8 h-8 rounded-full bg-[#f5f5f7] flex items-center justify-center hover:bg-[#e8e8ed] transition-colors cursor-pointer"
+                className="absolute top-6 right-6 w-9 h-9 rounded-full bg-[#FAF6F0] flex items-center justify-center hover:bg-[#EFE7DC] transition-colors cursor-pointer"
               >
-                <X className="w-4 h-4 text-[#1d1d1f]" />
+                <X className="w-4.5 h-4.5 text-[#1d1d1f]" />
               </button>
 
-              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#0066cc] mb-1">
-                <Sparkles className="w-3.5 h-3.5" /> AI-Powered Shelf Builder
+              <div className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-[#C84200] mb-1.5">
+                <Sparkles className="w-4 h-4" /> Shelf Builder · ISBN Scanner
               </div>
-              <h2 className="text-2xl font-bold text-[#1d1d1f] tracking-tight mb-1.5">
+              <h2 className="text-2xl sm:text-3xl font-black text-[#1d1d1f] tracking-tight mb-2">
                 Add to Library
               </h2>
-              <p className="text-[#86868b] text-xs sm:text-sm mb-5">
-                Scan the ISBN barcode or enter the title, ISBN, and author—our
-                AI search automatically finds the official cover image and page
-                count.
+              <p className="text-[#6e6e73] text-sm leading-relaxed mb-6">
+                Scan the ISBN barcode or enter the title and author—we automatically fetch the edition cover and page count.
               </p>
 
               {/* Camera Barcode Scanner Viewport */}
@@ -496,17 +494,17 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
               <form onSubmit={handleAddBook} className="flex flex-col gap-4">
                 {/* 1. ISBN + Barcode Scanner */}
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold uppercase tracking-wider text-[#1d1d1f]">
-                      ISBN Number (Scan or Type)
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1d1d1f]">
+                      ISBN Number
                     </label>
                     <button
                       type="button"
                       onClick={() => setShowScanner((v) => !v)}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-[#0066cc] hover:underline cursor-pointer"
+                      className="inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-bold text-[#C84200] hover:underline cursor-pointer"
                     >
-                      <ScanBarcode className="w-3.5 h-3.5" />
-                      {showScanner ? "Hide Scanner" : "Scan ISBN Barcode"}
+                      <ScanBarcode className="w-4 h-4" />
+                      {showScanner ? "Hide Scanner" : "Scan Barcode"}
                     </button>
                   </div>
                   <div className="flex gap-2">
@@ -514,20 +512,20 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
                       type="text"
                       value={isbn}
                       onChange={(e) => setIsbn(e.target.value)}
-                      className="flex-1 bg-[#f5f5f7] border border-transparent focus:border-[#0066cc] focus:bg-white text-[#1d1d1f] rounded-xl px-4 py-3 text-sm font-mono outline-none transition-all"
+                      className="flex-1 bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] focus:border-[#C84200] focus:bg-white text-[#1d1d1f] rounded-2xl px-4 py-3 text-sm sm:text-base font-mono outline-none transition-all"
                       placeholder="e.g. 9780143442295"
                     />
                     <button
                       type="button"
                       disabled={lookingUpIsbn || !isbn.trim()}
                       onClick={() => lookupByIsbn()}
-                      className="px-3.5 rounded-xl bg-[#1d1d1f] hover:bg-[#0066cc] disabled:opacity-40 text-white text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                      className="px-4 rounded-2xl bg-[#1d1d1f] hover:bg-[#C84200] disabled:opacity-40 text-white text-sm font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
                       title="Auto-fill book details from ISBN"
                     >
                       {lookingUpIsbn ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
-                        <Search className="w-3.5 h-3.5" />
+                        <Search className="w-4 h-4" />
                       )}
                       Fetch
                     </button>
@@ -536,7 +534,7 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
 
                 {/* 2. Book Title */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-[#1d1d1f]">
+                  <label className="text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1d1d1f]">
                     Book Title *
                   </label>
                   <input
@@ -544,14 +542,14 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
                     required
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full bg-[#f5f5f7] border border-transparent focus:border-[#0066cc] focus:bg-white text-[#1d1d1f] rounded-xl px-4 py-3 text-sm outline-none transition-all"
+                    className="w-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] focus:border-[#C84200] focus:bg-white text-[#1d1d1f] rounded-2xl px-4 py-3 text-sm sm:text-base outline-none transition-all"
                     placeholder="e.g. Gitanjali or Atomic Habits"
                   />
                 </div>
 
                 {/* 3. Author Name */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-[#1d1d1f]">
+                  <label className="text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1d1d1f]">
                     Author Name *
                   </label>
                   <input
@@ -559,25 +557,25 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
                     required
                     value={author}
                     onChange={(e) => setAuthor(e.target.value)}
-                    className="w-full bg-[#f5f5f7] border border-transparent focus:border-[#0066cc] focus:bg-white text-[#1d1d1f] rounded-xl px-4 py-3 text-sm outline-none transition-all"
+                    className="w-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] focus:border-[#C84200] focus:bg-white text-[#1d1d1f] rounded-2xl px-4 py-3 text-sm sm:text-base outline-none transition-all"
                     placeholder="e.g. Rabindranath Tagore"
                   />
                 </div>
 
                 {/* Live Cover Preview if fetched via ISBN */}
                 {previewCover && (
-                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f5f5f7] border border-black/5">
+                  <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-[#FAF6F0] border border-black/5">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={previewCover}
                       alt="Cover preview"
-                      className="w-11 h-16 object-cover rounded-md shadow-xs shrink-0"
+                      className="w-12 h-17 object-cover rounded-lg shadow-xs shrink-0"
                     />
-                    <div className="min-w-0 text-xs">
+                    <div className="min-w-0 text-sm">
                       <p className="font-bold text-[#1d1d1f] truncate">
                         {title || "Cover Detected"}
                       </p>
-                      <p className="text-[#86868b] truncate">
+                      <p className="text-xs sm:text-[13px] text-[#6e6e73] truncate">
                         {author || "Official edition cover matched"}
                       </p>
                     </div>
@@ -587,16 +585,16 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full mt-2 bg-[#0066cc] hover:bg-[#0071e3] text-white rounded-full py-3.5 font-bold text-sm transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full mt-2 bg-[#C84200] hover:bg-[#A33500] text-white rounded-full py-3.5 font-bold text-base transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      AI Searching Cover & Adding Book...
+                      <Loader2 className="w-4.5 h-4.5 animate-spin" />
+                      Searching Cover & Adding Book...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4" />
+                      <Sparkles className="w-4.5 h-4.5" />
                       Add to My Library
                     </>
                   )}

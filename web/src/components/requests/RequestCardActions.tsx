@@ -46,13 +46,13 @@ export function RequestCardActions({
           type="button"
           onClick={handleFulfill}
           disabled={isPending}
-          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold transition cursor-pointer disabled:opacity-50"
+          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#0A7D4F] hover:bg-[#08633F] text-white text-xs font-bold transition cursor-pointer disabled:opacity-50"
           title="Mark this request as fulfilled"
         >
           {isPending ? (
-            <Loader2 className="w-3 h-3 animate-spin" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
           ) : (
-            <CheckCircle2 className="w-3 h-3" />
+            <CheckCircle2 className="w-3.5 h-3.5" />
           )}
           Fulfilled
         </button>
@@ -61,7 +61,8 @@ export function RequestCardActions({
         type="button"
         onClick={handleDelete}
         disabled={isPending}
-        className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#e8e8ed] hover:bg-red-100 hover:text-red-600 text-[#1d1d1f] transition cursor-pointer disabled:opacity-50"
+        aria-label="Delete request"
+        className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] hover:bg-red-50 hover:border-red-200 hover:text-red-600 text-[#1D1D1F] transition cursor-pointer disabled:opacity-50"
         title="Delete request"
       >
         <Trash2 className="w-3.5 h-3.5" />
@@ -69,4 +70,3 @@ export function RequestCardActions({
     </div>
   )
 }
-

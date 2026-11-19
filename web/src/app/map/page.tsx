@@ -38,19 +38,41 @@ export default async function BooksNearMeMapPage() {
   })
 
   return (
-    <div className="min-h-screen bg-[#F2EBE1] pb-20">
-      <section className="bg-black text-[#F5F5F7] py-14 px-4 border-b border-white/10">
-        <div className="container mx-auto max-w-7xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 text-xs font-bold uppercase tracking-widest text-[#F5F5F7]/80 mb-4">
-            <MapPin className="w-3.5 h-3.5 text-[#C84200]" /> Hyperlocal Book
+    <div className="min-h-screen bg-[#F2EBE1] pb-24">
+      <section className="relative overflow-hidden bg-[#0B0B0D] text-[#F5F5F7] py-16 md:py-20 px-4 md:px-8 border-b border-white/10">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-[0.07]"
+          style={{
+            backgroundImage:
+              "radial-gradient(#F2EBE1 1.25px, transparent 1.25px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-28 -right-24 w-[420px] h-[420px] rounded-full opacity-25 blur-3xl"
+          style={{
+            background:
+              "radial-gradient(circle, #FF7F45 0%, #C84200 42%, transparent 72%)",
+          }}
+        />
+
+        <div className="container mx-auto max-w-7xl relative z-10">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.07] border border-white/15 text-xs font-bold uppercase tracking-[0.14em] text-[#F2EBE1]/90 mb-5">
+            <MapPin className="w-3.5 h-3.5 text-[#FF7F45]" /> Hyperlocal Book
             Radar
           </div>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none mb-3">
-            Books Near Your Campus & City.
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.03] mb-4 max-w-3xl">
+            Books Near{" "}
+            <span className="font-serif italic font-normal text-[#FF7F45]">
+              You.
+            </span>
           </h1>
-          <p className="text-[#86868b] text-base md:text-lg max-w-2xl">
-            Discover textbooks, novels, free community donations, and 1-for-1
-            swaps walking distance from your hostel or neighborhood.
+          <p className="text-[#F2EBE1]/72 text-base md:text-lg leading-relaxed max-w-2xl">
+            Discover textbooks, novels, free Vidya Daan pickups, and 1-for-1
+            swaps within walking distance of your hostel, library, or metro
+            stop.
           </p>
         </div>
       </section>
@@ -65,4 +87,3 @@ export default async function BooksNearMeMapPage() {
     </div>
   )
 }
-

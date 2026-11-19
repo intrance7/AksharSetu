@@ -50,43 +50,43 @@ export function ImpactDashboard({ donations }: ImpactDashboardProps) {
               duration: 0.4,
               ease: [0.16, 1, 0.3, 1],
             }}
-            className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100"
+            className="bg-white p-6 md:p-8 rounded-3xl shadow-[0_6px_28px_rgba(29,29,31,0.04)] border border-[#1D1D1F]/[0.07]"
           >
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
               <div>
-                <h3 className="text-xl font-bold tracking-tight text-[#1d1d1f]">
+                <h3 className="text-xl font-black tracking-tight text-[#1D1D1F]">
                   {donation.book?.title || "Vidya Daan Book Pledge"}
                 </h3>
-                <p className="text-[#86868b] text-sm mt-1">
+                <p className="text-[#6e6e73] text-sm font-medium mt-1">
                   {donation.campaign
                     ? `Donated to: ${donation.campaign.title} (${donation.campaign.ngoName})`
                     : "Donated to General Literacy Pool"}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
-                <div className="bg-[#FAF6F0] border border-black/5 px-4 py-2 rounded-xl">
-                  <span className="text-[10px] uppercase font-bold text-[#86868b] block">
+                <div className="bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] px-4 py-2.5 rounded-2xl">
+                  <span className="text-xs uppercase font-bold tracking-wider text-[#86868b] block">
                     Tracking ID
                   </span>
-                  <span className="text-xs font-mono font-bold text-[#1d1d1f] break-all">
+                  <span className="text-[13px] font-mono font-bold text-[#1D1D1F] break-all">
                     {donation.trackingId}
                   </span>
                 </div>
                 <Link
                   href={`/donations/track/${donation.trackingId}`}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-bold transition-colors shadow-sm"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-[13px] font-bold transition-colors shadow-sm"
                 >
-                  <Award className="w-3.5 h-3.5" /> Official Certificate →
+                  <Award className="w-4 h-4" /> Official Certificate →
                 </Link>
               </div>
             </div>
 
             {/* 6-Stage Progress Tracker */}
             <div className="relative overflow-x-auto pb-2">
-              <div className="min-w-[520px] relative">
+              <div className="min-w-[540px] relative">
                 <div className="absolute top-5 left-6 right-6 h-1 bg-[#FAF6F0] rounded-full -z-10" />
                 <div
-                  className="absolute top-5 left-6 h-1 bg-[#0066cc] rounded-full -z-10 transition-all duration-700"
+                  className="absolute top-5 left-6 h-1 bg-[#0A7D4F] rounded-full -z-10 transition-all duration-700"
                   style={{
                     width:
                       currentStepIndex === 0
@@ -111,15 +111,15 @@ export function ImpactDashboard({ donations }: ImpactDashboardProps) {
                         <div
                           className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-500 ${
                             isCompleted
-                              ? "bg-[#0066cc] text-white shadow-md"
-                              : "bg-white text-gray-300 border-2 border-gray-100"
-                          } ${isCurrent ? "ring-4 ring-blue-100" : ""}`}
+                              ? "bg-[#0A7D4F] text-white shadow-md"
+                              : "bg-[#FAF6F0] text-[#86868b]/50 border border-[#1D1D1F]/[0.08]"
+                          } ${isCurrent ? "ring-4 ring-[#0A7D4F]/20" : ""}`}
                         >
                           <Icon size={17} />
                         </div>
                         <span
-                          className={`text-xs font-semibold ${
-                            isCompleted ? "text-[#1d1d1f]" : "text-gray-400"
+                          className={`text-xs font-bold ${
+                            isCompleted ? "text-[#1D1D1F]" : "text-[#86868b]"
                           }`}
                         >
                           {step.label}
@@ -132,8 +132,8 @@ export function ImpactDashboard({ donations }: ImpactDashboardProps) {
             </div>
 
             {donation.status === "DISTRIBUTED" && (
-              <div className="mt-6 bg-green-50 text-green-800 p-4 rounded-xl text-sm flex items-center gap-3 border border-green-100">
-                <HeartHandshake className="text-green-600 shrink-0" />
+              <div className="mt-6 bg-[#0A7D4F]/[0.08] text-[#0A7D4F] p-4 rounded-2xl text-sm font-medium flex items-center gap-3 border border-[#0A7D4F]/20">
+                <HeartHandshake className="text-[#0A7D4F] shrink-0 w-5 h-5" />
                 <p>
                   <strong>Impact Complete!</strong> Your book has been placed in
                   a student&apos;s hands. Download your verified Vidya Daan

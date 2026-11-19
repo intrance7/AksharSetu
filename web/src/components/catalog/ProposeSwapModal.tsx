@@ -4,7 +4,14 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
-import { ArrowLeftRight, X, Check, Plus, Loader2, BookOpen } from "lucide-react"
+import {
+  ArrowLeftRight,
+  X,
+  Check,
+  Plus,
+  Loader2,
+  BookOpen,
+} from "lucide-react"
 import { toast } from "sonner"
 
 export interface SwapCandidateBook {
@@ -33,7 +40,9 @@ export function ProposeSwapModal({
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const [selectedBookId, setSelectedBookId] = useState<string>(myBooks[0]?.id || "")
+  const [selectedBookId, setSelectedBookId] = useState<string>(
+    myBooks[0]?.id || ""
+  )
   const [note, setNote] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
@@ -43,11 +52,13 @@ export function ProposeSwapModal({
     try {
       const selectedBook = myBooks.find((b) => b.id === selectedBookId)
       const composedMessage = selectedBook
-        ? `1-for-1 Swap Offer: Offering "${selectedBook.title}" by ${selectedBook.author} (${selectedBook.condition.replace(
-            "_",
-            " "
-          )}).${note.trim() ? ` Note: ${note.trim()}` : ""}`
-        : note.trim() || `Interested in proposing a book exchange for "${targetBook.title}".`
+        ? `1-for-1 Swap Offer: Offering "${selectedBook.title}" by ${
+            selectedBook.author
+          } (${selectedBook.condition.replace("_", " ")}).${
+            note.trim() ? ` Note: ${note.trim()}` : ""
+          }`
+        : note.trim() ||
+          `Interested in proposing a book exchange for "${targetBook.title}".`
 
       const res = await fetch("/api/requests", {
         method: "POST",
@@ -86,12 +97,14 @@ export function ProposeSwapModal({
         onClick={() => setOpen(true)}
         className={
           secondary
-            ? "w-full mt-3 py-3.5 px-6 bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] rounded-full text-sm font-semibold flex items-center justify-center gap-2 transition cursor-pointer"
-            : "w-full py-4 px-6 bg-[#0066cc] hover:bg-[#0071e3] text-white rounded-full font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-sm"
+            ? "w-full py-3.5 px-6 bg-[#FAF6F0] hover:bg-[#EFE7DC] text-[#1D1D1F] border border-[#1D1D1F]/[0.1] rounded-full text-sm font-bold flex items-center justify-center gap-2 transition cursor-pointer"
+            : "w-full py-4 px-6 bg-[#0066cc] hover:bg-[#0071e3] text-white rounded-full text-[15px] font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-sm"
         }
       >
         <ArrowLeftRight className="w-4 h-4" />
-        {secondary ? "Or Offer a 1-for-1 Book Swap" : "Propose 1-for-1 Book Swap"}
+        {secondary
+          ? "Or Offer a 1-for-1 Book Swap"
+          : "Propose 1-for-1 Book Swap"}
       </button>
 
       <AnimatePresence>
@@ -102,40 +115,42 @@ export function ProposeSwapModal({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
-              className="absolute inset-0 bg-black/65 backdrop-blur-xs"
+              className="absolute inset-0 bg-black/60 backdrop-blur-xs"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.96, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 16 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-10 w-full max-w-lg bg-white rounded-2xl p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto"
+              className="relative z-10 w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-[#1D1D1F]/[0.08] max-h-[90vh] overflow-y-auto"
             >
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="absolute top-5 right-5 w-8 h-8 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] flex items-center justify-center cursor-pointer"
+                aria-label="Close swap modal"
+                className="absolute top-5 right-5 w-9 h-9 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] flex items-center justify-center cursor-pointer transition-colors"
               >
-                <X className="w-4 h-4 text-[#1d1d1f]" />
+                <X className="w-4 h-4 text-[#1D1D1F]" />
               </button>
 
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0066cc]/10 text-[#0066cc] text-[11px] font-bold uppercase tracking-wider mb-3">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0066cc]/10 text-[#0066cc] text-xs font-bold uppercase tracking-wider mb-3">
                 <ArrowLeftRight className="w-3.5 h-3.5" /> Barter Matchmaker
               </div>
 
-              <h2 className="text-xl sm:text-2xl font-bold text-[#1d1d1f] tracking-tight mb-1 pr-8">
-                Swap for “{targetBook.title}”
+              <h2 className="text-xl sm:text-2xl font-black text-[#1D1D1F] tracking-tight mb-1.5 pr-10">
+                Swap for &ldquo;{targetBook.title}&rdquo;
               </h2>
-              <p className="text-xs text-[#86868b] mb-5">
-                Select one of your available listed books to offer in a direct 1-for-1 exchange.
+              <p className="text-sm text-[#6e6e73] mb-5 leading-relaxed">
+                Select one of your available listed books to offer in a direct
+                1-for-1 exchange.
               </p>
 
               {targetBook.exchangePreferences && (
-                <div className="mb-5 p-3.5 rounded-2xl bg-[#f5f5f7] border border-black/5">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#0066cc] mb-0.5">
-                    Owner’s Wishlist / Preferences
+                <div className="mb-5 p-4 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.07]">
+                  <p className="text-xs font-black uppercase tracking-wider text-[#0066cc] mb-1">
+                    Owner&apos;s Swap Preferences
                   </p>
-                  <p className="text-xs font-medium text-[#1d1d1f]">
+                  <p className="text-sm font-medium text-[#1D1D1F]">
                     {targetBook.exchangePreferences}
                   </p>
                 </div>
@@ -143,30 +158,32 @@ export function ProposeSwapModal({
 
               <form onSubmit={handlePropose} className="space-y-5">
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-[#1d1d1f]">
-                      Choose Your Book to Offer ({myBooks.length})
+                  <div className="flex items-center justify-between gap-2 mb-2.5">
+                    <label className="text-xs font-black uppercase tracking-wider text-[#1D1D1F]">
+                      Your Book to Offer (
+                      <span className="font-mono">{myBooks.length}</span>)
                     </label>
                     <Link
                       href="/catalog/new"
-                      className="text-xs font-semibold text-[#0066cc] hover:underline inline-flex items-center gap-1"
+                      className="text-xs font-bold text-[#0066cc] hover:underline inline-flex items-center gap-1"
                     >
-                      <Plus className="w-3 h-3" /> List New Book
+                      <Plus className="w-3.5 h-3.5" /> List New Book
                     </Link>
                   </div>
 
                   {myBooks.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-black/15 p-5 text-center bg-[#f5f5f7]/60">
+                    <div className="rounded-2xl border border-dashed border-[#1D1D1F]/20 p-5 text-center bg-[#FAF6F0]">
                       <BookOpen className="w-7 h-7 text-[#86868b] mx-auto mb-2" />
-                      <p className="text-xs font-semibold text-[#1d1d1f] mb-1">
-                        You don’t have any active listings yet
+                      <p className="text-sm font-bold text-[#1D1D1F] mb-1">
+                        You don&apos;t have any active listings yet
                       </p>
-                      <p className="text-[11px] text-[#86868b] mb-3">
-                        You can still describe the book you want to offer below, or list it first.
+                      <p className="text-xs text-[#6e6e73] mb-4 leading-relaxed">
+                        You can still describe the book you want to offer below,
+                        or list it first.
                       </p>
                       <Link
                         href="/catalog/new"
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1d1d1f] text-white text-xs font-semibold hover:bg-[#0066cc] transition"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1D1D1F] text-white text-xs font-bold hover:bg-[#0066cc] transition"
                       >
                         <Plus className="w-3.5 h-3.5" /> List a Book Now
                       </Link>
@@ -182,11 +199,11 @@ export function ProposeSwapModal({
                             onClick={() => setSelectedBookId(b.id)}
                             className={`w-full flex items-center gap-3 p-3 rounded-2xl border text-left transition cursor-pointer ${
                               selected
-                                ? "border-[#0066cc] bg-[#0066cc]/6"
-                                : "border-black/10 hover:bg-[#f5f5f7]"
+                                ? "border-[#0066cc] bg-[#0066cc]/[0.06]"
+                                : "border-[#1D1D1F]/[0.08] bg-[#FAF6F0]/60 hover:bg-[#FAF6F0]"
                             }`}
                           >
-                            <div className="w-10 h-14 rounded-lg bg-[#FAF6F0] border border-black/5 overflow-hidden shrink-0 flex items-center justify-center">
+                            <div className="w-10 h-14 rounded-lg bg-white border border-[#1D1D1F]/[0.06] overflow-hidden shrink-0 flex items-center justify-center">
                               {b.images?.[0] ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img
@@ -199,8 +216,10 @@ export function ProposeSwapModal({
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-[#1d1d1f] truncate">{b.title}</p>
-                              <p className="text-xs text-[#86868b] truncate">
+                              <p className="text-sm font-bold text-[#1D1D1F] truncate">
+                                {b.title}
+                              </p>
+                              <p className="text-xs text-[#6e6e73] truncate">
                                 {b.author} · {b.condition.replace("_", " ")}
                               </p>
                             </div>
@@ -208,7 +227,7 @@ export function ProposeSwapModal({
                               className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
                                 selected
                                   ? "bg-[#0066cc] text-white"
-                                  : "border border-black/15"
+                                  : "border border-[#1D1D1F]/20 bg-white"
                               }`}
                             >
                               {selected && <Check className="w-3.5 h-3.5" />}
@@ -221,29 +240,29 @@ export function ProposeSwapModal({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#1d1d1f] mb-1.5">
+                  <label className="block text-xs font-black uppercase tracking-wider text-[#1D1D1F] mb-1.5">
                     Message / Meetup Note (Optional)
                   </label>
                   <textarea
-                    rows={2}
+                    rows={3}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     placeholder="e.g. Clean hardcover copy! Can meet on campus or ship."
-                    className="w-full rounded-xl bg-[#f5f5f7] border border-transparent focus:border-[#0066cc] focus:bg-white p-3 text-sm text-[#1d1d1f] outline-none transition"
+                    className="w-full rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] focus:border-[#0066cc] focus:bg-white p-3.5 text-sm text-[#1D1D1F] outline-none transition"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full py-3.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white font-semibold text-sm flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50"
+                  className="w-full py-3.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white font-bold text-sm flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50 shadow-sm"
                 >
                   {submitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <ArrowLeftRight className="w-4 h-4" />
                   )}
-                  Send Swap Proposal & Open Chat
+                  Send Swap Proposal &amp; Open Chat
                 </button>
               </form>
             </motion.div>
@@ -253,4 +272,3 @@ export function ProposeSwapModal({
     </>
   )
 }
-

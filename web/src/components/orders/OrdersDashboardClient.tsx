@@ -223,7 +223,7 @@ export function OrdersDashboardClient({
   return (
     <div className="space-y-8">
       {/* Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2">
+      <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
         {tabs.map((t) => {
           const active = activeTab === t.id
           return (
@@ -231,18 +231,18 @@ export function OrdersDashboardClient({
               key={t.id}
               type="button"
               onClick={() => setActiveTab(t.id)}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer shrink-0 ${
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-[13px] font-bold whitespace-nowrap transition cursor-pointer shrink-0 border ${
                 active
-                  ? "bg-[#1D1D1F] text-white shadow-sm"
-                  : "bg-white text-[#1d1d1f] hover:bg-[#FAF6F0] border border-black/5"
+                  ? "bg-[#1D1D1F] text-white border-[#1D1D1F] shadow-sm"
+                  : "bg-white text-[#1D1D1F] hover:bg-[#FAF6F0] border-[#1D1D1F]/[0.07]"
               }`}
             >
               <span>{t.label}</span>
               <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                className={`px-2 py-0.5 rounded-full font-mono text-xs font-bold ${
                   active
                     ? "bg-[#C84200] text-white"
-                    : "bg-[#FAF6F0] text-[#86868b]"
+                    : "bg-[#FAF6F0] text-[#6e6e73]"
                 }`}
               >
                 {t.count}
@@ -254,20 +254,20 @@ export function OrdersDashboardClient({
 
       {/* TAB 1: MY PURCHASES */}
       {activeTab === "purchases" && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           {purchases.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center border border-black/5">
-              <Package className="w-10 h-10 text-[#86868b]/40 mx-auto mb-3" />
-              <p className="font-bold text-base text-[#1d1d1f]">
+            <div className="bg-white rounded-3xl p-12 text-center border border-[#1D1D1F]/[0.07] shadow-[0_6px_28px_rgba(29,29,31,0.04)]">
+              <Package className="w-11 h-11 text-[#86868b]/40 mx-auto mb-3.5" />
+              <p className="font-black text-xl text-[#1D1D1F]">
                 No purchases yet
               </p>
-              <p className="text-xs text-[#86868b] mt-1 mb-5">
+              <p className="text-sm text-[#6e6e73] mt-1.5 mb-6 max-w-md mx-auto leading-relaxed">
                 Books you purchase in the marketplace will appear here with live
-                shipment tracking.
+                shipment tracking and verified handoff controls.
               </p>
               <Link
                 href="/catalog"
-                className="inline-flex px-5 py-2.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-xs font-bold transition shadow-sm"
+                className="inline-flex px-6 py-3 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-sm font-bold transition shadow-sm"
               >
                 Browse Marketplace
               </Link>
@@ -280,26 +280,28 @@ export function OrdersDashboardClient({
               return (
                 <div
                   key={order.id}
-                  className="bg-white rounded-2xl p-6 border border-black/5 shadow-sm space-y-5"
+                  className="bg-white rounded-3xl p-6 sm:p-7 border border-[#1D1D1F]/[0.07] shadow-[0_4px_20px_rgba(29,29,31,0.04)] space-y-5"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="flex items-center gap-4 min-w-0">
-                      <div className="w-14 h-20 rounded-xl bg-[#FAF6F0] overflow-hidden shrink-0 border border-black/5">
+                      <div className="w-14 h-20 rounded-xl bg-[#FAF6F0] overflow-hidden shrink-0 border border-[#1D1D1F]/[0.07] shadow-xs">
                         <OrderThumb book={order.book} />
                       </div>
                       <div className="min-w-0">
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full mb-1">
-                          <ShieldCheck className="w-3 h-3" /> {order.status} · ₹
-                          {order.amount}
+                        <span className="inline-flex items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-wider text-[#0A7D4F] bg-[#0A7D4F]/10 px-3 py-1 rounded-full mb-1.5">
+                          <ShieldCheck className="w-3.5 h-3.5" /> {order.status}{" "}
+                          · ₹{order.amount}
                         </span>
-                        <h3 className="text-base sm:text-lg font-bold text-[#1d1d1f] break-words">
+                        <h3 className="text-lg font-black text-[#1D1D1F] break-words tracking-tight">
                           {order.book.title}
                         </h3>
-                        <p className="text-xs text-[#86868b] truncate">
+                        <p className="text-[13px] text-[#6e6e73] truncate mt-0.5">
                           Seller: {order.book.owner?.name || "Reader"} ·{" "}
-                          {order.shipment?.awbCode
-                            ? `AWB #${order.shipment.awbCode}`
-                            : "Preparing"}
+                          <span className="font-mono">
+                            {order.shipment?.awbCode
+                              ? `AWB #${order.shipment.awbCode}`
+                              : "Preparing"}
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -307,9 +309,9 @@ export function OrdersDashboardClient({
                     <div className="flex flex-wrap items-center gap-2">
                       <Link
                         href={`/messages/${order.book.ownerId}?orderId=${order.id}`}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] text-xs font-semibold transition"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] border border-[#1D1D1F]/[0.07] text-[#1D1D1F] text-[13px] font-bold transition"
                       >
-                        <MessageCircle className="w-3.5 h-3.5" /> Message Seller
+                        <MessageCircle className="w-4 h-4" /> Message Seller
                       </Link>
 
                       {shipStatus === "SHIPPED" && (
@@ -319,10 +321,9 @@ export function OrdersDashboardClient({
                           onClick={() =>
                             handleShipmentUpdate(order.id, "DELIVERED")
                           }
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0A7D4F] hover:bg-[#08633F] text-white text-[13px] font-bold transition cursor-pointer"
                         >
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Confirm
-                          Delivery
+                          <CheckCircle2 className="w-4 h-4" /> Confirm Delivery
                         </button>
                       )}
 
@@ -336,12 +337,12 @@ export function OrdersDashboardClient({
                               sellerName: order.book.owner?.name || "Seller",
                             })
                           }
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-semibold transition cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-[13px] font-bold transition cursor-pointer"
                         >
-                          <Star className="w-3.5 h-3.5" /> Rate Seller
+                          <Star className="w-4 h-4" /> Rate Seller
                         </button>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-xs font-bold">
+                        <span className="inline-flex items-center gap-1 px-3.5 py-2 rounded-full bg-amber-50 border border-amber-200 text-amber-800 font-mono text-xs font-bold">
                           <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                           Reviewed ({order.review.rating}★)
                         </span>
@@ -350,8 +351,8 @@ export function OrdersDashboardClient({
                   </div>
 
                   {/* Visual Shipment Timeline */}
-                  <div className="pt-4 border-t border-black/5">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div className="pt-4 border-t border-[#1D1D1F]/[0.07]">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {[
                         { label: "Ready to Ship", sub: "Escrow Verified" },
                         {
@@ -364,13 +365,13 @@ export function OrdersDashboardClient({
                         return (
                           <div
                             key={st.label}
-                            className={`rounded-xl p-3 border text-xs ${
+                            className={`rounded-2xl p-3.5 border text-[13px] ${
                               done
-                                ? "bg-[#0066cc]/6 border-[#0066cc]/25 text-[#1d1d1f]"
-                                : "bg-[#f5f5f7]/60 border-transparent text-[#86868b]"
+                                ? "bg-[#0066cc]/[0.06] border-[#0066cc]/25 text-[#1D1D1F]"
+                                : "bg-[#FAF6F0] border-transparent text-[#86868b]"
                             }`}
                           >
-                            <p className="font-bold flex items-center gap-1.5">
+                            <p className="font-bold flex items-center gap-2">
                               <span
                                 className={`w-2 h-2 rounded-full ${
                                   done ? "bg-[#0066cc]" : "bg-[#86868b]/40"
@@ -378,9 +379,7 @@ export function OrdersDashboardClient({
                               />
                               {st.label}
                             </p>
-                            <p className="text-[11px] opacity-75 mt-0.5">
-                              {st.sub}
-                            </p>
+                            <p className="text-xs opacity-80 mt-0.5">{st.sub}</p>
                           </div>
                         )
                       })}
@@ -397,16 +396,16 @@ export function OrdersDashboardClient({
       {activeTab === "sales" && (
         <div className="space-y-4">
           {sales.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center border border-black/5">
-              <Truck className="w-10 h-10 text-[#86868b]/40 mx-auto mb-3" />
-              <p className="font-bold text-base text-[#1d1d1f]">No sales yet</p>
-              <p className="text-xs text-[#86868b] mt-1 mb-5">
+            <div className="bg-white rounded-3xl p-12 text-center border border-[#1D1D1F]/[0.07] shadow-[0_6px_28px_rgba(29,29,31,0.04)]">
+              <Truck className="w-11 h-11 text-[#86868b]/40 mx-auto mb-3.5" />
+              <p className="font-black text-xl text-[#1D1D1F]">No sales yet</p>
+              <p className="text-sm text-[#6e6e73] mt-1.5 mb-6 max-w-md mx-auto leading-relaxed">
                 List your pre-loved textbooks or novels to earn or swap with
                 readers nearby.
               </p>
               <Link
                 href="/catalog/new"
-                className="inline-flex px-5 py-2.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-semibold transition"
+                className="inline-flex px-6 py-3 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-sm font-bold transition shadow-sm"
               >
                 List a Book
               </Link>
@@ -417,28 +416,30 @@ export function OrdersDashboardClient({
               return (
                 <div
                   key={order.id}
-                  className="bg-white rounded-2xl p-6 border border-black/5 shadow-sm flex flex-wrap items-center justify-between gap-4"
+                  className="bg-white rounded-3xl p-6 border border-[#1D1D1F]/[0.07] shadow-[0_4px_20px_rgba(29,29,31,0.04)] flex flex-wrap items-center justify-between gap-4"
                 >
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#0066cc]">
+                    <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#0066cc]">
                       AWB #{order.shipment?.awbCode || "PENDING"} ·{" "}
                       {shipStatus.replace(/_/g, " ")}
                     </span>
-                    <h3 className="text-lg font-bold text-[#1d1d1f]">
+                    <h3 className="text-lg font-black text-[#1D1D1F] mt-1 tracking-tight">
                       {order.book.title}
                     </h3>
-                    <p className="text-xs text-[#86868b]">
-                      Buyer: {order.buyer?.name || "Reader"} · Order Total: ₹
-                      {order.amount}
+                    <p className="text-[13px] text-[#6e6e73] mt-0.5">
+                      Buyer: {order.buyer?.name || "Reader"} · Order Total:{" "}
+                      <span className="font-mono font-bold text-[#1D1D1F]">
+                        ₹{order.amount}
+                      </span>
                     </p>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
                     <Link
                       href={`/messages/${order.buyerId}?orderId=${order.id}`}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#FAF6F0] hover:bg-[#e8e2d7] text-[#1d1d1f] text-xs font-semibold transition"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] border border-[#1D1D1F]/[0.07] text-[#1D1D1F] text-[13px] font-bold transition"
                     >
-                      <MessageCircle className="w-3.5 h-3.5" /> Message Buyer
+                      <MessageCircle className="w-4 h-4" /> Message Buyer
                     </Link>
                     {shipStatus === "READY_TO_SHIP" && (
                       <button
@@ -447,12 +448,12 @@ export function OrdersDashboardClient({
                         onClick={() =>
                           handleShipmentUpdate(order.id, "SHIPPED")
                         }
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-semibold transition cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-[13px] font-bold transition cursor-pointer"
                       >
                         {busyId === order.id ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
-                          <Truck className="w-3.5 h-3.5" />
+                          <Truck className="w-4 h-4" />
                         )}
                         Mark Dispatched
                       </button>
@@ -464,9 +465,9 @@ export function OrdersDashboardClient({
                         onClick={() =>
                           handleShipmentUpdate(order.id, "DELIVERED")
                         }
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0A7D4F] hover:bg-[#08633F] text-white text-[13px] font-bold transition cursor-pointer"
                       >
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Mark Delivered
+                        <CheckCircle2 className="w-4 h-4" /> Mark Delivered
                       </button>
                     )}
                   </div>
@@ -481,12 +482,12 @@ export function OrdersDashboardClient({
       {activeTab === "incoming" && (
         <div className="space-y-4">
           {incomingRequests.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center border border-black/5">
-              <ArrowLeftRight className="w-10 h-10 text-[#86868b]/40 mx-auto mb-3" />
-              <p className="font-bold text-base text-[#1d1d1f]">
+            <div className="bg-white rounded-3xl p-12 text-center border border-[#1D1D1F]/[0.07] shadow-[0_6px_28px_rgba(29,29,31,0.04)]">
+              <ArrowLeftRight className="w-11 h-11 text-[#86868b]/40 mx-auto mb-3.5" />
+              <p className="font-black text-xl text-[#1D1D1F]">
                 No incoming swap or donation requests
               </p>
-              <p className="text-xs text-[#86868b] mt-1">
+              <p className="text-sm text-[#6e6e73] mt-1.5 max-w-md mx-auto leading-relaxed">
                 When readers propose a 1-for-1 swap or request a free book you
                 listed, you can approve or complete them here.
               </p>
@@ -495,24 +496,24 @@ export function OrdersDashboardClient({
             incomingRequests.map((req) => (
               <div
                 key={req.id}
-                className="bg-white rounded-2xl p-6 border border-black/5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                className="bg-white rounded-3xl p-6 border border-[#1D1D1F]/[0.07] shadow-[0_4px_20px_rgba(29,29,31,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#0066cc]/10 text-[#0066cc] text-[10px] font-bold uppercase">
+                    <span className="px-3 py-1 rounded-full bg-[#0066cc]/10 text-[#0066cc] text-xs font-bold uppercase tracking-wider">
                       {req.offeredBookId
                         ? "1-for-1 Swap Proposal"
                         : "Book Request"}{" "}
                       · {req.status}
                     </span>
                   </div>
-                  <h3 className="text-base font-bold text-[#1d1d1f]">
-                    {req.requester?.name || "Reader"} requested “
-                    {req.book.title}”
+                  <h3 className="text-lg font-black text-[#1D1D1F] tracking-tight">
+                    {req.requester?.name || "Reader"} requested &ldquo;
+                    {req.book.title}&rdquo;
                   </h3>
                   {req.message && (
-                    <p className="text-xs text-[#86868b] bg-[#f5f5f7] rounded-xl px-3 py-2 max-w-xl">
-                      “{req.message}”
+                    <p className="text-sm text-[#6e6e73] bg-[#FAF6F0] border border-[#1D1D1F]/[0.06] rounded-2xl px-4 py-2.5 max-w-xl leading-relaxed">
+                      &ldquo;{req.message}&rdquo;
                     </p>
                   )}
                 </div>
@@ -520,9 +521,9 @@ export function OrdersDashboardClient({
                 <div className="flex flex-wrap items-center gap-2 shrink-0">
                   <Link
                     href={`/messages/${req.requesterId}`}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] text-xs font-semibold transition"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] border border-[#1D1D1F]/[0.07] text-[#1D1D1F] text-[13px] font-bold transition"
                   >
-                    <MessageCircle className="w-3.5 h-3.5" /> Chat
+                    <MessageCircle className="w-4 h-4" /> Chat
                   </Link>
 
                   {req.status === "PENDING" && (
@@ -531,7 +532,7 @@ export function OrdersDashboardClient({
                         type="button"
                         disabled={busyId === req.id}
                         onClick={() => handleRequestStatus(req.id, "APPROVED")}
-                        className="px-4 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-semibold transition cursor-pointer"
+                        className="px-4 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-[13px] font-bold transition cursor-pointer"
                       >
                         Approve
                       </button>
@@ -539,7 +540,7 @@ export function OrdersDashboardClient({
                         type="button"
                         disabled={busyId === req.id}
                         onClick={() => handleRequestStatus(req.id, "REJECTED")}
-                        className="px-3.5 py-2 rounded-full bg-[#e8e8ed] hover:bg-red-100 hover:text-red-700 text-[#1d1d1f] text-xs font-semibold transition cursor-pointer"
+                        className="px-4 py-2 rounded-full bg-[#FAF6F0] hover:bg-red-50 hover:text-red-700 border border-[#1D1D1F]/[0.07] text-[#1D1D1F] text-[13px] font-bold transition cursor-pointer"
                       >
                         Decline
                       </button>
@@ -551,7 +552,7 @@ export function OrdersDashboardClient({
                       type="button"
                       disabled={busyId === req.id}
                       onClick={() => handleRequestStatus(req.id, "COMPLETED")}
-                      className="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition cursor-pointer"
+                      className="px-4 py-2 rounded-full bg-[#0A7D4F] hover:bg-[#08633F] text-white text-[13px] font-bold transition cursor-pointer"
                     >
                       Mark Handoff Complete
                     </button>
@@ -567,40 +568,40 @@ export function OrdersDashboardClient({
       {activeTab === "outgoing" && (
         <div className="space-y-4">
           {outgoingRequests.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center border border-black/5">
-              <Clock className="w-10 h-10 text-[#86868b]/40 mx-auto mb-3" />
-              <p className="font-bold text-base text-[#1d1d1f]">
+            <div className="bg-white rounded-3xl p-12 text-center border border-[#1D1D1F]/[0.07] shadow-[0_6px_28px_rgba(29,29,31,0.04)]">
+              <Clock className="w-11 h-11 text-[#86868b]/40 mx-auto mb-3.5" />
+              <p className="font-black text-xl text-[#1D1D1F]">
                 No outgoing swap proposals yet
               </p>
-              <p className="text-xs text-[#86868b] mt-1">
-                Open any listing in the catalog and click “Propose 1-for-1 Book
-                Swap” to trade books directly.
+              <p className="text-sm text-[#6e6e73] mt-1.5 max-w-md mx-auto leading-relaxed">
+                Open any listing in the catalog and click &ldquo;Propose
+                1-for-1 Book Swap&rdquo; to trade books directly.
               </p>
             </div>
           ) : (
             outgoingRequests.map((req) => (
               <div
                 key={req.id}
-                className="bg-white rounded-2xl p-6 border border-black/5 shadow-sm flex flex-wrap items-center justify-between gap-4"
+                className="bg-white rounded-3xl p-6 border border-[#1D1D1F]/[0.07] shadow-[0_4px_20px_rgba(29,29,31,0.04)] flex flex-wrap items-center justify-between gap-4"
               >
                 <div>
-                  <span className="px-2.5 py-0.5 rounded-full bg-[#f5f5f7] text-[#1d1d1f] text-[10px] font-bold uppercase">
+                  <span className="px-3 py-1 rounded-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] font-mono text-xs font-bold uppercase text-[#1D1D1F]">
                     Status: {req.status}
                   </span>
-                  <h3 className="text-base font-bold text-[#1d1d1f] mt-1">
+                  <h3 className="text-lg font-black text-[#1D1D1F] mt-1.5 tracking-tight">
                     {req.book.title}
                   </h3>
-                  <p className="text-xs text-[#86868b]">
+                  <p className="text-[13px] text-[#6e6e73]">
                     Owner: {req.book.owner?.name || "Reader"}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Link
                     href={`/messages/${req.book.ownerId}`}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] text-xs font-semibold transition"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] border border-[#1D1D1F]/[0.07] text-[#1D1D1F] text-[13px] font-bold transition"
                   >
-                    <MessageCircle className="w-3.5 h-3.5" /> Chat
+                    <MessageCircle className="w-4 h-4" /> Chat
                   </Link>
 
                   {req.status === "COMPLETED" && !req.review && (
@@ -613,14 +614,14 @@ export function OrdersDashboardClient({
                           sellerName: req.book.owner?.name || "Owner",
                         })
                       }
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-semibold transition cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-[13px] font-bold transition cursor-pointer"
                     >
-                      <Star className="w-3.5 h-3.5" /> Leave Verified Review
+                      <Star className="w-4 h-4" /> Leave Verified Review
                     </button>
                   )}
 
                   {req.review && (
-                    <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-xs font-bold">
+                    <span className="inline-flex items-center gap-1 px-3.5 py-2 rounded-full bg-amber-50 border border-amber-200 text-amber-800 font-mono text-xs font-bold">
                       <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                       {req.review.rating}★
                     </span>
@@ -636,31 +637,31 @@ export function OrdersDashboardClient({
       {activeTab === "listings" && (
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs font-semibold text-[#86868b]">
+            <p className="text-sm font-medium text-[#6e6e73]">
               Edit pricing, toggle 1-for-1 swap preferences, or unlist books you
               have shared outside the platform.
             </p>
             <Link
               href="/catalog/new"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-xs font-bold transition shadow-sm shrink-0"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-[13px] font-bold transition shadow-sm shrink-0"
             >
-              <Plus className="w-3.5 h-3.5" /> New Listing
+              <Plus className="w-4 h-4" /> New Listing
             </Link>
           </div>
 
           {myListings.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center border border-black/5">
-              <BookOpen className="w-10 h-10 text-[#86868b]/40 mx-auto mb-3" />
-              <p className="font-bold text-base text-[#1d1d1f]">
+            <div className="bg-white rounded-3xl p-12 text-center border border-[#1D1D1F]/[0.07] shadow-[0_6px_28px_rgba(29,29,31,0.04)]">
+              <BookOpen className="w-11 h-11 text-[#86868b]/40 mx-auto mb-3.5" />
+              <p className="font-black text-xl text-[#1D1D1F]">
                 You haven&apos;t listed any books yet
               </p>
-              <p className="text-xs text-[#86868b] mt-1 mb-5">
+              <p className="text-sm text-[#6e6e73] mt-1.5 mb-6 max-w-md mx-auto leading-relaxed">
                 Share textbooks, novels, or semester packs for sale, 1-for-1
                 swap, or free community donation.
               </p>
               <Link
                 href="/catalog/new"
-                className="inline-flex px-5 py-2.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-xs font-bold transition shadow-sm"
+                className="inline-flex px-6 py-3 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-sm font-bold transition shadow-sm"
               >
                 Create Your First Listing
               </Link>
@@ -669,43 +670,43 @@ export function OrdersDashboardClient({
             myListings.map((book) => (
               <div
                 key={book.id}
-                className="bg-white rounded-2xl p-5 border border-black/5 shadow-sm flex flex-wrap items-center justify-between gap-4"
+                className="bg-white rounded-3xl p-5 sm:p-6 border border-[#1D1D1F]/[0.07] shadow-[0_4px_20px_rgba(29,29,31,0.04)] flex flex-wrap items-center justify-between gap-4"
               >
                 <div className="flex items-center gap-4 min-w-0">
-                  <div className="w-13 h-18 rounded-xl bg-[#FAF6F0] overflow-hidden shrink-0 border border-black/5">
+                  <div className="w-14 h-20 rounded-xl bg-[#FAF6F0] overflow-hidden shrink-0 border border-[#1D1D1F]/[0.07] shadow-xs">
                     <OrderThumb book={book} />
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-1.5">
                       <span
-                        className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full ${
+                        className={`font-mono text-xs font-bold uppercase px-2.5 py-0.5 rounded-full ${
                           book.status === "AVAILABLE"
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-[#f5f5f7] text-[#86868b]"
+                            ? "bg-[#0A7D4F]/10 text-[#0A7D4F]"
+                            : "bg-[#FAF6F0] text-[#6e6e73]"
                         }`}
                       >
                         {book.status}
                       </span>
-                      <span className="text-xs font-bold text-[#0066cc]">
+                      <span className="font-mono text-xs font-black text-[#C84200]">
                         {book.price === 0
                           ? book.acceptsExchange
                             ? "1-for-1 Swap"
-                            : "Free Donation"
+                            : "Free Vidya Daan"
                           : `₹${book.price}`}
                       </span>
                       {book.isBundle && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">
-                          Bundle ({book.booksInBundle})
+                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200/70">
+                          Pack ({book.booksInBundle})
                         </span>
                       )}
                     </div>
                     <Link
                       href={`/catalog/${book.id}`}
-                      className="text-base font-bold text-[#1d1d1f] hover:underline"
+                      className="text-lg font-black text-[#1D1D1F] hover:text-[#C84200] transition-colors tracking-tight"
                     >
                       {book.title}
                     </Link>
-                    <p className="text-xs text-[#86868b]">
+                    <p className="text-[13px] text-[#6e6e73]">
                       {book.author} · {book.condition.replace(/_/g, " ")}
                     </p>
                   </div>
@@ -715,7 +716,7 @@ export function OrdersDashboardClient({
                   <button
                     type="button"
                     onClick={() => setEditBook({ ...book })}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] text-xs font-semibold transition cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] border border-[#1D1D1F]/[0.07] text-[#1D1D1F] text-[13px] font-bold transition cursor-pointer"
                   >
                     <Pencil className="w-3.5 h-3.5" /> Edit
                   </button>
@@ -723,7 +724,7 @@ export function OrdersDashboardClient({
                     type="button"
                     disabled={busyId === book.id}
                     onClick={() => handleDeleteListing(book.id)}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold transition cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-[13px] font-bold transition cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" /> Unlist
                   </button>
@@ -743,33 +744,34 @@ export function OrdersDashboardClient({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setEditBook(null)}
-              className="absolute inset-0 bg-black/65 backdrop-blur-xs"
+              className="absolute inset-0 bg-black/60 backdrop-blur-xs"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.96, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 16 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-10 w-full max-w-md bg-white rounded-2xl p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto"
+              className="relative z-10 w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-[#1D1D1F]/[0.08] max-h-[90vh] overflow-y-auto"
             >
               <button
                 type="button"
                 onClick={() => setEditBook(null)}
-                className="absolute top-5 right-5 w-8 h-8 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] flex items-center justify-center cursor-pointer"
+                aria-label="Close edit listing modal"
+                className="absolute top-5 right-5 w-9 h-9 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] flex items-center justify-center cursor-pointer"
               >
-                <X className="w-4 h-4 text-[#1d1d1f]" />
+                <X className="w-4 h-4 text-[#1D1D1F]" />
               </button>
 
-              <p className="text-[10px] font-bold uppercase tracking-widest text-[#C84200] mb-1">
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#C84200] mb-1">
                 Listing Manager
               </p>
-              <h2 className="text-xl font-bold text-[#1d1d1f] mb-5 pr-8">
-                Edit “{editBook.title}”
+              <h2 className="text-xl font-black text-[#1D1D1F] mb-5 pr-10 tracking-tight">
+                Edit &ldquo;{editBook.title}&rdquo;
               </h2>
 
               <form onSubmit={handleSaveListing} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase text-[#1d1d1f] mb-1">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#1D1D1F] mb-1.5">
                     Title
                   </label>
                   <input
@@ -779,13 +781,13 @@ export function OrdersDashboardClient({
                     onChange={(e) =>
                       setEditBook({ ...editBook, title: e.target.value })
                     }
-                    className="w-full h-11 rounded-xl bg-[#f5f5f7] px-3.5 text-sm font-medium outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20"
+                    className="w-full h-11 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] px-4 text-sm font-medium outline-none focus:bg-white focus:border-[#C84200]"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold uppercase text-[#1d1d1f] mb-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[#1D1D1F] mb-1.5">
                       Price (₹, 0 = Free)
                     </label>
                     <input
@@ -795,11 +797,11 @@ export function OrdersDashboardClient({
                       onChange={(e) =>
                         setEditBook({ ...editBook, price: e.target.value })
                       }
-                      className="w-full h-11 rounded-xl bg-[#f5f5f7] px-3.5 text-sm font-bold outline-none"
+                      className="w-full h-11 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] px-4 font-mono text-sm font-bold outline-none focus:bg-white focus:border-[#C84200]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase text-[#1d1d1f] mb-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[#1D1D1F] mb-1.5">
                       Status
                     </label>
                     <select
@@ -807,7 +809,7 @@ export function OrdersDashboardClient({
                       onChange={(e) =>
                         setEditBook({ ...editBook, status: e.target.value })
                       }
-                      className="w-full h-11 rounded-xl bg-[#f5f5f7] px-3 text-sm font-semibold outline-none"
+                      className="w-full h-11 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] px-3.5 text-sm font-semibold outline-none focus:bg-white focus:border-[#C84200]"
                     >
                       <option value="AVAILABLE">AVAILABLE</option>
                       <option value="RESERVED">RESERVED</option>
@@ -819,7 +821,7 @@ export function OrdersDashboardClient({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold uppercase text-[#1d1d1f] mb-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[#1D1D1F] mb-1.5">
                       Condition
                     </label>
                     <select
@@ -827,7 +829,7 @@ export function OrdersDashboardClient({
                       onChange={(e) =>
                         setEditBook({ ...editBook, condition: e.target.value })
                       }
-                      className="w-full h-11 rounded-xl bg-[#f5f5f7] px-3 text-sm font-semibold outline-none"
+                      className="w-full h-11 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] px-3.5 text-sm font-semibold outline-none focus:bg-white focus:border-[#C84200]"
                     >
                       <option value="NEW">NEW</option>
                       <option value="LIKE_NEW">LIKE NEW</option>
@@ -837,7 +839,7 @@ export function OrdersDashboardClient({
                     </select>
                   </div>
                   <div className="flex items-end pb-2.5">
-                    <label className="flex items-center gap-2 text-xs font-bold text-[#1d1d1f] cursor-pointer">
+                    <label className="flex items-center gap-2 text-[13px] font-bold text-[#1D1D1F] cursor-pointer">
                       <input
                         type="checkbox"
                         checked={Boolean(editBook.acceptsExchange)}
@@ -847,7 +849,7 @@ export function OrdersDashboardClient({
                             acceptsExchange: e.target.checked,
                           })
                         }
-                        className="w-4 h-4 accent-[#0066cc]"
+                        className="w-4 h-4 accent-[#C84200]"
                       />
                       Accept 1-for-1 Swap
                     </label>
@@ -856,7 +858,7 @@ export function OrdersDashboardClient({
 
                 {editBook.acceptsExchange && (
                   <div>
-                    <label className="block text-xs font-bold uppercase text-[#1d1d1f] mb-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[#1D1D1F] mb-1.5">
                       Swap Preferences
                     </label>
                     <input
@@ -869,29 +871,29 @@ export function OrdersDashboardClient({
                         })
                       }
                       placeholder="Books or genres you'd trade for..."
-                      className="w-full h-10 rounded-xl bg-[#f5f5f7] px-3.5 text-sm outline-none"
+                      className="w-full h-11 rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] px-4 text-sm outline-none focus:bg-white focus:border-[#C84200]"
                     />
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-xs font-bold uppercase text-[#1d1d1f] mb-1">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#1D1D1F] mb-1.5">
                     Description
                   </label>
                   <textarea
-                    rows={2}
+                    rows={3}
                     value={editBook.description || ""}
                     onChange={(e) =>
                       setEditBook({ ...editBook, description: e.target.value })
                     }
-                    className="w-full rounded-xl bg-[#f5f5f7] p-3 text-sm outline-none resize-none"
+                    className="w-full rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] p-3.5 text-sm outline-none resize-none focus:bg-white focus:border-[#C84200]"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={savingListing}
-                  className="w-full py-3 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white font-semibold text-sm flex items-center justify-center gap-2 transition cursor-pointer"
+                  className="w-full py-3.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white font-bold text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-sm"
                 >
                   {savingListing ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -914,37 +916,38 @@ export function OrdersDashboardClient({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setReviewTarget(null)}
-              className="absolute inset-0 bg-black/65 backdrop-blur-xs"
+              className="absolute inset-0 bg-black/60 backdrop-blur-xs"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.96, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 16 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-10 w-full max-w-md bg-white rounded-2xl p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto"
+              className="relative z-10 w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-[#1D1D1F]/[0.08] max-h-[90vh] overflow-y-auto"
             >
               <button
                 type="button"
                 onClick={() => setReviewTarget(null)}
-                className="absolute top-5 right-5 w-8 h-8 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] flex items-center justify-center cursor-pointer"
+                aria-label="Close review modal"
+                className="absolute top-5 right-5 w-9 h-9 rounded-full bg-[#FAF6F0] hover:bg-[#EFE7DC] flex items-center justify-center cursor-pointer"
               >
-                <X className="w-4 h-4 text-[#1d1d1f]" />
+                <X className="w-4 h-4 text-[#1D1D1F]" />
               </button>
 
-              <p className="text-[10px] font-bold uppercase tracking-widest text-[#0066cc] mb-1">
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#0066cc] mb-1">
                 Verified Trust Rating
               </p>
-              <h2 className="text-xl font-bold text-[#1d1d1f] mb-1 pr-8">
+              <h2 className="text-xl font-black text-[#1D1D1F] mb-1 pr-10 tracking-tight">
                 Rate {reviewTarget.sellerName}
               </h2>
-              <p className="text-xs text-[#86868b] mb-6">
-                For “{reviewTarget.bookTitle}” — directly updates their
-                community trust score.
+              <p className="text-sm text-[#6e6e73] mb-6 leading-relaxed">
+                For &ldquo;{reviewTarget.bookTitle}&rdquo; — directly updates
+                their community trust score.
               </p>
 
               <form onSubmit={handleReviewSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#1d1d1f] mb-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#1D1D1F] mb-2">
                     Overall Experience
                   </label>
                   <div className="flex items-center gap-2">
@@ -967,44 +970,44 @@ export function OrdersDashboardClient({
                   </div>
                 </div>
 
-                <div className="space-y-2.5 bg-[#f5f5f7] p-4 rounded-2xl">
-                  <label className="flex items-center justify-between text-xs font-semibold text-[#1d1d1f] cursor-pointer">
+                <div className="space-y-3 bg-[#FAF6F0] border border-[#1D1D1F]/[0.06] p-4 rounded-2xl">
+                  <label className="flex items-center justify-between gap-3 text-[13px] font-semibold text-[#1D1D1F] cursor-pointer">
                     <span>Book condition matched listing description?</span>
                     <input
                       type="checkbox"
                       checked={conditionAccurate}
                       onChange={(e) => setConditionAccurate(e.target.checked)}
-                      className="w-4 h-4 accent-[#0066cc]"
+                      className="w-4 h-4 accent-[#0066cc] shrink-0"
                     />
                   </label>
-                  <label className="flex items-center justify-between text-xs font-semibold text-[#1d1d1f] cursor-pointer">
+                  <label className="flex items-center justify-between gap-3 text-[13px] font-semibold text-[#1D1D1F] cursor-pointer">
                     <span>Smooth shipping / punctual meetup handoff?</span>
                     <input
                       type="checkbox"
                       checked={meetupReliable}
                       onChange={(e) => setMeetupReliable(e.target.checked)}
-                      className="w-4 h-4 accent-[#0066cc]"
+                      className="w-4 h-4 accent-[#0066cc] shrink-0"
                     />
                   </label>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#1d1d1f] mb-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#1D1D1F] mb-1.5">
                     Review Comment (Optional)
                   </label>
                   <textarea
-                    rows={2}
+                    rows={3}
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     placeholder="e.g. Fast dispatch and crisp pages as promised!"
-                    className="w-full rounded-xl bg-[#f5f5f7] border border-transparent focus:border-[#0066cc] focus:bg-white p-3 text-sm text-[#1d1d1f] outline-none"
+                    className="w-full rounded-2xl bg-[#FAF6F0] border border-[#1D1D1F]/[0.08] focus:border-[#0066cc] focus:bg-white p-3.5 text-sm text-[#1D1D1F] outline-none"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={submittingReview}
-                  className="w-full py-3.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white font-semibold text-sm flex items-center justify-center gap-2 transition cursor-pointer"
+                  className="w-full py-3.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white font-bold text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-sm"
                 >
                   {submittingReview ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
