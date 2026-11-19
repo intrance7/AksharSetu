@@ -2,15 +2,9 @@ import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import { checkAndAwardBadges } from "@/services/badgeService"
+import { generateSabhaCode } from "@/lib/sabha"
 
-export function generateSabhaCode(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-  let suffix = ""
-  for (let i = 0; i < 6; i++) {
-    suffix += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return `SABHA-${suffix}`
-}
+export const dynamic = "force-dynamic"
 
 export async function GET() {
   try {
@@ -50,7 +44,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
+
     const {
       name,
       description,
@@ -63,7 +63,14 @@ export async function POST(req: Request) {
       customCode,
     } = body
 
-    if (!name?.trim() || !bookTitle?.trim() || !bookAuthor?.trim()) {
+    if (
+      typeof name !== "string" ||
+      !name.trim() ||
+      typeof bookTitle !== "string" ||
+      !bookTitle.trim() ||
+      typeof bookAuthor !== "string" ||
+      !bookAuthor.trim()
+    ) {
       return NextResponse.json(
         { error: "Team name, book title, and book author are required" },
         { status: 400 }
@@ -85,11 +92,12 @@ export async function POST(req: Request) {
     }
 
     // Ensure uniqueness of inviteCode
-    const existingCode = await prisma.bookClub.findUnique({
-      where: { inviteCode },
-      select: { id: true },
-    })
-    if (existingCode) {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const existingCode = await prisma.bookClub.findUnique({
+        where: { inviteCode },
+        select: { id: true },
+      })
+      if (!existingCode) break
       inviteCode = generateSabhaCode()
     }
 
@@ -100,14 +108,16 @@ export async function POST(req: Request) {
 
     const club = await prisma.bookClub.create({
       data: {
-        name: name.trim(),
+        name: name.trim().slice(0, 120),
         description:
-          description?.trim() ||
+          (typeof description === "string" ? description.trim() : "") ||
           `Sabha reading team discussing ${bookTitle.trim()}.`,
-        bookTitle: bookTitle.trim(),
-        bookAuthor: bookAuthor.trim(),
-        ebookKey: ebookKey?.trim() || null,
-        scheduleText: scheduleText?.trim() || "Weekly Shanti Reading Session",
+        bookTitle: bookTitle.trim().slice(0, 160),
+        bookAuthor: bookAuthor.trim().slice(0, 120),
+        ebookKey: typeof ebookKey === "string" ? ebookKey.trim() || null : null,
+        scheduleText:
+          (typeof scheduleText === "string" ? scheduleText.trim() : "") ||
+          "Weekly Shanti Reading Session",
         inviteCode,
         isPrivate: Boolean(isPrivate),
         maxMembers: parsedMax,

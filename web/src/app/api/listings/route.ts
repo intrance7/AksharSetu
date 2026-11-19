@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import { notifyWishlistMatches } from "@/lib/wishlistAlerts"
+import { checkAndAwardBadges } from "@/services/badgeService"
 
 export async function POST(req: Request) {
   try {
@@ -11,11 +12,39 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body = await req.json()
-    const { title, author, isbn, description, condition, category, price, imageUrl } = body
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
 
-    if (!title || !author || !condition || !category || price === undefined) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    const title = typeof body?.title === "string" ? body.title.trim() : ""
+    const author = typeof body?.author === "string" ? body.author.trim() : ""
+    const isbn = typeof body?.isbn === "string" ? body.isbn.trim() || null : null
+    const description =
+      typeof body?.description === "string" ? body.description.trim() || null : null
+    const condition =
+      typeof body?.condition === "string" ? body.condition.trim() : ""
+    const category =
+      typeof body?.category === "string" ? body.category.trim() : ""
+    const parsedPrice = Number(body?.price)
+    const imageUrl =
+      typeof body?.imageUrl === "string" ? body.imageUrl.trim() : ""
+
+    if (
+      !title ||
+      !author ||
+      !condition ||
+      !category ||
+      body?.price === undefined ||
+      !Number.isFinite(parsedPrice) ||
+      parsedPrice < 0
+    ) {
+      return NextResponse.json(
+        { error: "Missing or invalid required fields" },
+        { status: 400 }
+      )
     }
 
     const images = imageUrl ? [imageUrl] : []
@@ -28,7 +57,7 @@ export async function POST(req: Request) {
         description,
         condition,
         category,
-        price: Number(price),
+        price: parsedPrice,
         images,
         ownerId: session.user.id,
         status: "AVAILABLE",
@@ -41,6 +70,7 @@ export async function POST(req: Request) {
       isbn: book.isbn,
       sellerId: session.user.id,
     })
+    checkAndAwardBadges(session.user.id).catch(() => {})
 
     return NextResponse.json(book, { status: 201 })
   } catch (error: any) {

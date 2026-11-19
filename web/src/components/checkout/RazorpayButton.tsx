@@ -86,7 +86,20 @@ export function RazorpayButton({
         },
       }
 
-      const paymentObject = new (window as any).Razorpay(options)
+      const RazorpayCtor = (window as any)?.Razorpay
+      if (typeof RazorpayCtor !== "function") {
+        throw new Error(
+          "Payment gateway script is still loading or blocked by your browser. Please retry in a moment or select 'Campus / City Meetup' reservation."
+        )
+      }
+
+      if (!options.key) {
+        throw new Error(
+          "Online payment key is not configured in this environment. Please select 'Campus / City Meetup' reservation to inspect and pay in person."
+        )
+      }
+
+      const paymentObject = new RazorpayCtor(options)
       paymentObject.on("payment.failed", function (response: any) {
         setError(response.error.description || "Payment failed")
       })

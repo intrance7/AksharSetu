@@ -1,6 +1,7 @@
 import Link from "next/link"
-import { EBookSource, EBookSummary, searchEbooks, coverUrl } from "@/lib/gutenberg"
+import { EBookSource, EBookSummary, searchEbooks } from "@/lib/gutenberg"
 import EbookGrid from "@/components/ebooks/EbookGrid"
+import { HeroFeaturedStack } from "@/components/ebooks/HeroFeaturedStack"
 import { LiveReadersStrip } from "@/components/library/LiveReadersStrip"
 import {
   BookOpen,
@@ -81,28 +82,28 @@ export default async function EbooksPage({
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pb-24">
+    <div className="min-h-screen bg-[#F2EBE1] pb-24">
       {/* High-Contrast Hero Banner */}
       <section className="relative bg-black text-[#f5f5f7] overflow-hidden border-b border-white/10">
         <div
           className="absolute inset-0 opacity-30 pointer-events-none"
           style={{
             background:
-              "radial-gradient(circle at 20% 20%, rgba(0, 102, 204, 0.35), transparent 50%), radial-gradient(circle at 80% 70%, rgba(255, 149, 0, 0.2), transparent 55%)",
+              "radial-gradient(circle at 20% 20%, rgba(200, 66, 0, 0.35), transparent 50%), radial-gradient(circle at 80% 70%, rgba(0, 102, 204, 0.28), transparent 55%)",
           }}
         />
 
-        <div className="max-w-7xl mx-auto px-6 py-14 md:py-16 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-16 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            <div className="lg:col-span-7 space-y-5">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-semibold tracking-wide text-blue-300">
-                <Globe className="w-3.5 h-3.5" />
-                Unified Open E-Library · Gutenberg + Internet Archive + Open Library + Google Books
+            <div className="lg:col-span-7 space-y-5 min-w-0">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-semibold tracking-wide text-[#FF8A4C] max-w-full">
+                <Globe className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Unified Open E-Library · Gutenberg + Archive + Open Library + Google</span>
               </div>
 
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter leading-none">
                 Every Free Library.{" "}
-                <span className="bg-gradient-to-r from-blue-400 via-sky-300 to-amber-200 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-[#FF8A4C] via-amber-200 to-sky-300 bg-clip-text text-transparent">
                   Read Like a Real Book.
                 </span>
               </h1>
@@ -122,17 +123,17 @@ export default async function EbooksPage({
                 {activeSource !== "all" && (
                   <input type="hidden" name="source" value={activeSource} />
                 )}
-                <div className="flex items-center bg-white/10 backdrop-blur-md border border-white/15 rounded-full p-1.5 focus-within:border-[#0066cc] focus-within:bg-white/15 transition">
-                  <Search className="w-4 h-4 text-[#86868b] ml-4 mr-2 shrink-0" />
+                <div className="flex items-center bg-white/10 backdrop-blur-md border border-white/15 rounded-full p-1.5 focus-within:border-[#C84200] focus-within:bg-white/15 transition">
+                  <Search className="w-4 h-4 text-[#86868b] ml-3 sm:ml-4 mr-2 shrink-0" />
                   <input
                     name="q"
                     defaultValue={activeQuery}
-                    placeholder="Search any book, author, or topic (e.g. Atomic Habits, Tagore, Gita)..."
-                    className="w-full bg-transparent text-sm text-white placeholder:text-[#86868b] focus:outline-none py-2 pr-3"
+                    placeholder="Search book, author, or topic..."
+                    className="flex-1 min-w-0 bg-transparent text-sm text-white placeholder:text-[#86868b] focus:outline-none py-2 pr-2 sm:pr-3"
                   />
                   <button
                     type="submit"
-                    className="px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider bg-[#0066cc] hover:bg-[#0071e3] text-white transition shrink-0"
+                    className="px-4 sm:px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider bg-[#C84200] hover:bg-[#A33500] text-white transition shrink-0 cursor-pointer"
                   >
                     Search
                   </button>
@@ -160,44 +161,19 @@ export default async function EbooksPage({
 
             {/* Right Featured Stack */}
             <div className="lg:col-span-5 hidden lg:flex justify-center">
-              <div className="relative w-full max-w-md">
-                <div className="grid grid-cols-3 gap-3">
-                  {CURATED_INDIAN_CLASSICS.slice(0, 3).map((b, idx) => (
-                    <Link
-                      key={b.id}
-                      href={`/ebooks/${b.id}?view=book`}
-                      className={`group relative rounded-2xl overflow-hidden border border-white/15 shadow-2xl transition-all duration-300 hover:-translate-y-2 ${
-                        idx === 1 ? "-mt-4 mb-4" : ""
-                      }`}
-                    >
-                      <div className="aspect-[2/3] bg-zinc-900">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={coverUrl(b.id)}
-                          alt={b.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      </div>
-                      <div className="p-2.5 bg-zinc-900/95 backdrop-blur-md">
-                        <p className="text-[11px] font-bold text-white truncate">{b.title}</p>
-                        <p className="text-[10px] text-[#86868b] truncate">{b.author}</p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
+              <HeroFeaturedStack books={CURATED_INDIAN_CLASSICS.slice(0, 3)} />
             </div>
           </div>
         </div>
       </section>
 
       {/* Main Content Container */}
-      <div className="max-w-7xl mx-auto px-6 pt-8 space-y-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 space-y-10">
         <LiveReadersStrip />
 
         {/* Source Filter Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 bg-white rounded-2xl p-3 border border-black/5 shadow-sm">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 w-full lg:w-auto lg:flex-1 min-w-0 scrollbar-hide">
             {SOURCES.map((src) => {
               const isSelected = activeSource === src.id
               const href = `/ebooks?${new URLSearchParams({
@@ -288,7 +264,7 @@ export default async function EbooksPage({
 
         {/* Search / Feed Results */}
         <section className="space-y-5">
-          <div className="flex items-end justify-between">
+          <div className="flex flex-wrap items-end justify-between gap-2">
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-[#86868b]">
                 {activeQuery ? "Multi-Library Search Results" : "Global Open Catalog"}
@@ -317,7 +293,7 @@ export default async function EbooksPage({
           </div>
 
           {books.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center border border-black/5 shadow-sm max-w-xl mx-auto my-8">
+            <div className="bg-white rounded-2xl p-8 sm:p-12 text-center border border-black/5 shadow-sm max-w-xl mx-auto my-8">
               <BookOpen className="w-10 h-10 text-[#86868b] mx-auto mb-3" />
               <h3 className="text-lg font-bold text-[#1d1d1f] mb-1">
                 No editions matched &ldquo;{activeQuery}&rdquo;
@@ -326,15 +302,15 @@ export default async function EbooksPage({
                 Try switching the source filter to &ldquo;All Free Libraries&rdquo; or searching by
                 author name.
               </p>
-              <div className="flex justify-center gap-3">
+              <div className="flex flex-wrap justify-center gap-3">
                 <Link
                   href="/ebooks"
-                  className="px-5 py-2.5 rounded-full text-xs font-semibold bg-[#0066cc] text-white hover:bg-[#0071e3] transition"
+                  className="px-5 py-2.5 rounded-full text-xs font-semibold bg-[#C84200] text-white hover:bg-[#A33500] transition"
                 >
                   Browse All Free Libraries
                 </Link>
                 <Link
-                  href={`/books?q=${encodeURIComponent(activeQuery)}`}
+                  href={`/catalog?q=${encodeURIComponent(activeQuery)}`}
                   className="px-5 py-2.5 rounded-full text-xs font-semibold bg-[#e8e8ed] text-[#1d1d1f] hover:bg-[#d2d2d7] transition"
                 >
                   Search Physical Catalog

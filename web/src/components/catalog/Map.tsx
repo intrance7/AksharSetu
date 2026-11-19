@@ -1,10 +1,12 @@
 "use client"
 
+import { useState } from "react"
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import L from "leaflet"
 import Link from "next/link"
 import { resolveBookCoordinates } from "@/lib/geo"
+import { GeneratedCover } from "./GeneratedCover"
 
 // Fix for default Leaflet icon paths in Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -16,6 +18,29 @@ L.Icon.Default.mergeOptions({
   shadowUrl:
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 })
+
+function PopupCover({ book }: { book: any }) {
+  const [err, setErr] = useState(false)
+  const src = book.images?.[0]
+  if (src && !err) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt={book.title}
+        onError={() => setErr(true)}
+        className="w-full h-full object-cover"
+      />
+    )
+  }
+  return (
+    <GeneratedCover
+      title={book.title}
+      author={book.author}
+      category={book.category}
+    />
+  )
+}
 
 export default function Map({
   books,
@@ -41,7 +66,7 @@ export default function Map({
       : 5
 
   return (
-    <div className="w-full h-[560px] md:h-[680px] rounded-3xl overflow-hidden shadow-sm border border-black/[0.06] relative z-0">
+    <div className="w-full h-[380px] sm:h-[500px] md:h-[640px] rounded-3xl overflow-hidden shadow-sm border border-black/[0.06] relative z-0">
       <MapContainer
         key={`${center[0].toFixed(3)}-${center[1].toFixed(3)}`}
         center={center}
@@ -61,17 +86,9 @@ export default function Map({
           return (
             <Marker key={book.id} position={coords}>
               <Popup className="custom-popup border-0 p-0 shadow-lg rounded-2xl overflow-hidden">
-                <div className="flex flex-col gap-2.5 w-[220px]">
+                <div className="flex flex-col gap-2.5 w-[210px] sm:w-[220px]">
                   <div className="relative w-full h-32 bg-[#FAF6F0] rounded-lg overflow-hidden">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={
-                        book.images?.[0] ||
-                        "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=600"
-                      }
-                      alt={book.title}
-                      className="w-full h-full object-cover"
-                    />
+                    <PopupCover book={book} />
                   </div>
                   <div className="px-1 pb-1">
                     <h3 className="font-bold text-[#1d1d1f] text-sm leading-tight mb-0.5 line-clamp-2">

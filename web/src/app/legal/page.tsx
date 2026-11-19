@@ -10,7 +10,7 @@ export const metadata = {
 
 export default function LegalIndexPage() {
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pb-24">
+    <div className="min-h-screen bg-[#F2EBE1] pb-24">
       <section className="bg-black text-[#f5f5f7] pt-14 pb-18 px-4 sm:px-6 border-b border-white/10">
         <div className="mx-auto max-w-5xl">
           <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-xs font-bold text-[#0066cc] mb-3">

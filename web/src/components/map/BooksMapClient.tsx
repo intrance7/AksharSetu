@@ -14,12 +14,13 @@ import {
 } from "lucide-react"
 import { calculateDistance } from "@/lib/utils"
 import { resolveBookCoordinates } from "@/lib/geo"
+import { GeneratedCover } from "@/components/catalog/GeneratedCover"
 import { toast } from "sonner"
 
 const InteractiveMap = dynamic(() => import("@/components/catalog/Map"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[560px] md:h-[680px] rounded-3xl bg-black/5 animate-pulse flex items-center justify-center font-bold text-[#1D1D1F]/40">
+    <div className="w-full h-[380px] sm:h-[500px] md:h-[640px] rounded-3xl bg-black/5 animate-pulse flex items-center justify-center font-bold text-[#1D1D1F]/40">
       Loading Interactive Campus & City Map...
     </div>
   ),
@@ -27,6 +28,28 @@ const InteractiveMap = dynamic(() => import("@/components/catalog/Map"), {
 
 type RadiusKm = 2 | 5 | 15 | 50 | 0 // 0 = All India
 type TypeFilter = "all" | "free" | "swap" | "paid"
+
+function MapListThumb({ book }: { book: any }) {
+  const [err, setErr] = useState(false)
+  if (book.images?.[0] && !err) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={book.images[0]}
+        alt={book.title}
+        onError={() => setErr(true)}
+        className="w-full h-full object-cover"
+      />
+    )
+  }
+  return (
+    <GeneratedCover
+      title={book.title}
+      author={book.author}
+      category={book.category}
+    />
+  )
+}
 
 export function BooksMapClient({
   books,
@@ -131,8 +154,8 @@ export function BooksMapClient({
   return (
     <div className="space-y-6">
       {/* Filter & GPS Control Bar */}
-      <div className="bg-white rounded-3xl p-5 shadow-sm border border-black/5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-black/5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="relative flex-1 w-full lg:max-w-md">
           <Search className="w-4 h-4 text-[#86868b] absolute left-4 top-1/2 -translate-y-1/2" />
           <input
             type="text"
@@ -157,7 +180,7 @@ export function BooksMapClient({
               key={t.id}
               type="button"
               onClick={() => setTypeFilter(t.id)}
-              className={`px-3.5 py-2 rounded-full text-xs font-bold transition-colors cursor-pointer ${
+              className={`px-3.5 py-2 rounded-full text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
                 typeFilter === t.id
                   ? "bg-[#1D1D1F] text-white"
                   : "bg-[#FAF6F0] text-[#1D1D1F] hover:bg-black/5"
@@ -180,7 +203,8 @@ export function BooksMapClient({
               }
               setRadiusKm(next)
             }}
-            className="h-9 rounded-full bg-[#FAF6F0] px-3.5 text-xs font-bold text-[#1D1D1F] outline-none border border-black/10"
+            aria-label="Filter radius"
+            className="h-9 rounded-full bg-[#FAF6F0] px-3.5 text-xs font-bold text-[#1D1D1F] outline-none border border-black/10 cursor-pointer"
           >
             <option value={0}>Radius: All India</option>
             <option value={2}>Within 2 km (Campus)</option>
@@ -193,7 +217,7 @@ export function BooksMapClient({
             type="button"
             onClick={handleDetectGps}
             disabled={detecting}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-bold transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-bold transition-colors cursor-pointer whitespace-nowrap"
           >
             {detecting ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -207,7 +231,7 @@ export function BooksMapClient({
 
       {/* Split Map + Nearby List */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div className="lg:col-span-8">
+        <div className="lg:col-span-8 min-w-0">
           <InteractiveMap books={filteredBooks} userLocation={coords} />
           <p className="text-xs text-[#86868b] font-medium mt-2.5 px-2">
             Showing {mappedPinCount} mapped pins ({filteredBooks.length}{" "}
@@ -216,22 +240,22 @@ export function BooksMapClient({
           </p>
         </div>
 
-        <div className="lg:col-span-4 bg-white rounded-3xl p-5 shadow-sm border border-black/5 max-h-[680px] overflow-y-auto space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-black/5">
+        <div className="lg:col-span-4 bg-white rounded-3xl p-5 shadow-sm border border-black/5 lg:max-h-[640px] lg:overflow-y-auto space-y-3 min-w-0">
+          <div className="flex items-center justify-between gap-2 pb-2 border-b border-black/5">
             <h2 className="font-black text-base text-[#1D1D1F] flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[#C84200]" /> Nearby Books (
-              {filteredBooks.length})
+              <MapPin className="w-4 h-4 text-[#C84200] shrink-0" /> Nearby
+              Books ({filteredBooks.length})
             </h2>
             <Link
               href="/catalog/new"
-              className="text-xs font-bold text-[#C84200] hover:underline"
+              className="text-xs font-bold text-[#C84200] hover:underline shrink-0"
             >
               + Pin Yours
             </Link>
           </div>
 
           {filteredBooks.length === 0 ? (
-            <div className="py-14 text-center text-[#86868b]">
+            <div className="py-12 text-center text-[#86868b]">
               <BookOpen className="w-9 h-9 mx-auto mb-2 opacity-30" />
               <p className="text-sm font-bold text-[#1D1D1F]">
                 No books within this radius
@@ -246,19 +270,10 @@ export function BooksMapClient({
               <Link
                 key={b.id}
                 href={`/catalog/${b.id}`}
-                className="flex gap-3.5 p-3 rounded-2xl bg-[#FAF6F0]/70 hover:bg-[#FAF6F0] border border-black/5 transition-colors"
+                className="flex gap-3.5 p-3 rounded-2xl bg-[#FAF6F0]/70 hover:bg-[#FAF6F0] border border-black/5 hover:border-[#C84200]/25 transition-colors"
               >
-                <div className="w-12 h-16 rounded-lg bg-white overflow-hidden shrink-0 flex items-center justify-center border border-black/5">
-                  {b.images?.[0] ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={b.images[0]}
-                      alt={b.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <BookOpen className="w-4 h-4 text-[#86868b]" />
-                  )}
+                <div className="w-12 h-16 rounded-lg bg-white overflow-hidden shrink-0 border border-black/5">
+                  <MapListThumb book={b} />
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -279,19 +294,17 @@ export function BooksMapClient({
                       )}
                     </span>
                     {b._distanceKm !== null && (
-                      <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                      <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full shrink-0">
                         {b._distanceKm < 1
                           ? `${Math.round(b._distanceKm * 1000)} m`
-                          : `${b._distanceKm} km`}
+                          : `${b._distanceKm.toFixed(1)} km`}
                       </span>
                     )}
                   </div>
                   <h3 className="font-bold text-sm text-[#1D1D1F] truncate mt-0.5">
                     {b.title}
                   </h3>
-                  <p className="text-xs text-[#86868b] truncate">
-                    {b.author}
-                  </p>
+                  <p className="text-xs text-[#86868b] truncate">{b.author}</p>
                   <p className="text-[11px] text-[#86868b] truncate mt-0.5">
                     📍 {b.university || b.owner?.location || "India"}
                   </p>

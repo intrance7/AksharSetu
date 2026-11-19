@@ -75,7 +75,7 @@ const XP_ACTION_ROWS = [
 
 export default function XpAndLevelsDocPage() {
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pb-24">
+    <div className="min-h-screen bg-[#F2EBE1] pb-24">
       <section className="bg-black text-[#f5f5f7] pt-12 pb-16 px-4 sm:px-6 border-b border-white/10">
         <div className="mx-auto max-w-5xl">
           <div className="flex items-center gap-2 text-xs text-[#86868b] mb-4">
@@ -110,7 +110,7 @@ export default function XpAndLevelsDocPage() {
           </h2>
           <p className="text-xs text-[#86868b] mt-1 mb-5">
             All values below are pulled directly from the live AksharSetu
-            progression engine (`XP_REWARDS`).
+            progression engine.
           </p>
 
           <div className="overflow-x-auto">
@@ -154,16 +154,15 @@ export default function XpAndLevelsDocPage() {
             Anti-Abuse Rules, Cooldowns & Reversals
           </h2>
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-[#6e6e73] leading-relaxed">
-            <div className="rounded-xl bg-[#f5f5f7] p-4">
+            <div className="rounded-xl bg-[#FAF6F0] p-4">
               <strong className="text-[#1d1d1f] block mb-1">
                 1. Cryptographic Idempotency Keys
               </strong>
-              Every XP award is logged in the `XpTransaction` ledger with a
-              unique `idempotencyKey` (such as `checkin:userId:2026-11-16` or
-              `badge:userId:badgeId`). Refreshing or double-clicking never
-              grants duplicate XP.
+              Every XP award is logged in the verified XP ledger with a unique
+              idempotency key per milestone or day. Refreshing or
+              double-clicking never grants duplicate XP.
             </div>
-            <div className="rounded-xl bg-[#f5f5f7] p-4">
+            <div className="rounded-xl bg-[#FAF6F0] p-4">
               <strong className="text-[#1d1d1f] block mb-1">
                 2. Daily Farming Protections
               </strong>
@@ -171,13 +170,13 @@ export default function XpAndLevelsDocPage() {
               notes does not inflate XP. Daily check-ins are strictly limited to
               once per UTC calendar day.
             </div>
-            <div className="rounded-xl bg-[#f5f5f7] p-4">
+            <div className="rounded-xl bg-[#FAF6F0] p-4">
               <strong className="text-[#1d1d1f] block mb-1">
                 3. Fraudulent Action Reversals
               </strong>
               If a transaction is refunded due to policy violations or a fake
-              listing is removed by moderation, the associated `XpTransaction`
-              is marked `reversedAt` and deducted from leaderboard totals.
+              listing is removed by moderation, the associated XP ledger entry
+              is reversed and deducted from leaderboard totals.
             </div>
           </div>
         </div>

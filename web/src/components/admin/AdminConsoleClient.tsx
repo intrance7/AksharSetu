@@ -237,7 +237,7 @@ export function AdminConsoleClient({
   return (
     <div className="space-y-8">
       {/* Tab Switcher */}
-      <div className="flex items-center gap-2.5 overflow-x-auto pb-2">
+      <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-hide">
         {tabs.map((t) => {
           const Icon = t.icon
           const active = tab === t.id
@@ -310,12 +310,12 @@ export function AdminConsoleClient({
                     </h4>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2.5">
                     <select
                       value={d.status}
                       disabled={busyId === d.id}
                       onChange={(e) => handleDonationStage(d.id, e.target.value)}
-                      className="h-9 rounded-full bg-white border border-black/15 px-4 text-xs font-bold text-[#1D1D1F] outline-none focus:border-[#0066cc]"
+                      className="h-9 rounded-full bg-white border border-black/15 px-4 text-xs font-bold text-[#1D1D1F] outline-none focus:border-[#0066cc] cursor-pointer"
                     >
                       {DONATION_STAGES.map((st) => (
                         <option key={st} value={st}>
@@ -365,7 +365,7 @@ export function AdminConsoleClient({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold uppercase text-[#1D1D1F] mb-1">
                   Partner NGO *
@@ -460,7 +460,7 @@ export function AdminConsoleClient({
                   className="p-4 rounded-2xl bg-[#FAF6F0] border border-black/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                 >
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span
                         className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${
                           c.status === "ACTIVE"
@@ -482,7 +482,7 @@ export function AdminConsoleClient({
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     {c.status !== "ACTIVE" ? (
                       <button
                         type="button"
@@ -637,7 +637,7 @@ export function AdminConsoleClient({
                       )}
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Link
                           href={`/profile/${u.id}`}
                           className="font-bold text-sm text-[#1D1D1F] hover:underline"
@@ -660,7 +660,7 @@ export function AdminConsoleClient({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
                       disabled={busyId === u.id}
@@ -928,7 +928,7 @@ export function AdminConsoleClient({
                 {gamificationData.recentTx.map((tx: any) => (
                   <div
                     key={tx.id}
-                    className="py-3 flex items-center justify-between gap-4 text-xs"
+                    className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
                   >
                     <div>
                       <p className="font-bold text-[#1d1d1f]">
@@ -1163,7 +1163,7 @@ export function AdminConsoleClient({
                     <div className="text-[11px] text-[#86868b]">
                       From: {t.contactEmail}
                     </div>
-                    <div className="flex gap-2 pt-1">
+                    <div className="flex flex-col sm:flex-row gap-2 pt-1">
                       <input
                         value={
                           replyDrafts[t.id] !== undefined
@@ -1177,7 +1177,7 @@ export function AdminConsoleClient({
                           }))
                         }
                         placeholder="Write official support response..."
-                        className="flex-1 rounded-full bg-white px-3.5 py-1.5 text-xs border border-black/10"
+                        className="flex-1 min-w-0 rounded-full bg-white px-3.5 py-1.5 text-xs border border-black/10"
                       />
                       <button
                         type="button"
@@ -1198,7 +1198,7 @@ export function AdminConsoleClient({
                             loadSupportAdmin()
                           }
                         }}
-                        className="rounded-full bg-[#0066cc] text-white px-4 py-1.5 text-xs font-bold cursor-pointer"
+                        className="rounded-full bg-[#0066cc] text-white px-4 py-1.5 text-xs font-bold cursor-pointer shrink-0"
                       >
                         Send & Resolve
                       </button>

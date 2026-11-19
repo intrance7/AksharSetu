@@ -22,7 +22,7 @@ const RARITY_ORDER = [
 
 export default function BadgesAndAchievementsDocPage() {
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pb-24">
+    <div className="min-h-screen bg-[#F2EBE1] pb-24">
       <section className="bg-black text-[#f5f5f7] pt-12 pb-16 px-4 sm:px-6 border-b border-white/10">
         <div className="mx-auto max-w-5xl">
           <div className="flex items-center gap-2 text-xs text-[#86868b] mb-4">
@@ -125,19 +125,19 @@ export default function BadgesAndAchievementsDocPage() {
             </h3>
             <p className="text-xs text-[#6e6e73] mt-2 leading-relaxed">
               Whenever you finish a reading session, complete a book, publish a
-              review, or donate/sell a listing, `checkAndAwardBadges()`
-              evaluates all 34 achievement thresholds and unlocks eligible
-              badges immediately.
+              review, or donate/sell a listing, our progression engine evaluates
+              all 34 achievement thresholds and unlocks eligible badges
+              immediately.
             </p>
           </div>
           <div className="rounded-2xl bg-white p-6 shadow-sm border border-black/[0.06]">
             <h3 className="text-sm font-bold text-[#1d1d1f]">
-              2. Pinning Up to 6 Showcase Badges
+              2. Pinning Up to 5 Showcase Badges
             </h3>
             <p className="text-xs text-[#6e6e73] mt-2 leading-relaxed">
-              Visit `/achievements` or your Profile page to pin up to 6 unlocked
+              Visit the Badge Vault or your Profile page to pin up to 5 unlocked
               badges to your Featured Badge Showcase. Visitors see your pinned
-              emblems right below your identity banner.
+              emblems right inside your profile header.
             </p>
           </div>
           <div className="rounded-2xl bg-white p-6 shadow-sm border border-black/[0.06]">
@@ -146,15 +146,15 @@ export default function BadgesAndAchievementsDocPage() {
             </h3>
             <p className="text-xs text-[#6e6e73] mt-2 leading-relaxed">
               Seasonal badges (such as Vidya Utsav 2026 Pioneer) can only be
-              unlocked between their `startsAt` and `endsAt` dates. Once
-              unlocked, they remain in your collection forever.
+              unlocked during their active campaign dates. Once unlocked, they
+              remain in your collection forever.
             </p>
           </div>
         </div>
 
         {/* Complete 34-Badge Reference Table */}
         <div className="rounded-2xl bg-white p-6 sm:p-8 shadow-sm border border-black/[0.06]">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
             <div>
               <h2 className="text-xl font-bold text-[#1d1d1f]">
                 Complete Encyclopedia of All {ACHIEVEMENT_CATALOG.length} Badges

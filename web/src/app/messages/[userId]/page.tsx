@@ -3,6 +3,8 @@ import prisma from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { ChatThread, ChatContextBanner } from "@/components/messages/ChatThread"
 
+export const dynamic = "force-dynamic"
+
 export default async function ChatPage({
   params,
   searchParams,
@@ -100,7 +102,7 @@ export default async function ChatPage({
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pt-20 pb-4">
+    <div className="min-h-[calc(100vh-4rem)] bg-[#F2EBE1] py-4">
       <div className="container mx-auto max-w-7xl px-3 md:px-6">
         <ChatThread
           userId={userId}

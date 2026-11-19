@@ -195,6 +195,7 @@ export function CatalogSidebarFilters({
         </h3>
 
         <input
+          key={`uni-${searchParams.get("university") || ""}`}
           type="text"
           placeholder="University (e.g. IIT, DU, VTU)"
           defaultValue={searchParams.get("university") || ""}
@@ -208,6 +209,7 @@ export function CatalogSidebarFilters({
         />
 
         <input
+          key={`course-${searchParams.get("course") || ""}`}
           type="text"
           placeholder="Course / Branch (e.g. B.Tech, MBBS)"
           defaultValue={searchParams.get("course") || ""}
@@ -221,6 +223,7 @@ export function CatalogSidebarFilters({
         />
 
         <input
+          key={`author-${searchParams.get("author") || ""}`}
           type="text"
           placeholder="Author name..."
           defaultValue={searchParams.get("author") || ""}

@@ -219,6 +219,7 @@ export function OwnerListingControls({ book }: OwnerListingControlsProps) {
                   onChange={(e) => setCondition(e.target.value)}
                   className="w-full rounded-xl bg-white border border-black/10 px-3 py-2 text-xs font-bold"
                 >
+                  <option value="NEW">Brand New</option>
                   <option value="LIKE_NEW">Like New</option>
                   <option value="GOOD">Good</option>
                   <option value="FAIR">Fair</option>
@@ -268,7 +269,7 @@ export function OwnerListingControls({ book }: OwnerListingControlsProps) {
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="px-4 py-2 rounded-full bg-white border border-black/10 text-xs font-bold"
+                className="px-4 py-2 rounded-full bg-white border border-black/10 text-xs font-bold cursor-pointer hover:bg-black/5 transition-colors"
               >
                 Cancel
               </button>

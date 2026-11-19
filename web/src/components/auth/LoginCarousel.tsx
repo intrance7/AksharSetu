@@ -92,9 +92,10 @@ export function LoginCarousel() {
           {slides.map((_, idx) => (
             <button
               key={idx}
+              type="button"
               onClick={() => setCurrentIndex(idx)}
-              className={`h-1.5 rounded-full transition-all duration-500 ease-[0.16,1,0.3,1] ${
-                idx === currentIndex ? "w-8 bg-[#0066cc]" : "w-2 bg-white/40 hover:bg-white/60"
+              className={`h-1.5 rounded-full transition-all duration-500 ease-[0.16,1,0.3,1] cursor-pointer ${
+                idx === currentIndex ? "w-8 bg-[#C84200]" : "w-2 bg-white/40 hover:bg-white/60"
               }`}
               aria-label={`Go to slide ${idx + 1}`}
             />

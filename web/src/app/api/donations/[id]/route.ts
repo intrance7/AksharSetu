@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
-import { pusherServer } from "@/lib/pusher"
+import { triggerPusherEvent } from "@/lib/pusher-server"
 import { checkAndAwardBadges } from "@/services/badgeService"
 
 const VALID_STAGES = [
@@ -28,15 +28,37 @@ export async function PATCH(
 ) {
   try {
     const session = await auth()
-    if (!session?.user?.id || session.user.role !== "ADMIN") {
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const dbUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    })
+    if (dbUser?.role !== "ADMIN") {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 })
     }
 
     const { id } = await params
-    const { status } = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
+    const { status } = body
 
     if (!status || !VALID_STAGES.includes(status)) {
       return NextResponse.json({ error: "Invalid donation stage" }, { status: 400 })
+    }
+
+    const existing = await prisma.donation.findUnique({
+      where: { id },
+      select: { id: true },
+    })
+    if (!existing) {
+      return NextResponse.json({ error: "Donation not found" }, { status: 404 })
     }
 
     const updated = await prisma.donation.update({
@@ -52,25 +74,23 @@ export async function PATCH(
     const msg = `Vidya Daan Update: "${bookName}" is now marked "${STAGE_LABELS[status] || status}".`
     const link = `/donations/track/${updated.trackingId}`
 
-    await prisma.notification.create({
-      data: {
-        userId: updated.donorId,
-        type: "DONATION_UPDATE",
-        message: msg,
-        link,
-      },
+    await prisma.notification
+      .create({
+        data: {
+          userId: updated.donorId,
+          type: "DONATION_UPDATE",
+          message: msg,
+          link,
+        },
+      })
+      .catch(() => {})
+
+    await triggerPusherEvent(`notify-${updated.donorId}`, "new-notification", {
+      message: msg,
+      link,
     })
 
-    try {
-      await pusherServer.trigger(`notify-${updated.donorId}`, "new-notification", {
-        message: msg,
-        link,
-      })
-    } catch {
-      // Safe fallback when Pusher is unconfigured
-    }
-
-    await checkAndAwardBadges(updated.donorId)
+    await checkAndAwardBadges(updated.donorId).catch(() => {})
 
     return NextResponse.json(updated)
   } catch (error) {
@@ -78,4 +98,3 @@ export async function PATCH(
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
   }
 }
-

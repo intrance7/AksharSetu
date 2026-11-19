@@ -415,7 +415,7 @@ export default function EReader({
   return (
     <div className={`min-h-screen transition-colors duration-300 ${currentTheme.bg} ${currentTheme.text}`}>
       {/* Sticky Top Reader Bar */}
-      <div className={`sticky top-12 z-30 border-b backdrop-blur-md transition-colors ${currentTheme.bar}`}>
+      <div className={`sticky top-16 z-30 border-b backdrop-blur-md transition-colors ${currentTheme.bar}`}>
         <div className="h-1 w-full bg-black/5 overflow-hidden">
           <div
             className="h-full bg-[#0066cc] transition-all duration-300"

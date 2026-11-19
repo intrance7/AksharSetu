@@ -13,7 +13,12 @@ export async function POST(req: Request) {
       )
     }
 
-    const body = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
     const rawCode = String(body.code || "")
       .trim()
       .toUpperCase()
@@ -73,13 +78,17 @@ export async function POST(req: Request) {
       )
     }
 
-    await prisma.bookClubMember.create({
-      data: {
-        clubId: club.id,
-        userId,
-        role: club.creatorId === userId ? "LEADER" : "MEMBER",
-      },
-    })
+    try {
+      await prisma.bookClubMember.create({
+        data: {
+          clubId: club.id,
+          userId,
+          role: club.creatorId === userId ? "LEADER" : "MEMBER",
+        },
+      })
+    } catch (err: any) {
+      if (err?.code !== "P2002") throw err
+    }
 
     checkAndAwardBadges(userId).catch(() => {})
 

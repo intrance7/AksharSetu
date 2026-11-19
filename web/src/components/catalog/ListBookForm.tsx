@@ -17,6 +17,9 @@ import {
   MapPin,
   Navigation,
   CheckCircle2,
+  HeartHandshake,
+  Truck,
+  Handshake,
 } from "lucide-react"
 import { createBook } from "@/app/actions/book"
 import { IsbnCameraScanner } from "./IsbnCameraScanner"
@@ -37,10 +40,20 @@ type InitialLocation = {
   location?: string
 }
 
+type InitialCampaign = {
+  id: string
+  title: string
+  ngoName: string
+} | null
+
 export function ListBookForm({
   initialLocation,
+  initialCampaign = null,
+  initialType,
 }: {
   initialLocation?: InitialLocation
+  initialCampaign?: InitialCampaign
+  initialType?: "DONATE" | "SELL" | "EXCHANGE"
 }) {
   const [isbn, setIsbn] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -48,6 +61,7 @@ export function ListBookForm({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGeneratingDesc, setIsGeneratingDesc] = useState(false)
   const [isEstimatingPrice, setIsEstimatingPrice] = useState(false)
+  const [previewImgError, setPreviewImgError] = useState(false)
   const [latitude, setLatitude] = useState<number | null>(
     initialLocation?.latitude ?? null
   )
@@ -80,7 +94,7 @@ export function ListBookForm({
     imageUrl: "",
     category: "fiction",
     condition: "LIKE_NEW",
-    listingType: "DONATE", // DONATE, SELL, EXCHANGE
+    listingType: initialType || "DONATE", // DONATE, SELL, EXCHANGE
     price: "0",
     university: "",
     course: "",
@@ -92,7 +106,7 @@ export function ListBookForm({
     condHighlighting: 5,
     condNotes: 5,
     condBinding: 5,
-    deliveryType: "SHIPPING",
+    deliveryType: "BOTH",
     isBundle: false,
     booksInBundle: 1,
     bundleDescription: "",
@@ -130,12 +144,12 @@ export function ListBookForm({
         avg >= 4.8
           ? "NEW"
           : avg >= 4.1
-          ? "LIKE_NEW"
-          : avg >= 3.2
-          ? "GOOD"
-          : avg >= 2.2
-          ? "FAIR"
-          : "POOR"
+            ? "LIKE_NEW"
+            : avg >= 3.2
+              ? "GOOD"
+              : avg >= 2.2
+                ? "FAIR"
+                : "POOR"
       return { ...next, condition: derivedCondition }
     })
     setPriceEstimate(null)
@@ -180,12 +194,12 @@ export function ListBookForm({
             imageUrl: coverUrl,
             category:
               volumeInfo.categories &&
-              volumeInfo.categories[0].toLowerCase().includes("science")
+                volumeInfo.categories[0].toLowerCase().includes("science")
                 ? "engineering"
                 : "fiction",
           }
         }
-      } catch {}
+      } catch { }
 
       if (!vol) {
         try {
@@ -208,7 +222,7 @@ export function ListBookForm({
                       ? detailData.description
                       : detailData.description.value || ""
                 }
-              } catch {}
+              } catch { }
             }
             vol = {
               title: bookData.title,
@@ -222,10 +236,11 @@ export function ListBookForm({
               category: "other",
             }
           }
-        } catch {}
+        } catch { }
       }
 
       if (vol) {
+        setPreviewImgError(false)
         setFormData((prev) => ({
           ...prev,
           title: vol.title || prev.title,
@@ -269,6 +284,7 @@ export function ListBookForm({
       if (!putRes.ok) throw new Error("Failed to store uploaded cover")
       const putData = await putRes.json().catch(() => null)
 
+      setPreviewImgError(false)
       setFormData((prev) => ({
         ...prev,
         imageUrl: putData?.publicUrl || data.publicUrl,
@@ -384,7 +400,7 @@ export function ListBookForm({
               .join(", ")
             if (label) setLocationName(label)
           }
-        } catch {}
+        } catch { }
 
         setIsLocating(false)
       },
@@ -448,11 +464,33 @@ export function ListBookForm({
       formData.condNotes +
       formData.condBinding) /
       25) *
-      100
+    100
   )
 
   return (
     <div className="w-full">
+      {initialCampaign && (
+        <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+              <HeartHandshake className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-widest text-emerald-700">
+                Vidya Daan NGO Campaign Pledge
+              </p>
+              <h2 className="text-base font-black text-[#1D1D1F] leading-snug">
+                {initialCampaign.title}
+              </h2>
+              <p className="text-xs font-medium text-[#1D1D1F]/70">
+                Partner NGO: <strong>{initialCampaign.ngoName}</strong> · Your
+                donation will receive a verifiable 6-stage tracking certificate.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ISBN Auto-fill Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -588,6 +626,9 @@ export function ListBookForm({
           setIsSubmitting(true)
           setError("")
           form.set("isDonation", (formData.listingType === "DONATE").toString())
+          if (initialCampaign?.id && formData.listingType === "DONATE") {
+            form.set("campaignId", initialCampaign.id)
+          }
           form.set(
             "acceptsExchange",
             (formData.listingType === "EXCHANGE").toString()
@@ -619,7 +660,7 @@ export function ListBookForm({
             }
             setError(
               err?.message ||
-                "Failed to list the book. Please check all fields and try again."
+              "Failed to list the book. Please check all fields and try again."
             )
             setIsSubmitting(false)
           }
@@ -926,8 +967,8 @@ export function ListBookForm({
           </div>
 
           {/* 5-Point Structured Condition Grader */}
-          <div className="mb-8 p-5 rounded-2xl bg-[#FAF6F0] border border-[#1d1d1f]/5">
-            <div className="flex items-center justify-between mb-3">
+          <div className="mb-8 p-4 sm:p-5 rounded-2xl bg-[#FAF6F0] border border-[#1d1d1f]/5">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <div>
                 <h3 className="text-xs font-black uppercase tracking-wider text-[#1D1D1F]">
                   5-Point Condition Integrity Grader
@@ -937,7 +978,7 @@ export function ListBookForm({
                   pricing.
                 </p>
               </div>
-              <span className="px-3 py-1 rounded-full bg-white text-xs font-black text-[#0A7D4F] border border-black/5">
+              <span className="px-3 py-1 rounded-full bg-white text-xs font-black text-[#0A7D4F] border border-black/5 shrink-0">
                 {integrityPct}% Integrity
               </span>
             </div>
@@ -948,22 +989,21 @@ export function ListBookForm({
                 return (
                   <div
                     key={dim.key}
-                    className="bg-white rounded-xl p-3 border border-black/5 flex items-center justify-between gap-2"
+                    className="bg-white rounded-xl p-3 border border-black/5 flex flex-wrap items-center justify-between gap-2"
                   >
                     <span className="text-xs font-bold text-[#1D1D1F]">
                       {dim.label}
                     </span>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 shrink-0">
                       {[1, 2, 3, 4, 5].map((num) => (
                         <button
                           key={num}
                           type="button"
                           onClick={() => updateDimensionScore(dim.key, num)}
-                          className={`w-6 h-6 rounded-full text-[11px] font-black transition-colors cursor-pointer ${
-                            num <= val
-                              ? "bg-[#C84200] text-white"
-                              : "bg-[#F2EBE1] text-[#86868b]"
-                          }`}
+                          className={`w-6 h-6 rounded-full text-[11px] font-black transition-colors cursor-pointer ${num <= val
+                            ? "bg-[#C84200] text-white"
+                            : "bg-[#F2EBE1] text-[#86868b]"
+                            }`}
                         >
                           {num}
                         </button>
@@ -996,29 +1036,26 @@ export function ListBookForm({
                       price: lt.id === "SELL" ? prev.price : "0",
                     }))
                   }
-                  className={`cursor-pointer rounded-xl p-3 border-2 flex items-center gap-2 transition-colors ${
-                    formData.listingType === lt.id
-                      ? "bg-[#FFF8F0] border-[#C84200] shadow-sm"
-                      : "bg-white border-[#1d1d1f]/10 hover:border-[#C84200]/30"
-                  }`}
+                  className={`cursor-pointer rounded-xl p-3 border-2 flex items-center gap-2 transition-colors ${formData.listingType === lt.id
+                    ? "bg-[#FFF8F0] border-[#C84200] shadow-sm"
+                    : "bg-white border-[#1d1d1f]/10 hover:border-[#C84200]/30"
+                    }`}
                 >
                   <div
-                    className={`rounded-full w-4 h-4 flex items-center justify-center border shrink-0 ${
-                      formData.listingType === lt.id
-                        ? "border-[#C84200]"
-                        : "border-[#1d1d1f]/20"
-                    }`}
+                    className={`rounded-full w-4 h-4 flex items-center justify-center border shrink-0 ${formData.listingType === lt.id
+                      ? "border-[#C84200]"
+                      : "border-[#1d1d1f]/20"
+                      }`}
                   >
                     {formData.listingType === lt.id && (
                       <div className="w-2 h-2 rounded-full bg-[#C84200]" />
                     )}
                   </div>
                   <h4
-                    className={`font-bold text-sm ${
-                      formData.listingType === lt.id
-                        ? "text-[#C84200]"
-                        : "text-[#1d1d1f]"
-                    }`}
+                    className={`font-bold text-sm ${formData.listingType === lt.id
+                      ? "text-[#C84200]"
+                      : "text-[#1d1d1f]"
+                      }`}
                   >
                     {lt.label}
                   </h4>
@@ -1123,25 +1160,92 @@ export function ListBookForm({
             </motion.div>
           )}
 
+          {/* Handoff Method Selector */}
+          <div className="mb-8">
+            <label className="block text-xs font-bold text-[#1d1d1f] mb-3">
+              Preferred Handoff Method
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {(
+                [
+                  {
+                    id: "BOTH",
+                    label: "Meetup & Courier",
+                    sub: "Best reach",
+                    icon: CheckCircle2,
+                  },
+                  {
+                    id: "MEETUP",
+                    label: "Campus / City Meetup",
+                    sub: "Zero shipping fee",
+                    icon: Handshake,
+                  },
+                  {
+                    id: "SHIPPING",
+                    label: "Doorstep Courier",
+                    sub: "Pan-India delivery",
+                    icon: Truck,
+                  },
+                ] as const
+              ).map((mode) => {
+                const Icon = mode.icon
+                const active = formData.deliveryType === mode.id
+                return (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        deliveryType: mode.id,
+                      }))
+                    }
+                    className={`cursor-pointer rounded-xl p-3.5 border-2 text-left transition-all ${
+                      active
+                        ? "bg-[#FFF8F0] border-[#C84200] shadow-xs"
+                        : "bg-white border-[#1d1d1f]/10 hover:border-[#C84200]/30"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <Icon
+                        className={`w-4 h-4 shrink-0 ${
+                          active ? "text-[#C84200]" : "text-[#86868b]"
+                        }`}
+                      />
+                      <span
+                        className={`font-bold text-xs ${
+                          active ? "text-[#C84200]" : "text-[#1d1d1f]"
+                        }`}
+                      >
+                        {mode.label}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#86868b] font-medium pl-6">
+                      {mode.sub}
+                    </p>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
           {/* Map Location Access */}
           <div
             ref={locationCardRef}
-            className={`mb-8 p-5 rounded-2xl border transition-colors ${
-              locationError
-                ? "bg-red-50/70 border-red-300"
-                : latitude !== null && longitude !== null
+            className={`mb-8 p-5 rounded-2xl border transition-colors ${locationError
+              ? "bg-red-50/70 border-red-300"
+              : latitude !== null && longitude !== null
                 ? "bg-[#F0FAF5] border-[#0A7D4F]/25"
                 : "bg-[#FAF6F0] border-[#1d1d1f]/10"
-            }`}
+              }`}
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-start gap-3">
                 <div
-                  className={`p-2.5 rounded-xl shrink-0 ${
-                    latitude !== null && longitude !== null
-                      ? "bg-[#0A7D4F]/15 text-[#0A7D4F]"
-                      : "bg-[#C84200]/10 text-[#C84200]"
-                  }`}
+                  className={`p-2.5 rounded-xl shrink-0 ${latitude !== null && longitude !== null
+                    ? "bg-[#0A7D4F]/15 text-[#0A7D4F]"
+                    : "bg-[#C84200]/10 text-[#C84200]"
+                    }`}
                 >
                   {latitude !== null && longitude !== null ? (
                     <CheckCircle2 className="w-5 h-5" />
@@ -1176,11 +1280,10 @@ export function ListBookForm({
                 type="button"
                 onClick={requestLocationAccess}
                 disabled={isLocating}
-                className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-black uppercase tracking-wider transition-all shrink-0 cursor-pointer disabled:opacity-60 ${
-                  latitude !== null && longitude !== null
-                    ? "bg-white text-[#1D1D1F] border border-black/10 hover:bg-black/5"
-                    : "bg-[#C84200] text-white hover:bg-[#A33500] shadow-sm"
-                }`}
+                className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-black uppercase tracking-wider transition-all shrink-0 cursor-pointer disabled:opacity-60 ${latitude !== null && longitude !== null
+                  ? "bg-white text-[#1D1D1F] border border-black/10 hover:bg-black/5"
+                  : "bg-[#C84200] text-white hover:bg-[#A33500] shadow-sm"
+                  }`}
               >
                 {isLocating ? (
                   <>
@@ -1318,7 +1421,7 @@ export function ListBookForm({
                       Fetching...
                     </p>
                   </div>
-                ) : formData.imageUrl ? (
+                ) : formData.imageUrl && !previewImgError ? (
                   <>
                     <div
                       className="absolute inset-y-0 left-0 w-[11%] z-20 pointer-events-none"
@@ -1338,11 +1441,8 @@ export function ListBookForm({
                     <img
                       src={formData.imageUrl}
                       alt="Book Cover"
-                      className="w-full h-full object-fill relative z-10"
-                      onError={(e) => {
-                        ;(e.target as HTMLImageElement).src =
-                          "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=800"
-                      }}
+                      className="w-full h-full object-cover relative z-10"
+                      onError={() => setPreviewImgError(true)}
                     />
                   </>
                 ) : (
@@ -1402,13 +1502,12 @@ export function ListBookForm({
                   </svg>
 
                   <div
-                    className={`font-black text-[22px] leading-none px-6 py-2.5 shadow-md pointer-events-none transform transition-transform duration-300 group-hover:scale-110 ${
-                      formData.listingType === "DONATE"
-                        ? "bg-[#287F56] text-white -rotate-3"
-                        : formData.listingType === "EXCHANGE"
+                    className={`font-black text-[22px] leading-none px-6 py-2.5 shadow-md pointer-events-none transform transition-transform duration-300 group-hover:scale-110 ${formData.listingType === "DONATE"
+                      ? "bg-[#287F56] text-white -rotate-3"
+                      : formData.listingType === "EXCHANGE"
                         ? "bg-[#0066cc] text-white -rotate-3"
                         : "bg-[#C84200] text-white rotate-3"
-                    }`}
+                      }`}
                     style={{
                       borderRadius: "255px 15px 225px 15px/15px 225px 15px 255px",
                     }}
@@ -1416,8 +1515,8 @@ export function ListBookForm({
                     {formData.listingType === "DONATE"
                       ? "Free"
                       : formData.listingType === "EXCHANGE"
-                      ? "Exchange"
-                      : `₹${formData.price || 0}`}
+                        ? "Exchange"
+                        : `₹${formData.price || 0}`}
                   </div>
                 </div>
               </div>
@@ -1467,12 +1566,13 @@ export function ListBookForm({
                     <input
                       type="url"
                       value={formData.imageUrl}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        setPreviewImgError(false)
                         setFormData((prev) => ({
                           ...prev,
                           imageUrl: e.target.value,
                         }))
-                      }
+                      }}
                       placeholder="https://..."
                       className="w-full mt-2 bg-white border border-[#1d1d1f]/10 focus:border-[#C84200]/30 focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-3 text-sm font-medium outline-none transition-all text-[#1d1d1f] shadow-inner"
                     />

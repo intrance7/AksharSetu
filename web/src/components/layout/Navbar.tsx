@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { BookOpen, Menu, X, User, MapPin, ChevronDown, MessageSquare } from "lucide-react"
 import { NotificationBell } from "./NotificationBell"
 import { useSession, signOut } from "next-auth/react"
@@ -10,6 +11,7 @@ import { motion, AnimatePresence, Variants } from "framer-motion"
 
 export function Navbar() {
   const { data: session } = useSession()
+  const pathname = usePathname()
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null)
@@ -19,6 +21,23 @@ export function Navbar() {
   const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const switchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const wasOpen = useRef(false)
+
+  useEffect(() => {
+    setMobileOpen(false)
+    setActiveMenu(null)
+  }, [pathname])
+
+  useEffect(() => {
+    if (!mobileOpen && !activeMenu) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMobileOpen(false)
+        setActiveMenu(null)
+      }
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [mobileOpen, activeMenu])
 
   useEffect(() => {
     if (!session?.user?.id) return
@@ -135,7 +154,7 @@ export function Navbar() {
                 </Link>
 
                 {/* Center: Links */}
-                <nav className="hidden md:flex flex-1 items-center justify-center gap-7 lg:gap-9 text-[#C84200] z-50 h-full">
+                <nav className="hidden lg:flex flex-1 items-center justify-center gap-6 xl:gap-9 text-[#C84200] z-50 h-full">
                   {navData.map((item) => (
                     <div
                       key={item.label}
@@ -157,8 +176,8 @@ export function Navbar() {
                 </nav>
 
                 {/* Right: Actions */}
-                <div className="flex items-center gap-3 z-50 shrink-0">
-                  <div className="hidden md:flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 z-50 shrink-0">
+                  <div className="hidden lg:flex items-center gap-2.5 xl:gap-3">
                     <Link
                       href="/map"
                       className="text-[#C84200] hover:text-[#A33500] transition-colors p-2 rounded-full hover:bg-[#C84200]/10"
@@ -170,7 +189,7 @@ export function Navbar() {
                     {!session && (
                       <Link
                         href="/login"
-                        className="hover:text-[#A33500] font-black uppercase tracking-wider text-sm transition-colors"
+                        className="hover:text-[#A33500] font-black uppercase tracking-wider text-sm transition-colors whitespace-nowrap"
                       >
                         Log In
                       </Link>
@@ -180,14 +199,14 @@ export function Navbar() {
                       <Button
                         variant="default"
                         size="sm"
-                        className="h-9 text-xs px-5 font-black uppercase tracking-wider bg-[#C84200] text-[#F2EBE1] hover:bg-[#A33500] rounded-full shadow-md"
+                        className="h-9 text-xs px-4 xl:px-5 font-black uppercase tracking-wider bg-[#C84200] text-[#F2EBE1] hover:bg-[#A33500] rounded-full shadow-md"
                       >
                         List a Book
                       </Button>
                     </Link>
 
                     {session && (
-                      <div className="flex items-center gap-3 ml-1 pl-3 border-l border-[#C84200]/20">
+                      <div className="flex items-center gap-2.5 xl:gap-3 ml-1 pl-3 border-l border-[#C84200]/20">
                         <Link
                           href="/messages"
                           className="relative p-2 rounded-full text-[#C84200] hover:bg-[#C84200]/10 transition-colors"
@@ -205,7 +224,7 @@ export function Navbar() {
                           href={`/profile/${session.user?.id || "me"}`}
                           className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                         >
-                          <span className="text-sm font-bold text-[#C84200] max-w-[100px] truncate">
+                          <span className="hidden xl:inline text-sm font-bold text-[#C84200] max-w-[100px] truncate">
                             {session.user?.name?.split(" ")[0] ||
                               session.user?.email?.split("@")[0] ||
                               "Reader"}
@@ -232,6 +251,7 @@ export function Navbar() {
                           </Link>
                         )}
                         <button
+                          type="button"
                           onClick={() => signOut()}
                           className="cursor-pointer hover:text-[#A33500] font-black uppercase tracking-wider text-xs transition-colors opacity-65 whitespace-nowrap"
                         >
@@ -241,8 +261,14 @@ export function Navbar() {
                     )}
                   </div>
 
-                  {/* Mobile Actions */}
-                  <div className="flex md:hidden items-center gap-2">
+                  {/* Mobile & Tablet Actions */}
+                  <div className="flex lg:hidden items-center gap-1.5 sm:gap-2">
+                    <Link
+                      href="/catalog/new"
+                      className="hidden sm:inline-flex items-center justify-center h-8 px-4 rounded-full bg-[#C84200] hover:bg-[#A33500] text-[#F2EBE1] font-black uppercase tracking-wider text-[11px] shadow-xs transition-colors"
+                    >
+                      List a Book
+                    </Link>
                     {session && (
                       <>
                         <Link
@@ -263,8 +289,9 @@ export function Navbar() {
                     <button
                       type="button"
                       onClick={() => setMobileOpen((prev) => !prev)}
-                      className="p-2 rounded-full text-[#C84200] hover:bg-[#C84200]/10 transition-colors"
+                      className="p-2 rounded-full text-[#C84200] hover:bg-[#C84200]/10 transition-colors cursor-pointer"
                       aria-label="Toggle Menu"
+                      aria-expanded={mobileOpen}
                     >
                       {mobileOpen ? (
                         <X className="h-5 w-5" />
@@ -279,7 +306,7 @@ export function Navbar() {
 
             {/* Desktop Mega Menu Dropdown */}
             <div
-              className={`w-full hidden md:block ${
+              className={`w-full hidden lg:block ${
                 activeMenu && activeNavData?.dropdown
                   ? "pointer-events-auto"
                   : "pointer-events-none"
@@ -351,7 +378,7 @@ export function Navbar() {
         </motion.div>
       </div>
 
-      {/* Mobile Slide-Over Navigation Drawer */}
+      {/* Mobile & Tablet Slide-Over Navigation Drawer */}
       <AnimatePresence>
         {mobileOpen && (
           <>
@@ -360,7 +387,7 @@ export function Navbar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMobileOpen(false)}
-              className="fixed inset-0 top-16 z-40 bg-black/30 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 top-16 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
             />
             <motion.div
               initial={{ opacity: 0, y: -12 }}
@@ -368,7 +395,7 @@ export function Navbar() {
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
               style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
-              className="fixed top-16 inset-x-0 z-50 bg-[#F2EBE1] border-b border-[#C84200]/20 shadow-2xl max-h-[calc(100vh-4rem)] overflow-y-auto md:hidden px-5 py-6"
+              className="fixed top-16 inset-x-0 z-50 bg-[#F2EBE1] border-b border-[#C84200]/20 shadow-2xl max-h-[calc(100vh-4rem)] overflow-y-auto lg:hidden px-5 py-6"
             >
               <div className="flex flex-col gap-2">
                 {navData.map((item) => {

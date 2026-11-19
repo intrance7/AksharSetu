@@ -4,6 +4,8 @@ import { auth } from "@/auth"
 import { computeUserStats } from "@/lib/gamification"
 import { getMutualFollowIds } from "@/lib/shantiVisibility"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(req: Request) {
   try {
     const session = await auth()
@@ -12,7 +14,10 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url)
     const query = (searchParams.get("q") || "").trim()
-    const limit = Math.min(parseInt(searchParams.get("limit") || "30", 10), 100)
+    const limit = Math.min(
+      100,
+      Math.max(1, parseInt(searchParams.get("limit") || "30", 10) || 30)
+    )
     const excludeSelf = searchParams.get("excludeSelf") === "true"
 
     const whereClause: any = {}

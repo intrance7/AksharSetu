@@ -339,6 +339,13 @@ export function LibraryGrid({ initialBooks }: { initialBooks: LibraryBook[] }) {
                       />
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
+                        ref={(el) => {
+                          if (el && el.complete && el.naturalWidth === 0) {
+                            setFailedCovers((prev) =>
+                              prev[book.id] ? prev : { ...prev, [book.id]: true }
+                            )
+                          }
+                        }}
                         src={imgSrc}
                         alt={book.title}
                         onError={() =>

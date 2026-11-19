@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
-import { pusherServer } from "@/lib/pusher"
+import { triggerPusherEvent } from "@/lib/pusher-server"
 
 export async function GET(req: Request) {
   try {
@@ -15,7 +15,10 @@ export async function GET(req: Request) {
     const orderId = searchParams.get("orderId")
 
     if (!requestId && !orderId) {
-      return NextResponse.json({ error: "Missing context ID (requestId or orderId)" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Missing context ID (requestId or orderId)" },
+        { status: 400 }
+      )
     }
 
     const whereClause: any = {}
@@ -26,18 +29,30 @@ export async function GET(req: Request) {
     if (requestId) {
       const request = await prisma.bookRequest.findUnique({
         where: { id: requestId },
-        include: { book: true }
+        include: { book: true },
       })
-      if (!request || (request.requesterId !== session.user.id && request.book.ownerId !== session.user.id)) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      if (!request) {
+        return NextResponse.json({ error: "Request not found" }, { status: 404 })
+      }
+      if (
+        request.requesterId !== session.user.id &&
+        request.book.ownerId !== session.user.id
+      ) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
       }
     } else if (orderId) {
       const order = await prisma.order.findUnique({
         where: { id: orderId },
-        include: { book: true }
+        include: { book: true },
       })
-      if (!order || (order.buyerId !== session.user.id && order.book.ownerId !== session.user.id)) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      if (!order) {
+        return NextResponse.json({ error: "Order not found" }, { status: 404 })
+      }
+      if (
+        order.buyerId !== session.user.id &&
+        order.book.ownerId !== session.user.id
+      ) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
       }
     }
 
@@ -46,9 +61,9 @@ export async function GET(req: Request) {
       orderBy: { createdAt: "asc" },
       include: {
         sender: {
-          select: { name: true, image: true, id: true }
-        }
-      }
+          select: { name: true, image: true, id: true },
+        },
+      },
     })
 
     return NextResponse.json(messages)
@@ -65,40 +80,61 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body = await req.json()
-    const { content, requestId, orderId, receiverId } = body
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
+
+    const content = typeof body?.content === "string" ? body.content.trim() : ""
+    const requestId = typeof body?.requestId === "string" ? body.requestId : null
+    const orderId = typeof body?.orderId === "string" ? body.orderId : null
+    const receiverId = typeof body?.receiverId === "string" ? body.receiverId : null
 
     if (!content || !receiverId || (!requestId && !orderId)) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // Verify user is part of the request or order and receiver is correct
+    // Verify user is part of the request or order AND receiverId is the counterparty
     let isValid = false
     if (requestId) {
       const request = await prisma.bookRequest.findUnique({
         where: { id: requestId },
-        include: { book: true }
+        include: { book: true },
       })
-      if (request && (request.requesterId === session.user.id || request.book.ownerId === session.user.id)) {
+      if (!request) {
+        return NextResponse.json({ error: "Request not found" }, { status: 404 })
+      }
+      const isRequester = request.requesterId === session.user.id
+      const isOwner = request.book.ownerId === session.user.id
+      const expectedReceiver = isRequester ? request.book.ownerId : request.requesterId
+      if ((isRequester || isOwner) && receiverId === expectedReceiver) {
         isValid = true
       }
     } else if (orderId) {
       const order = await prisma.order.findUnique({
         where: { id: orderId },
-        include: { book: true }
+        include: { book: true },
       })
-      if (order && (order.buyerId === session.user.id || order.book.ownerId === session.user.id)) {
+      if (!order) {
+        return NextResponse.json({ error: "Order not found" }, { status: 404 })
+      }
+      const isBuyer = order.buyerId === session.user.id
+      const isOwner = order.book.ownerId === session.user.id
+      const expectedReceiver = isBuyer ? order.book.ownerId : order.buyerId
+      if ((isBuyer || isOwner) && receiverId === expectedReceiver) {
         isValid = true
       }
     }
 
     if (!isValid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     const message = await prisma.message.create({
       data: {
-        content,
+        content: content.slice(0, 4000),
         senderId: session.user.id,
         receiverId,
         requestId,
@@ -106,20 +142,16 @@ export async function POST(req: Request) {
       },
       include: {
         sender: {
-          select: { name: true, image: true, id: true }
-        }
-      }
+          select: { name: true, image: true, id: true },
+        },
+      },
     })
 
-    // Determine the channel to broadcast on
-    const channelId = requestId ? `chat-request-${requestId}` : `chat-order-${orderId}`
-    
-    // Trigger pusher event safely
-    try {
-      await pusherServer.trigger(channelId, 'new-message', message)
-    } catch {
-      // Non-fatal if Pusher is offline/unconfigured
-    }
+    const channelId = requestId
+      ? `chat-request-${requestId}`
+      : `chat-order-${orderId}`
+
+    await triggerPusherEvent(channelId, "new-message", message)
 
     return NextResponse.json(message, { status: 201 })
   } catch (error: any) {

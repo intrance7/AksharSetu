@@ -12,7 +12,7 @@ import {
   userChannel,
 } from "@/lib/messaging/constants"
 import { isAllowedEmoji } from "@/lib/messaging/emoji"
-import { MessagingError, errorResponse } from "@/lib/messaging/http"
+import { MessagingError, errorResponse, readJson } from "@/lib/messaging/http"
 import { areMutualFollowers } from "@/lib/shantiVisibility"
 import {
   syncLegacyMessagesForUser,
@@ -95,8 +95,12 @@ export async function GET(
     const cursor = searchParams.get("cursor")
     const searchQuery = (searchParams.get("q") || "").trim()
     const limit = Math.min(
-      parseInt(searchParams.get("limit") || String(MESSAGE_PAGE_SIZE), 10),
-      60
+      60,
+      Math.max(
+        1,
+        parseInt(searchParams.get("limit") || String(MESSAGE_PAGE_SIZE), 10) ||
+          MESSAGE_PAGE_SIZE
+      )
     )
 
     const { conv, meParticipant, otherParticipant } =
@@ -343,7 +347,7 @@ export async function POST(
 
     const { userId: paramId } = await params
     const myId = session.user.id
-    const body = await req.json()
+    const body = await readJson<any>(req)
     const {
       content = "",
       clientId,
@@ -435,6 +439,18 @@ export async function POST(
       }
     }
 
+    // Validate replyToId belongs to this conversation (prevents cross-conversation leaks & FK errors)
+    let validReplyToId: string | null = null
+    if (typeof replyToId === "string" && replyToId.trim()) {
+      const targetReply = await prisma.message.findFirst({
+        where: { id: replyToId.trim(), conversationId: conv.id },
+        select: { id: true },
+      })
+      if (targetReply) {
+        validReplyToId = targetReply.id
+      }
+    }
+
     const now = new Date()
     const previewText =
       trimmed ||
@@ -449,7 +465,7 @@ export async function POST(
           clientId: typeof clientId === "string" ? clientId : null,
           senderId: myId,
           receiverId: otherUserId,
-          replyToId: typeof replyToId === "string" ? replyToId : null,
+          replyToId: validReplyToId,
           requestId: requestId || null,
           orderId: orderId || null,
           read: false,
@@ -542,7 +558,7 @@ export async function PATCH(
 
     const { userId: paramId } = await params
     const myId = session.user.id
-    const body = await req.json()
+    const body = await readJson<any>(req)
     const { action } = body
 
     const { conv, meParticipant, otherParticipant } =
@@ -626,7 +642,12 @@ export async function PATCH(
       const existing = await prisma.message.findUnique({
         where: { id: messageId },
       })
-      if (!existing || existing.senderId !== myId || existing.deletedAt) {
+      if (
+        !existing ||
+        existing.conversationId !== conv.id ||
+        existing.senderId !== myId ||
+        existing.deletedAt
+      ) {
         throw new MessagingError(403, "You can only edit your own active messages.", "FORBIDDEN")
       }
       if (Date.now() - existing.createdAt.getTime() > EDIT_WINDOW_MS) {
@@ -664,6 +685,14 @@ export async function PATCH(
       const { messageId, emoji } = body
       if (!messageId || !isAllowedEmoji(emoji)) {
         throw new MessagingError(400, "Unsupported reaction emoji.", "BAD_REQUEST")
+      }
+
+      const targetMsg = await prisma.message.findFirst({
+        where: { id: messageId, conversationId: conv.id, deletedAt: null },
+        select: { id: true },
+      })
+      if (!targetMsg) {
+        throw new MessagingError(404, "Message not found in this conversation.", "NOT_FOUND")
       }
 
       const existingReaction = await prisma.messageReaction.findUnique({
@@ -809,7 +838,7 @@ export async function DELETE(
       await tx.messageAttachment.deleteMany({ where: { messageId } })
       await tx.messageReaction.deleteMany({ where: { messageId } })
 
-      return tx.message.update({
+      const deletedMsg = await tx.message.update({
         where: { id: messageId },
         data: {
           deletedAt: new Date(),
@@ -817,6 +846,15 @@ export async function DELETE(
         },
         include: MESSAGE_INCLUDE,
       })
+
+      if (existing.conversationId) {
+        await tx.conversation.updateMany({
+          where: { id: existing.conversationId, lastMessageId: messageId },
+          data: { lastMessagePreview: "This message was deleted" },
+        })
+      }
+
+      return deletedMsg
     })
 
     const dto = serializeMessage(updated)

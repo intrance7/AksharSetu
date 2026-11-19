@@ -29,7 +29,12 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
     const { id, read, markAllRead } = body
 
     if (markAllRead) {
@@ -48,8 +53,11 @@ export async function PATCH(req: Request) {
       where: { id },
     })
 
-    if (!notification || notification.userId !== session.user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!notification) {
+      return NextResponse.json({ error: "Notification not found" }, { status: 404 })
+    }
+    if (notification.userId !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     const updated = await prisma.notification.update({

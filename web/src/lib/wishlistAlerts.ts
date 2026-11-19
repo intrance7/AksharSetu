@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma"
-import { pusherServer } from "@/lib/pusher"
+import { triggerPusherEvent } from "@/lib/pusher-server"
 
 export async function notifyWishlistMatches({
   bookId,
@@ -46,14 +46,10 @@ export async function notifyWishlistMatches({
     })
 
     for (const userId of usersToNotify) {
-      try {
-        await pusherServer.trigger(`notify-${userId}`, "new-notification", {
-          message,
-          link,
-        })
-      } catch {
-        // Ignore when Pusher credentials are omitted locally
-      }
+      await triggerPusherEvent(`notify-${userId}`, "new-notification", {
+        message,
+        link,
+      })
     }
   } catch (error) {
     console.error("Wishlist alert dispatch error:", error)

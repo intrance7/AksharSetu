@@ -3,6 +3,14 @@ import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import { checkAndAwardBadges } from "@/services/badgeService"
 
+class RequestActionError extends Error {
+  status: number
+  constructor(status: number, message: string) {
+    super(message)
+    this.status = status
+  }
+}
+
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -15,7 +23,14 @@ export async function PATCH(
 
     const userId = session.user.id
     const resolvedParams = await params
-    const { status } = await req.json()
+
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
+    const { status } = body
 
     if (!["APPROVED", "REJECTED", "COMPLETED"].includes(status)) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 })
@@ -28,11 +43,28 @@ export async function PATCH(
       })
 
       if (!bookRequest) {
-        throw new Error("Request not found")
+        throw new RequestActionError(404, "Request not found")
       }
 
-      if (bookRequest.book.ownerId !== userId) {
-        throw new Error("Unauthorized to manage this request")
+      if (bookRequest.book.ownerId !== userId && session.user.role !== "ADMIN") {
+        throw new RequestActionError(403, "Unauthorized to manage this request")
+      }
+
+      // Idempotent guard: prevent duplicate status updates and double-incrementing stats
+      if (bookRequest.status === status) {
+        return {
+          updatedRequest: bookRequest,
+          requesterId: bookRequest.requesterId,
+          newlyCompleted: false,
+        }
+      }
+
+      if (bookRequest.status === "COMPLETED") {
+        throw new RequestActionError(400, "Completed requests cannot be modified")
+      }
+
+      if (bookRequest.status === "REJECTED" && status !== "REJECTED") {
+        throw new RequestActionError(400, "Rejected requests cannot be reopened")
       }
 
       const updatedRequest = await tx.bookRequest.update({
@@ -54,7 +86,9 @@ export async function PATCH(
         }
       } else if (status === "COMPLETED") {
         const isFreeDonation =
-          bookRequest.book.price === 0 && !bookRequest.offeredBookId && !bookRequest.book.acceptsExchange
+          bookRequest.book.price === 0 &&
+          !bookRequest.offeredBookId &&
+          !bookRequest.book.acceptsExchange
 
         await tx.book.update({
           where: { id: bookRequest.bookId },
@@ -71,7 +105,7 @@ export async function PATCH(
         }
 
         await tx.user.update({
-          where: { id: userId },
+          where: { id: bookRequest.book.ownerId },
           data: {
             successfulExchanges: { increment: 1 },
           },
@@ -99,19 +133,27 @@ export async function PATCH(
         },
       })
 
-      return { updatedRequest, requesterId: bookRequest.requesterId }
+      return {
+        updatedRequest,
+        requesterId: bookRequest.requesterId,
+        ownerId: bookRequest.book.ownerId,
+        newlyCompleted: status === "COMPLETED",
+      }
     })
 
-    if (status === "COMPLETED") {
+    if (result.newlyCompleted) {
       await Promise.allSettled([
-        checkAndAwardBadges(userId),
+        checkAndAwardBadges(result.ownerId || userId),
         checkAndAwardBadges(result.requesterId),
       ])
     }
 
     return NextResponse.json(result.updatedRequest)
   } catch (error: any) {
+    if (error instanceof RequestActionError) {
+      return NextResponse.json({ error: error.message }, { status: error.status })
+    }
     console.error("Update request error:", error)
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 400 })
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
   }
 }

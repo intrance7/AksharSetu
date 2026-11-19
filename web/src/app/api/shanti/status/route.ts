@@ -9,18 +9,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
     const { isShantiModeActive, liveStatus } = body
 
     if (typeof isShantiModeActive !== "boolean") {
       return NextResponse.json({ error: "Invalid status payload" }, { status: 400 })
     }
 
+    const cleanStatus =
+      typeof liveStatus === "string" ? liveStatus.trim().slice(0, 80) || null : null
+
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
       data: {
         isShantiModeActive,
-        liveStatus: isShantiModeActive ? liveStatus : null, // Clear status if deactivating
+        liveStatus: isShantiModeActive ? cleanStatus : null, // Clear status if deactivating
       },
       select: {
         id: true,

@@ -62,7 +62,15 @@ function verifyResetToken(
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid request payload." },
+        { status: 400 }
+      )
+    }
     const action = body.action || "reset"
     const normalizedEmail = String(body.email || "")
       .trim()

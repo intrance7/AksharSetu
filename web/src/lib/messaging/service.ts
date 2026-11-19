@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma"
-import { pusherServer, isPusherServerConfigured } from "@/lib/pusher"
+import { triggerPusherEvent } from "@/lib/pusher-server"
 import {
   MAX_MESSAGE_LENGTH,
   MESSAGE_PAGE_SIZE,
@@ -38,12 +38,7 @@ export async function touchUserPresence(userId: string) {
 }
 
 export async function triggerRealtime(channel: string, event: string, payload: unknown) {
-  if (!isPusherServerConfigured) return
-  try {
-    await pusherServer.trigger(channel, event, payload)
-  } catch {
-    // Non-fatal fallback to polling
-  }
+  await triggerPusherEvent(channel, event, payload)
 }
 
 /**

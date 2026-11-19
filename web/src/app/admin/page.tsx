@@ -83,20 +83,23 @@ export default async function AdminDashboardPage() {
   ])
 
   return (
-    <div className="min-h-screen bg-[#F2EBE1] pt-14 pb-20">
-      <div className="container mx-auto max-w-7xl px-4 md:px-8">
-        <div className="mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-full mb-4">
+    <div className="min-h-screen bg-[#F2EBE1] pb-20">
+      <section className="bg-black text-[#F5F5F7] py-12 md:py-14 px-4 md:px-8 border-b border-white/10">
+        <div className="container mx-auto max-w-7xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 text-[#FF8A4C] text-[10px] font-black uppercase tracking-widest rounded-full mb-4">
             <Shield className="w-3 h-3" /> Operations & NGO Command Center
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-[#1D1D1F] tracking-tight leading-none">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#F5F5F7] tracking-tight leading-none">
             Trust, Safety & Vidya Daan
           </h1>
-          <p className="text-[#86868B] font-medium mt-3 max-w-2xl">
+          <p className="text-[#86868B] font-medium mt-3 max-w-2xl text-sm sm:text-base">
             Manage NGO literacy campaigns, advance 6-stage book donation
             tracking, verify community members, and moderate listings.
           </p>
         </div>
+      </section>
+
+      <div className="container mx-auto max-w-7xl px-4 md:px-8 pt-8">
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
           <div className="bg-white rounded-3xl p-6 border border-black/5 shadow-sm">

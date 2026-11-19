@@ -67,14 +67,14 @@ export default async function OrdersAndSwapsPage() {
     ])
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pb-24">
-      <section className="bg-black text-[#f5f5f7] pt-20 pb-14 border-b border-white/10">
-        <div className="container mx-auto max-w-6xl px-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-blue-300 text-xs font-semibold tracking-wide mb-4">
-            <Package className="w-3.5 h-3.5" /> Escrow Logistics, Listings &
-            Barter Hub
+    <div className="min-h-screen bg-[#F2EBE1] pb-24">
+      <section className="bg-black text-[#F5F5F7] py-14 md:py-16 border-b border-white/10">
+        <div className="container mx-auto max-w-6xl px-4 md:px-8">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-[#F5F5F7]/90 text-xs font-bold uppercase tracking-wider mb-4">
+            <Package className="w-3.5 h-3.5 text-[#C84200]" /> Escrow Logistics,
+            Listings & Barter Hub
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tighter leading-none mb-3">
+          <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-none mb-3">
             Orders, Swaps & Listings.
           </h1>
           <p className="text-[#86868b] text-base md:text-lg max-w-2xl">
@@ -84,7 +84,7 @@ export default async function OrdersAndSwapsPage() {
         </div>
       </section>
 
-      <div className="container mx-auto max-w-6xl px-6 pt-8">
+      <div className="container mx-auto max-w-6xl px-4 md:px-8 pt-8">
         <OrdersDashboardClient
           purchases={purchases}
           sales={sales}

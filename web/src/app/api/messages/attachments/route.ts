@@ -24,7 +24,12 @@ export async function POST(req: Request) {
     }
 
     const myId = session.user.id
-    const formData = await req.formData()
+    let formData: FormData
+    try {
+      formData = await req.formData()
+    } catch {
+      throw new MessagingError(400, "Invalid multipart upload payload.", "BAD_REQUEST")
+    }
     const file = formData.get("file") as File | null
     const conversationId = formData.get("conversationId") as string | null
 

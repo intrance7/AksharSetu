@@ -206,10 +206,14 @@ export function ChatThread({
   userId,
   initialBookId = null,
   contextBanner = null,
+  embedded = false,
+  onBack,
 }: {
   userId: string
   initialBookId?: string | null
   contextBanner?: ChatContextBanner | null
+  embedded?: boolean
+  onBack?: () => void
 }) {
   const { data: session } = useSession()
   const router = useRouter()
@@ -258,7 +262,7 @@ export function ChatThread({
   // Search & Info Panel State
   const [showSearchInChat, setShowSearchInChat] = useState(false)
   const [chatSearchQuery, setChatSearchQuery] = useState("")
-  const [showInfoPanel, setShowInfoPanel] = useState(true)
+  const [showInfoPanel, setShowInfoPanel] = useState(!embedded)
   const [mobileInfoDrawer, setMobileInfoDrawer] = useState(false)
   const [lightboxImage, setLightboxImage] = useState<string | null>(null)
 
@@ -1011,8 +1015,15 @@ export function ChatThread({
   }, [convMeta?.previousLastReadAt])
 
   if (loading) {
+    if (embedded) {
+      return (
+        <div className="h-full bg-white rounded-2xl border border-black/5 flex items-center justify-center min-h-[420px]">
+          <Loader2 className="w-6 h-6 animate-spin text-[#1d1d1f]/30" />
+        </div>
+      )
+    }
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-6.5rem)]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-6rem)] min-h-[540px]">
         <div className="hidden lg:block lg:col-span-3 bg-white rounded-2xl border border-black/5 p-4 space-y-3 animate-pulse">
           <div className="h-9 bg-[#f5f5f7] rounded-full" />
           <div className="h-14 bg-[#f5f5f7] rounded-2xl" />
@@ -1300,8 +1311,15 @@ export function ChatThread({
   )
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-6.5rem)]">
-      {/* A. LEFT CONVERSATION SIDEBAR (Desktop) */}
+    <div
+      className={
+        embedded
+          ? "grid grid-cols-1 lg:grid-cols-12 gap-4 h-full min-h-[520px]"
+          : "grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-6rem)] min-h-[540px]"
+      }
+    >
+      {/* A. LEFT CONVERSATION SIDEBAR (Desktop standalone view) */}
+      {!embedded && (
       <div className="hidden lg:flex lg:col-span-3 bg-white rounded-2xl border border-black/5 shadow-sm flex-col overflow-hidden">
         <div className="p-3.5 border-b border-black/5 space-y-2.5">
           <div className="flex items-center justify-between">
@@ -1463,23 +1481,42 @@ export function ChatThread({
           )}
         </div>
       </div>
+      )}
 
       {/* B. CENTER MAIN CHAT INTERFACE */}
       <div
         className={`${
-          showInfoPanel ? "lg:col-span-6" : "lg:col-span-9"
+          embedded
+            ? showInfoPanel
+              ? "lg:col-span-8"
+              : "lg:col-span-12"
+            : showInfoPanel
+            ? "lg:col-span-6"
+            : "lg:col-span-9"
         } bg-white rounded-2xl border border-black/5 shadow-sm flex flex-col h-full overflow-hidden`}
       >
         {/* Chat Header */}
-        <div className="px-4 py-3 border-b border-black/5 flex items-center justify-between gap-2 shrink-0">
-          <div className="flex items-center gap-3 min-w-0">
-            <Link
-              href="/messages"
-              className="w-8 h-8 rounded-full bg-[#f5f5f7] flex items-center justify-center hover:bg-[#e8e8ed] transition-colors shrink-0"
-              title="Back to Conversations"
-            >
-              <ArrowLeft className="w-4 h-4 text-[#1d1d1f]" />
-            </Link>
+        <div className="px-3 sm:px-4 py-3 border-b border-black/5 flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            {onBack ? (
+              <button
+                type="button"
+                onClick={onBack}
+                className="lg:hidden w-8 h-8 rounded-full bg-[#f5f5f7] flex items-center justify-center hover:bg-[#e8e8ed] transition-colors shrink-0 cursor-pointer"
+                title="Back to Conversations"
+                aria-label="Back to Conversations"
+              >
+                <ArrowLeft className="w-4 h-4 text-[#1d1d1f]" />
+              </button>
+            ) : (
+              <Link
+                href="/messages"
+                className="w-8 h-8 rounded-full bg-[#f5f5f7] flex items-center justify-center hover:bg-[#e8e8ed] transition-colors shrink-0"
+                title="Back to Conversations"
+              >
+                <ArrowLeft className="w-4 h-4 text-[#1d1d1f]" />
+              </Link>
+            )}
 
             <Link
               href={`/profile/${otherUser?.id || userId}`}
@@ -1607,9 +1644,9 @@ export function ChatThread({
 
         {/* BOOK MARKETPLACE CONTEXT CARD */}
         {activeBook && (
-          <div className="px-4 py-2.5 bg-[#f5f5f7]/90 border-b border-black/5 shrink-0 space-y-2">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
+          <div className="px-3 sm:px-4 py-2.5 bg-[#f5f5f7]/90 border-b border-black/5 shrink-0 space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2.5">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
                 {activeBook.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -1710,12 +1747,12 @@ export function ChatThread({
                 onSubmit={handleSubmitOffer}
                 className="p-3 rounded-xl bg-white border border-[#0066cc]/30 space-y-2.5"
               >
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-[11px] font-bold text-[#1d1d1f] flex items-center gap-1">
                     <IndianRupee className="w-3.5 h-3.5 text-[#0066cc]" />
                     Propose a Price (Listed at ₹{activeBook.price})
                   </span>
-                  <div className="flex items-center gap-1">
+                  <div className="flex flex-wrap items-center gap-1">
                     {[0.9, 0.85, 0.8].map((pct) => {
                       const val = Math.max(1, Math.round(activeBook.price * pct))
                       return (
@@ -1732,13 +1769,13 @@ export function ChatThread({
                     <button
                       type="button"
                       onClick={() => setShowOfferForm(false)}
-                      className="p-1 text-[#86868b] hover:text-[#1d1d1f]"
+                      className="p-1 text-[#86868b] hover:text-[#1d1d1f] cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
                   <input
                     type="number"
                     min={1}
@@ -1747,14 +1784,14 @@ export function ChatThread({
                     value={offerAmount}
                     onChange={(e) => setOfferAmount(e.target.value)}
                     placeholder="Offer ₹"
-                    className="w-28 rounded-xl bg-[#f5f5f7] px-3 py-1.5 text-xs font-bold text-[#1d1d1f] outline-none focus:ring-2 focus:ring-[#0066cc]"
+                    className="w-24 sm:w-28 rounded-xl bg-[#f5f5f7] px-3 py-1.5 text-xs font-bold text-[#1d1d1f] outline-none focus:ring-2 focus:ring-[#0066cc]"
                   />
                   <input
                     type="text"
                     value={offerNote}
                     onChange={(e) => setOfferNote(e.target.value)}
-                    placeholder="Optional note (e.g., can pick up today on campus)"
-                    className="flex-1 rounded-xl bg-[#f5f5f7] px-3 py-1.5 text-xs font-medium text-[#1d1d1f] outline-none focus:ring-2 focus:ring-[#0066cc]"
+                    placeholder="Optional note (e.g., pickup today)"
+                    className="flex-1 min-w-[140px] rounded-xl bg-[#f5f5f7] px-3 py-1.5 text-xs font-medium text-[#1d1d1f] outline-none focus:ring-2 focus:ring-[#0066cc]"
                   />
                   <button
                     type="submit"
@@ -2485,7 +2522,7 @@ export function ChatThread({
 
           {/* Emoji Picker Popover */}
           {showEmojiPicker && (
-            <div className="absolute bottom-16 left-4 w-72 bg-white rounded-2xl shadow-xl border border-black/10 p-3 z-30 space-y-2">
+            <div className="absolute bottom-16 left-3 w-72 max-w-[calc(100vw-2.5rem)] bg-white rounded-2xl shadow-xl border border-black/10 p-3 z-30 space-y-2">
               <div className="flex items-center justify-between border-b border-black/5 pb-1.5">
                 <div className="flex items-center gap-1 overflow-x-auto">
                   {EMOJI_CATEGORIES.map((cat) => (
@@ -2629,7 +2666,11 @@ export function ChatThread({
 
       {/* C. RIGHT CONVERSATION INFORMATION PANEL (Desktop) */}
       {showInfoPanel && (
-        <div className="hidden lg:flex lg:col-span-3 bg-white rounded-2xl border border-black/5 shadow-sm flex-col overflow-hidden">
+        <div
+          className={`hidden lg:flex ${
+            embedded ? "lg:col-span-4" : "lg:col-span-3"
+          } bg-white rounded-2xl border border-black/5 shadow-sm flex-col overflow-hidden`}
+        >
           {infoPanelContent}
         </div>
       )}

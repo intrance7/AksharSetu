@@ -7,21 +7,27 @@ import {
   awardUserXP,
 } from "@/services/badgeService"
 
-async function requireAdmin() {
+export const dynamic = "force-dynamic"
+
+async function getAdminAuth() {
   const session = await auth()
-  if (!session?.user?.id) return null
+  if (!session?.user?.id) return { status: 401 as const, admin: null }
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { id: true, name: true, role: true },
   })
-  return user?.role === "ADMIN" ? user : null
+  if (user?.role !== "ADMIN") return { status: 403 as const, admin: null }
+  return { status: 200 as const, admin: user }
 }
 
 export async function GET() {
   try {
-    const admin = await requireAdmin()
-    if (!admin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    const authRes = await getAdminAuth()
+    if (!authRes.admin) {
+      return NextResponse.json(
+        { error: authRes.status === 401 ? "Unauthorized" : "Forbidden" },
+        { status: authRes.status }
+      )
     }
 
     await Promise.all([ensureDefaultBadges(), ensureDefaultQuests()])
@@ -66,12 +72,21 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const admin = await requireAdmin()
-    if (!admin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    const authRes = await getAdminAuth()
+    if (!authRes.admin) {
+      return NextResponse.json(
+        { error: authRes.status === 401 ? "Unauthorized" : "Forbidden" },
+        { status: authRes.status }
+      )
     }
+    const admin = authRes.admin
 
-    const body = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
     const { action } = body
 
     if (action === "create_badge") {
@@ -87,30 +102,40 @@ export async function POST(req: Request) {
         pointsReward = 40,
       } = body
 
-      if (!name || !description) {
+      if (
+        typeof name !== "string" ||
+        !name.trim() ||
+        typeof description !== "string" ||
+        !description.trim()
+      ) {
         return NextResponse.json(
           { error: "Name and description are required" },
           { status: 400 }
         )
       }
 
+      const generatedCode =
+        (typeof code === "string" && code.trim()) ||
+        name
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "_")
+          .replace(/^_|_$/g, "")
+          .slice(0, 32) ||
+        `badge_${Date.now()}`
+
       const created = await prisma.badge.create({
         data: {
-          code:
-            code ||
-            name
-              .toLowerCase()
-              .replace(/[^a-z0-9]+/g, "_")
-              .slice(0, 32),
-          name,
-          description,
-          category,
-          rarity,
-          iconUrl: "/badges/community_pioneer.jpg",
-          requirementThreshold: Number(requirementThreshold) || 1,
-          metricKey,
-          xpReward: Number(xpReward) || 50,
-          pointsReward: Number(pointsReward) || 25,
+          code: generatedCode,
+          name: name.trim().slice(0, 80),
+          description: description.trim().slice(0, 300),
+          category: String(category),
+          rarity: String(rarity),
+          iconUrl: "/badges/community/first_contribution.svg",
+          requirementThreshold: Math.max(1, Math.round(Number(requirementThreshold) || 1)),
+          metricKey: String(metricKey),
+          xpReward: Math.max(0, Math.round(Number(xpReward) || 50)),
+          pointsReward: Math.max(0, Math.round(Number(pointsReward) || 25)),
           isActive: true,
         },
       })
@@ -120,6 +145,9 @@ export async function POST(req: Request) {
 
     if (action === "toggle_badge") {
       const { badgeId, isActive } = body
+      if (!badgeId || typeof badgeId !== "string") {
+        return NextResponse.json({ error: "badgeId is required" }, { status: 400 })
+      }
       const updated = await prisma.badge.update({
         where: { id: badgeId },
         data: { isActive: Boolean(isActive) },
@@ -139,21 +167,33 @@ export async function POST(req: Request) {
         rewardPoints = 25,
       } = body
 
+      if (
+        typeof name !== "string" ||
+        !name.trim() ||
+        typeof description !== "string" ||
+        !description.trim()
+      ) {
+        return NextResponse.json(
+          { error: "Quest name and description are required" },
+          { status: 400 }
+        )
+      }
+
       const created = await prisma.quest.create({
         data: {
           code:
-            code ||
+            (typeof code === "string" && code.trim()) ||
             `quest_${Date.now()}_${name
               .toLowerCase()
               .replace(/[^a-z0-9]/g, "")
               .slice(0, 12)}`,
-          name,
-          description,
-          category,
-          metricKey,
-          targetCount: Number(targetCount) || 1,
-          rewardXp: Number(rewardXp) || 50,
-          rewardPoints: Number(rewardPoints) || 25,
+          name: name.trim().slice(0, 100),
+          description: description.trim().slice(0, 300),
+          category: String(category),
+          metricKey: String(metricKey),
+          targetCount: Math.max(1, Math.round(Number(targetCount) || 1)),
+          rewardXp: Math.max(0, Math.round(Number(rewardXp) || 50)),
+          rewardPoints: Math.max(0, Math.round(Number(rewardPoints) || 25)),
           isActive: true,
         },
       })
@@ -162,12 +202,27 @@ export async function POST(req: Request) {
 
     if (action === "adjust_xp") {
       const { targetUserId, xpDelta, reason } = body
-      const delta = Number(xpDelta)
-      if (!targetUserId || !Number.isFinite(delta) || delta === 0 || !reason) {
+      const delta = Math.round(Number(xpDelta))
+      if (
+        !targetUserId ||
+        typeof targetUserId !== "string" ||
+        !Number.isFinite(delta) ||
+        delta === 0 ||
+        typeof reason !== "string" ||
+        !reason.trim()
+      ) {
         return NextResponse.json(
           { error: "targetUserId, non-zero xpDelta, and reason are required" },
           { status: 400 }
         )
+      }
+
+      const targetUser = await prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: { id: true },
+      })
+      if (!targetUser) {
+        return NextResponse.json({ error: "Target user not found" }, { status: 404 })
       }
 
       const award = await awardUserXP({
@@ -176,7 +231,7 @@ export async function POST(req: Request) {
         idempotencyKey: `admin:${admin.id}:${targetUserId}:${Date.now()}`,
         xpAmount: delta,
         pointsAmount: 0,
-        description: `Admin Adjustment (${admin.name || "Admin"}): ${reason}`,
+        description: `Admin Adjustment (${admin.name || "Admin"}): ${reason.trim()}`,
         activityType: "QUEST_COMPLETED",
         visibility: "PRIVATE",
       })
@@ -186,6 +241,9 @@ export async function POST(req: Request) {
 
     if (action === "reverse_tx") {
       const { txId } = body
+      if (!txId || typeof txId !== "string") {
+        return NextResponse.json({ error: "txId is required" }, { status: 400 })
+      }
       const txRecord = await prisma.xpTransaction.findUnique({
         where: { id: txId },
       })
@@ -214,7 +272,16 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ error: "Unknown action" }, { status: 400 })
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.code === "P2002") {
+      return NextResponse.json(
+        { error: "A record with that unique code already exists" },
+        { status: 409 }
+      )
+    }
+    if (error?.code === "P2025") {
+      return NextResponse.json({ error: "Record not found" }, { status: 404 })
+    }
     console.error("Admin gamification POST error:", error)
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
   }

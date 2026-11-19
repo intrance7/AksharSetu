@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic"
 export const metadata = {
   title: "Achievements & Badge Vault — AksharSetu",
   description:
-    "Explore all 34 AksharSetu vector badges, track your unlock progress, and pin up to 6 badges to your profile showcase.",
+    "Explore all 34 AksharSetu vector badges, track your unlock progress, and pin up to 5 badges to your profile showcase.",
 }
 
 export default async function AchievementsPage() {
@@ -38,7 +38,7 @@ export default async function AchievementsPage() {
 
   let userMetrics: Record<string, number> = {}
   const unlockedMap = new Map<string, string>()
-  let pinnedBadgeIds: string[] = []
+  const pinnedBadgeIds: string[] = []
 
   if (userId) {
     const user = await prisma.user.findUnique({

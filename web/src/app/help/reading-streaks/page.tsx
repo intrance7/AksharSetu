@@ -43,7 +43,7 @@ const STREAK_MILESTONES = [
 
 export default function ReadingStreaksDocPage() {
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pb-24">
+    <div className="min-h-screen bg-[#F2EBE1] pb-24">
       <section className="bg-black text-[#f5f5f7] pt-12 pb-16 px-4 sm:px-6 border-b border-white/10">
         <div className="mx-auto max-w-5xl">
           <div className="flex items-center gap-2 text-xs text-[#86868b] mb-4">
@@ -104,28 +104,28 @@ export default function ReadingStreaksDocPage() {
               Daily Reset & Streak Calculation Rules
             </h2>
             <div className="mt-4 space-y-3 text-xs text-[#6e6e73] leading-relaxed">
-              <div className="rounded-xl bg-[#f5f5f7] p-4">
+              <div className="rounded-xl bg-[#FAF6F0] p-4">
                 <strong className="text-[#1d1d1f] block mb-1">
-                  UTC Day Key (`YYYY-MM-DD`)
+                  UTC Daily Stamp (YYYY-MM-DD)
                 </strong>
-                Every activity is stamped with an ISO day key (`toDayKey()`).
-                Consecutive day keys (`day[n] - day[n-1] === 1 day`) build your
-                running streak.
+                Every activity is stamped with an ISO UTC calendar day.
+                Consecutive active days build your running reading streak.
               </div>
-              <div className="rounded-xl bg-[#f5f5f7] p-4">
+              <div className="rounded-xl bg-[#FAF6F0] p-4">
                 <strong className="text-[#1d1d1f] block mb-1">
                   Grace Window Until End of Today
                 </strong>
                 Your current streak stays active if you recorded an activity
                 either today or yesterday, giving you the full current day to
-                extend your chain before it resets to `0`.
+                extend your chain before it resets to 0.
               </div>
-              <div className="rounded-xl bg-[#f5f5f7] p-4">
+              <div className="rounded-xl bg-[#FAF6F0] p-4">
                 <strong className="text-[#1d1d1f] block mb-1">
                   Longest Streak Preservation
                 </strong>
-                Even if your `currentStreak` resets after a missed day, your all-time
-                `longestStreak` record is permanently preserved on your profile.
+                Even if your current streak resets after a missed day, your
+                all-time longest streak record is permanently preserved on your
+                profile.
               </div>
             </div>
           </div>

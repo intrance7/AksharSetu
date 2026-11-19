@@ -123,7 +123,7 @@ export function ProposeSwapModal({
                 <ArrowLeftRight className="w-3.5 h-3.5" /> Barter Matchmaker
               </div>
 
-              <h2 className="text-2xl font-bold text-[#1d1d1f] tracking-tight mb-1">
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1d1d1f] tracking-tight mb-1 pr-8">
                 Swap for “{targetBook.title}”
               </h2>
               <p className="text-xs text-[#86868b] mb-5">
@@ -186,7 +186,7 @@ export function ProposeSwapModal({
                                 : "border-black/10 hover:bg-[#f5f5f7]"
                             }`}
                           >
-                            <div className="w-10 h-14 rounded-lg bg-[#e8e8ed] overflow-hidden shrink-0">
+                            <div className="w-10 h-14 rounded-lg bg-[#FAF6F0] border border-black/5 overflow-hidden shrink-0 flex items-center justify-center">
                               {b.images?.[0] ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img
@@ -194,7 +194,9 @@ export function ProposeSwapModal({
                                   alt={b.title}
                                   className="w-full h-full object-cover"
                                 />
-                              ) : null}
+                              ) : (
+                                <BookOpen className="w-4 h-4 text-[#C84200]/60" />
+                              )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-bold text-[#1d1d1f] truncate">{b.title}</p>

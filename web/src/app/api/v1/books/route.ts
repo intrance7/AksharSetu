@@ -2,11 +2,18 @@ import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { Prisma } from "@prisma/client"
 
-// ponytail: in-memory per-IP rate limiter (60 req/min); upgrade to Upstash Redis when multi-region horizontally scaled
+export const dynamic = "force-dynamic"
+
+// In-memory per-IP rate limiter (60 req/min); upgrade to Upstash Redis when multi-region horizontally scaled
 const rateBuckets = new Map<string, { count: number; resetAt: number }>()
 
 function checkRateLimit(ip: string, limit = 60, windowMs = 60_000): boolean {
   const now = Date.now()
+  if (rateBuckets.size > 1000) {
+    for (const [k, v] of rateBuckets.entries()) {
+      if (now > v.resetAt) rateBuckets.delete(k)
+    }
+  }
   const entry = rateBuckets.get(ip)
   if (!entry || now > entry.resetAt) {
     rateBuckets.set(ip, { count: 1, resetAt: now + windowMs })

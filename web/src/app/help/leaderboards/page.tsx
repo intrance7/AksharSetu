@@ -16,7 +16,7 @@ const LEADERBOARD_CATEGORIES = [
   },
   {
     name: "Longest Active Reading Streak",
-    formula: "Consecutive UTC calendar days (`currentStreak` and `longestStreak`) with verified literary activity.",
+    formula: "Consecutive UTC calendar days (current and longest streak) with verified literary activity.",
     tieBreaker: "Total reading minutes in Shanti Mode.",
   },
   {
@@ -33,7 +33,7 @@ const LEADERBOARD_CATEGORIES = [
 
 export default function LeaderboardsDocPage() {
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pb-24">
+    <div className="min-h-screen bg-[#F2EBE1] pb-24">
       <section className="bg-black text-[#f5f5f7] pt-12 pb-16 px-4 sm:px-6 border-b border-white/10">
         <div className="mx-auto max-w-5xl">
           <div className="flex items-center gap-2 text-xs text-[#86868b] mb-4">
@@ -92,7 +92,7 @@ export default function LeaderboardsDocPage() {
           <div className="rounded-2xl bg-white p-6 shadow-sm border border-black/[0.06]">
             <h3 className="text-base font-bold text-[#1d1d1f] flex items-center gap-2">
               <EyeOff className="h-4 w-4 text-[#0066cc]" />
-              Privacy Opt-Out (`leaderboardOptOut`)
+              Privacy Opt-Out Controls
             </h3>
             <p className="text-xs text-[#6e6e73] mt-2 leading-relaxed">
               Prefer to read and collect badges privately? Open{" "}

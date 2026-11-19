@@ -5,6 +5,8 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { CheckoutClient } from "@/components/checkout/CheckoutClient"
 
+export const dynamic = "force-dynamic"
+
 export default async function CheckoutPage({
   params,
 }: {
@@ -14,31 +16,35 @@ export default async function CheckoutPage({
   const session = await auth()
 
   if (!session?.user) {
-    redirect("/login")
+    redirect(`/login?callbackUrl=/checkout/${resolvedParams.bookId}`)
   }
 
   const book = await prisma.book.findUnique({
     where: { id: resolvedParams.bookId },
     include: {
       owner: {
-        select: { name: true }
-      }
-    }
+        select: { name: true },
+      },
+    },
   })
 
-  if (!book || book.status !== "AVAILABLE" || book.price === 0 || book.ownerId === session.user.id) {
+  if (
+    !book ||
+    book.status !== "AVAILABLE" ||
+    book.price === 0 ||
+    book.ownerId === session.user.id
+  ) {
     notFound()
   }
 
   const platformFee = 25
 
   return (
-    <div className="min-h-screen bg-[#F2EBE1] pt-28 pb-16">
-      <div className="container mx-auto max-w-4xl px-4">
-        
-        <Link 
+    <div className="min-h-screen bg-[#F2EBE1] pt-10 md:pt-14 pb-20">
+      <div className="container mx-auto max-w-4xl px-4 md:px-8">
+        <Link
           href={`/catalog/${book.id}`}
-          className="inline-flex items-center gap-2 text-[#1D1D1F]/60 hover:text-[#1D1D1F] font-bold text-sm tracking-wider uppercase mb-8 transition-colors"
+          className="inline-flex items-center gap-2 text-[#1D1D1F]/60 hover:text-[#C84200] font-bold text-xs tracking-wider uppercase mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Listing
@@ -48,8 +54,11 @@ export default async function CheckoutPage({
           Checkout
         </h1>
 
-        <CheckoutClient book={book as any} user={session.user} platformFee={platformFee} />
-        
+        <CheckoutClient
+          book={book as any}
+          user={session.user}
+          platformFee={platformFee}
+        />
       </div>
     </div>
   )

@@ -25,7 +25,7 @@ export default async function LegalDocumentPage({
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pb-24">
+    <div className="min-h-screen bg-[#F2EBE1] pb-24">
       {/* Header */}
       <section className="bg-black text-[#f5f5f7] pt-12 pb-14 px-4 sm:px-6 border-b border-white/10">
         <div className="mx-auto max-w-5xl">

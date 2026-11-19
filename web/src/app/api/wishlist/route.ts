@@ -67,8 +67,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body = await req.json()
-    const { title, isbn } = body
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
+    const title = typeof body?.title === "string" ? body.title.trim() || null : null
+    const isbn = typeof body?.isbn === "string" ? body.isbn.trim() || null : null
 
     if (!title && !isbn) {
       return NextResponse.json(
@@ -125,8 +131,11 @@ export async function DELETE(req: Request) {
       where: { id },
     })
 
-    if (!wishlist || wishlist.userId !== session.user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!wishlist) {
+      return NextResponse.json({ error: "Wishlist item not found" }, { status: 404 })
+    }
+    if (wishlist.userId !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     await prisma.wishlist.delete({

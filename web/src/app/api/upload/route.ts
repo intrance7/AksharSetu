@@ -19,8 +19,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { filename, contentType } = await req.json()
-    if (!filename || !contentType) {
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
+    const { filename, contentType } = body
+    if (
+      typeof filename !== "string" ||
+      !filename.trim() ||
+      typeof contentType !== "string" ||
+      !contentType.trim()
+    ) {
       return NextResponse.json({ error: "Missing filename or contentType" }, { status: 400 })
     }
 

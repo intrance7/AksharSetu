@@ -64,8 +64,8 @@ export default function StartShantiButton({
       disabled={loading}
       className={
         compact
-          ? "inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold bg-[#0066cc] text-white hover:bg-[#0071e3] transition disabled:opacity-60"
-          : "inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider bg-[#0066cc] text-white hover:bg-[#0071e3] shadow-sm transition disabled:opacity-60"
+          ? "inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-semibold bg-[#0066cc] text-white hover:bg-[#0071e3] transition disabled:opacity-60 cursor-pointer"
+          : "inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider bg-[#0066cc] text-white hover:bg-[#0071e3] shadow-sm transition disabled:opacity-60 cursor-pointer"
       }
       title="Save to My Library and enter Shanti Focus Mode"
     >

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Book } from "@prisma/client"
 import {
@@ -12,6 +13,7 @@ import {
   CheckCircle2,
 } from "lucide-react"
 import { RazorpayButton } from "./RazorpayButton"
+import { GeneratedCover } from "@/components/catalog/GeneratedCover"
 import { toast } from "sonner"
 
 interface CheckoutClientProps {
@@ -35,6 +37,7 @@ export function CheckoutClient({
   const [eta, setEta] = useState<string | null>(null)
   const [loadingRate, setLoadingRate] = useState(false)
   const [reservingMeetup, setReservingMeetup] = useState(false)
+  const [imgError, setImgError] = useState(false)
 
   const isMeetup = fulfillmentMode === "MEETUP"
   const effectivePlatformFee = isMeetup ? 0 : platformFee
@@ -225,30 +228,36 @@ export function CheckoutClient({
           <h2 className="text-xl font-black text-[#1D1D1F] mb-6">
             2. Item Summary
           </h2>
-          <div className="flex gap-6">
-            <div className="w-24 h-32 bg-[#E8E4DF] rounded-xl overflow-hidden shrink-0">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={
-                  book.images?.[0] ||
-                  "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=800"
-                }
-                alt={book.title}
-                className="w-full h-full object-cover"
-              />
+          <div className="flex gap-4 sm:gap-6 items-start">
+            <div className="w-20 sm:w-24 aspect-[5/7] bg-[#FAF6F0] rounded-xl overflow-hidden shrink-0 border border-black/5">
+              {book.images?.[0] && !imgError ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={book.images[0]}
+                  alt={book.title}
+                  onError={() => setImgError(true)}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <GeneratedCover
+                  title={book.title}
+                  author={book.author}
+                  category={book.category}
+                />
+              )}
             </div>
-            <div className="flex flex-col justify-center">
-              <h3 className="font-bold text-lg text-[#1D1D1F] leading-tight mb-1">
+            <div className="flex flex-col justify-center min-w-0 flex-1">
+              <h3 className="font-bold text-base sm:text-lg text-[#1D1D1F] leading-snug mb-1 break-words">
                 {book.title}
               </h3>
-              <p className="text-[#1D1D1F]/60 text-sm font-medium mb-3">
+              <p className="text-[#1D1D1F]/60 text-sm font-medium mb-3 truncate">
                 {book.author}
               </p>
-              <p className="text-[#1D1D1F]/40 text-xs font-bold uppercase tracking-widest">
+              <p className="text-[#1D1D1F]/50 text-xs font-bold uppercase tracking-wider">
                 Condition: {book.condition.replace("_", " ")}
               </p>
-              <p className="text-[#1D1D1F]/40 text-xs font-bold uppercase tracking-widest mt-1">
-                Seller: {book.owner.name}
+              <p className="text-[#1D1D1F]/50 text-xs font-bold uppercase tracking-wider mt-1 truncate">
+                Seller: {book.owner.name || "Community Reader"}
               </p>
             </div>
           </div>
@@ -344,8 +353,12 @@ export function CheckoutClient({
             />
           )}
 
-          <p className="text-center text-xs text-[#1D1D1F]/40 font-medium mt-4">
-            By confirming, you agree to our Terms of Service.
+          <p className="text-center text-xs text-[#1D1D1F]/50 font-medium mt-4">
+            By confirming, you agree to our{" "}
+            <Link href="/legal/terms" className="underline hover:text-[#C84200]">
+              Terms of Service
+            </Link>
+            .
           </p>
         </div>
       </div>

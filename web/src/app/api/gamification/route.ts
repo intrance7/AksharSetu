@@ -77,7 +77,7 @@ export async function GET() {
     const userId = session.user.id
     const [quests, user, claims, metrics, xpHistory] = await Promise.all([
       ensureDefaultQuests(),
-      prisma.user.findUniqueOrThrow({
+      prisma.user.findUnique({
         where: { id: userId },
         select: {
           totalXP: true,
@@ -101,6 +101,10 @@ export async function GET() {
         take: 25,
       }),
     ])
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    }
 
     const todayKey = toDayKey()
     const weekKey = toWeekKey()
@@ -155,7 +159,12 @@ export async function POST(req: Request) {
     }
 
     const userId = session.user.id
-    const body = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
     const { action } = body
 
     // 1. Server-Authoritative Daily Check-in
@@ -163,9 +172,12 @@ export async function POST(req: Request) {
       const todayKey = toDayKey()
       const yesterdayKey = toDayKey(new Date(Date.now() - 86400000))
 
-      const user = await prisma.user.findUniqueOrThrow({
+      const user = await prisma.user.findUnique({
         where: { id: userId },
       })
+      if (!user) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 })
+      }
 
       if (user.lastDailyClaimDate === todayKey) {
         return NextResponse.json(
@@ -266,14 +278,24 @@ export async function POST(req: Request) {
         )
       }
 
-      await prisma.userQuestClaim.create({
-        data: {
-          userId,
-          questId: quest.id,
-          periodKey,
-          xpAwarded: quest.rewardXp,
-        },
-      })
+      try {
+        await prisma.userQuestClaim.create({
+          data: {
+            userId,
+            questId: quest.id,
+            periodKey,
+            xpAwarded: quest.rewardXp,
+          },
+        })
+      } catch (err: any) {
+        if (err?.code === "P2002") {
+          return NextResponse.json(
+            { error: "Quest reward already claimed for this period." },
+            { status: 400 }
+          )
+        }
+        throw err
+      }
 
       if (quest.cosmeticReward) {
         const u = await prisma.user.findUnique({

@@ -75,11 +75,11 @@ export function RequestBookButton({ bookId, isOwner }: RequestBookButtonProps) {
   return (
     <div className="flex flex-col gap-2 w-full">
       <motion.button
-        whileHover={{ scale: status === "loading" ? 1 : 1.02 }}
-        whileTap={{ scale: status === "loading" ? 1 : 0.98 }}
+        whileHover={{ scale: status === "loading" ? 1 : 1.01 }}
+        whileTap={{ scale: status === "loading" ? 1 : 0.99 }}
         onClick={handleRequest}
         disabled={status === "loading"}
-        className="w-full py-4 px-6 bg-[#0066cc] hover:bg-[#0071e3] text-white rounded-full font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+        className="w-full py-4 px-6 bg-[#C84200] hover:bg-[#A33500] text-white rounded-full font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer shadow-sm"
       >
         {status === "loading" ? (
           <>

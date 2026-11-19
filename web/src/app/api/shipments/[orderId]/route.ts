@@ -14,7 +14,13 @@ export async function PATCH(
     }
 
     const { orderId } = await params
-    const { status } = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
+    const { status } = body
 
     if (!["READY_TO_SHIP", "SHIPPED", "DELIVERED"].includes(status)) {
       return NextResponse.json(

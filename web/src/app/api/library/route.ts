@@ -4,6 +4,17 @@ import { auth } from "@/auth"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import { checkAndAwardBadges } from "@/services/badgeService"
 
+export const dynamic = "force-dynamic"
+
+function parsePaginationPages(pagination: unknown): number {
+  if (typeof pagination !== "string") return 0
+  // Matches patterns like "342 p.", "xvi, 412 pages", "288p"
+  const matches = pagination.match(/\b(\d{2,4})\b/g)
+  if (!matches || matches.length === 0) return 0
+  const nums = matches.map((m) => Number(m)).filter((n) => n >= 10 && n <= 5000)
+  return nums.length > 0 ? Math.max(...nums) : 0
+}
+
 async function enrichBookMetadata(params: {
   isbn?: string | null
   title?: string | null
@@ -15,9 +26,52 @@ async function enrichBookMetadata(params: {
   let resolvedTitle = (params.title || "").trim()
   let resolvedAuthor = (params.author || "").trim()
   let resolvedCover = (params.coverImage || "").trim() || null
-  let resolvedPages = Number(params.totalPages) || 0
+  const parsedProvidedPages = Number(params.totalPages)
+  let resolvedPages =
+    Number.isFinite(parsedProvidedPages) && parsedProvidedPages >= 10
+      ? Math.round(parsedProvidedPages)
+      : 0
 
-  // 1. Search Google Books by ISBN or Title + Author
+  // 1. Exact Open Library edition lookup by ISBN (/isbn/{isbn}.json) — most accurate edition page count
+  if (cleanIsbn.length >= 10) {
+    try {
+      const isbnRes = await fetch(
+        `https://openlibrary.org/isbn/${encodeURIComponent(cleanIsbn)}.json`,
+        { signal: AbortSignal.timeout(4500) }
+      )
+      if (isbnRes.ok) {
+        const edition = await isbnRes.json()
+        if (!resolvedTitle && edition?.title) {
+          resolvedTitle = String(edition.title).trim()
+        }
+        const exactPages =
+          Number(edition?.number_of_pages) ||
+          parsePaginationPages(edition?.pagination)
+        if (!resolvedPages && exactPages >= 10) {
+          resolvedPages = Math.round(exactPages)
+        }
+        if (!resolvedCover && Array.isArray(edition?.covers) && edition.covers[0] > 0) {
+          resolvedCover = `https://covers.openlibrary.org/b/id/${edition.covers[0]}-L.jpg`
+        }
+        if (!resolvedAuthor && Array.isArray(edition?.authors) && edition.authors[0]?.key) {
+          try {
+            const authorRes = await fetch(
+              `https://openlibrary.org${edition.authors[0].key}.json`,
+              { signal: AbortSignal.timeout(3000) }
+            )
+            if (authorRes.ok) {
+              const authorData = await authorRes.json()
+              if (authorData?.name) {
+                resolvedAuthor = String(authorData.name).trim()
+              }
+            }
+          } catch {}
+        }
+      }
+    } catch {}
+  }
+
+  // 2. Search Google Books by ISBN or Title + Author
   const searchQuery = cleanIsbn
     ? `isbn:${cleanIsbn}`
     : [
@@ -27,24 +81,26 @@ async function enrichBookMetadata(params: {
         .filter(Boolean)
         .join("+")
 
-  if (searchQuery) {
+  if (searchQuery && (!resolvedTitle || !resolvedAuthor || !resolvedPages || !resolvedCover)) {
     try {
       const gbRes = await fetch(
         `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
           searchQuery
-        )}&maxResults=3`,
+        )}&maxResults=4`,
         { signal: AbortSignal.timeout(4500) }
       )
       if (gbRes.ok) {
         const gbData = await gbRes.json()
-        const item = gbData.items?.[0]?.volumeInfo
-        if (item) {
-          if (!resolvedTitle && item.title) resolvedTitle = item.title
-          if (!resolvedAuthor && Array.isArray(item.authors)) {
+        const items: any[] = Array.isArray(gbData?.items) ? gbData.items : []
+        for (const entry of items) {
+          const item = entry?.volumeInfo
+          if (!item) continue
+          if (!resolvedTitle && item.title) resolvedTitle = String(item.title).trim()
+          if (!resolvedAuthor && Array.isArray(item.authors) && item.authors.length > 0) {
             resolvedAuthor = item.authors.join(", ")
           }
-          if (!resolvedPages && item.pageCount && item.pageCount >= 10) {
-            resolvedPages = Number(item.pageCount)
+          if (!resolvedPages && Number(item.pageCount) >= 10) {
+            resolvedPages = Math.round(Number(item.pageCount))
           }
           if (!resolvedCover && item.imageLinks) {
             const rawImg =
@@ -55,17 +111,18 @@ async function enrichBookMetadata(params: {
               item.imageLinks.smallThumbnail ||
               ""
             if (rawImg) {
-              resolvedCover = rawImg
-                .replace("http://", "https://")
+              resolvedCover = String(rawImg)
+                .replace(/^http:\/\//i, "https://")
                 .replace("&edge=curl", "")
             }
           }
+          if (resolvedTitle && resolvedAuthor && resolvedPages && resolvedCover) break
         }
       }
     } catch {}
   }
 
-  // 2. Fallback / Supplement with Open Library Search (Cover + Page Count)
+  // 3. Fallback / Supplement with Open Library Search (Cover + Median Page Count)
   if (!resolvedCover || !resolvedPages || !resolvedTitle || !resolvedAuthor) {
     try {
       const olUrl = cleanIsbn
@@ -85,12 +142,12 @@ async function enrichBookMetadata(params: {
         const olData = await olRes.json()
         const doc = olData.docs?.[0]
         if (doc) {
-          if (!resolvedTitle && doc.title) resolvedTitle = doc.title
+          if (!resolvedTitle && doc.title) resolvedTitle = String(doc.title).trim()
           if (!resolvedAuthor && Array.isArray(doc.author_name)) {
             resolvedAuthor = doc.author_name.join(", ")
           }
-          if (!resolvedPages && doc.number_of_pages_median) {
-            resolvedPages = Number(doc.number_of_pages_median)
+          if (!resolvedPages && Number(doc.number_of_pages_median) >= 10) {
+            resolvedPages = Math.round(Number(doc.number_of_pages_median))
           }
           if (!resolvedCover) {
             if (doc.cover_i) {
@@ -104,26 +161,26 @@ async function enrichBookMetadata(params: {
     } catch {}
   }
 
-  // 3. AI Metadata Resolution via Gemini if title/author/pages are still missing
+  // 4. AI Metadata Resolution via Gemini if title/author/pages are still missing
   if (
     (!resolvedTitle || !resolvedAuthor || !resolvedPages) &&
     process.env.GEMINI_API_KEY
   ) {
     try {
       const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
       const prompt = `Return a strict JSON object with keys {"title": string, "author": string, "totalPages": number} for the book matching ISBN="${cleanIsbn}", Title="${resolvedTitle}", Author="${resolvedAuthor}". Output ONLY valid JSON.`
       const result = await model.generateContent(prompt)
       const text = result.response.text()
       const match = text.match(/\{[\s\S]*\}/)
       if (match) {
         const parsed = JSON.parse(match[0])
-        if (!resolvedTitle && parsed.title) resolvedTitle = String(parsed.title)
+        if (!resolvedTitle && parsed.title) resolvedTitle = String(parsed.title).trim()
         if (!resolvedAuthor && parsed.author) {
-          resolvedAuthor = String(parsed.author)
+          resolvedAuthor = String(parsed.author).trim()
         }
         if (!resolvedPages && Number(parsed.totalPages) >= 20) {
-          resolvedPages = Number(parsed.totalPages)
+          resolvedPages = Math.round(Number(parsed.totalPages))
         }
       }
     } catch {}
@@ -138,7 +195,7 @@ async function enrichBookMetadata(params: {
     title: resolvedTitle || "Untitled Book",
     author: resolvedAuthor || "Unknown Author",
     coverImage: resolvedCover,
-    totalPages: Math.max(10, resolvedPages || 250),
+    totalPages: Math.max(10, Math.min(5000, resolvedPages || 250)),
     cleanIsbn: cleanIsbn || null,
   }
 }
@@ -171,7 +228,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
+
     const {
       isbn,
       title,
@@ -183,7 +246,10 @@ export async function POST(req: Request) {
       status,
     } = body
 
-    if (!title?.trim() && !isbn?.trim()) {
+    const cleanTitle = typeof title === "string" ? title.trim() : ""
+    const cleanIsbnInput = typeof isbn === "string" ? isbn.trim() : ""
+
+    if (!cleanTitle && !cleanIsbnInput) {
       return NextResponse.json(
         { error: "Please provide a Book Title or ISBN" },
         { status: 400 }
@@ -198,15 +264,15 @@ export async function POST(req: Request) {
         : null
 
     const enriched = await enrichBookMetadata({
-      isbn,
-      title,
-      author,
-      coverImage,
+      isbn: cleanIsbnInput,
+      title: cleanTitle,
+      author: typeof author === "string" ? author : null,
+      coverImage: typeof coverImage === "string" ? coverImage : null,
       totalPages,
     })
 
     const resolvedPlatformId =
-      platformBookId ||
+      (typeof platformBookId === "string" ? platformBookId.trim() : null) ||
       (!numericGutenberg && gutenbergId
         ? String(gutenbergId)
         : enriched.cleanIsbn

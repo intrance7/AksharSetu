@@ -6,6 +6,8 @@ import { LiveReadersStrip } from "@/components/library/LiveReadersStrip"
 import { BookOpen, Tablet, Sparkles, Clock, Highlighter } from "lucide-react"
 import Link from "next/link"
 
+export const dynamic = "force-dynamic"
+
 export default async function LibraryPage() {
   const session = await auth()
 
@@ -39,12 +41,12 @@ export default async function LibraryPage() {
   ).length
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pb-24">
+    <div className="min-h-screen bg-[#F2EBE1] pb-24">
       {/* High-Contrast Hero */}
-      <section className="bg-black text-[#f5f5f7] pt-20 pb-14 border-b border-white/10">
-        <div className="container mx-auto max-w-7xl px-6 flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
+      <section className="bg-black text-[#f5f5f7] py-12 md:py-14 border-b border-white/10">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-blue-300 text-xs font-semibold tracking-wide mb-4">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-[#FF8A4C] text-xs font-semibold tracking-wide mb-4">
               <Sparkles className="w-3.5 h-3.5" /> Personal Reading Room
             </div>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tighter leading-none mb-3">
@@ -65,7 +67,7 @@ export default async function LibraryPage() {
             <Link
               id="library-browse-ebooks"
               href="/ebooks"
-              className="inline-flex items-center gap-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white px-6 h-11 text-xs font-bold uppercase tracking-wider transition-colors shadow-md"
+              className="inline-flex items-center gap-2 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white px-6 h-11 text-xs font-bold uppercase tracking-wider transition-colors shadow-md"
             >
               <Tablet className="w-4 h-4" /> Browse E-Library
             </Link>
@@ -73,7 +75,7 @@ export default async function LibraryPage() {
         </div>
       </section>
 
-      <div className="container mx-auto max-w-7xl px-6 pt-8 space-y-8">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 pt-8 space-y-8">
         {/* Reading Stats Bento Row */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="bg-white rounded-2xl p-5 border border-black/5 shadow-sm">

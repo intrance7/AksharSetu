@@ -219,7 +219,7 @@ export function ClubRoomClient({
             </div>
 
             <div className="flex items-center justify-between gap-2 bg-white/10 border border-white/15 rounded-2xl px-4 py-3">
-              <span className="font-mono text-lg font-black tracking-widest text-white">
+              <span className="font-mono text-base sm:text-lg font-black tracking-widest text-white truncate">
                 {inviteCode}
               </span>
               <div className="flex items-center gap-1.5">

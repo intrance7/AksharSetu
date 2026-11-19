@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import {
   KeyRound,
   ArrowLeft,
@@ -16,6 +17,7 @@ import { Button } from "@/components/ui/Button"
 
 export default function ForgotPasswordPage() {
   const router = useRouter()
+  const { data: session } = useSession()
   const [email, setEmail] = useState("")
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
@@ -23,6 +25,12 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+
+  useEffect(() => {
+    if (session?.user?.email && !email) {
+      setEmail(session.user.email)
+    }
+  }, [session?.user?.email, email])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,8 +63,8 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F2EBE1] flex items-center justify-center p-4 pt-24 pb-16">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-sm border border-[#1D1D1F]/10 p-8 md:p-10 space-y-6">
+    <div className="min-h-[calc(100vh-4rem)] bg-[#F2EBE1] flex items-center justify-center p-4 py-12">
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-sm border border-[#1D1D1F]/10 p-6 sm:p-8 md:p-10 space-y-6">
         <Link
           href="/login"
           className="inline-flex items-center gap-1.5 text-xs font-bold text-[#86868b] hover:text-[#1D1D1F] transition-colors"
@@ -141,7 +149,8 @@ export default function ForgotPasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#86868b] hover:text-[#1D1D1F]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#86868b] hover:text-[#1D1D1F] cursor-pointer"
+                  aria-label="Toggle password visibility"
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />

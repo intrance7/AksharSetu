@@ -11,9 +11,9 @@ export async function createCommunityRequest(formData: FormData) {
     throw new Error("You must be logged in to post a request.")
   }
 
-  const title = (formData.get("title") as string)?.trim()
-  const author = (formData.get("author") as string)?.trim()
-  const description = (formData.get("description") as string)?.trim()
+  const title = ((formData.get("title") as string) || "").trim().slice(0, 160)
+  const author = ((formData.get("author") as string) || "").trim().slice(0, 120)
+  const description = ((formData.get("description") as string) || "").trim().slice(0, 1500)
 
   if (!title) {
     throw new Error("Title is required.")

@@ -7,7 +7,7 @@ import {
   isUserOnline,
   findOrCreateConversation,
 } from "@/lib/messaging/service"
-import { errorResponse } from "@/lib/messaging/http"
+import { errorResponse, readJson } from "@/lib/messaging/http"
 import type { DeliveryState } from "@/lib/messaging/types"
 import { getMutualFollowIds } from "@/lib/shantiVisibility"
 
@@ -242,8 +242,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body = await req.json()
-    const { otherUserId, bookId } = body
+    const body = await readJson(req)
+    const { otherUserId, bookId } = body as { otherUserId?: unknown; bookId?: unknown }
 
     if (!otherUserId || typeof otherUserId !== "string") {
       return NextResponse.json(
@@ -255,7 +255,7 @@ export async function POST(req: Request) {
     const conv = await findOrCreateConversation({
       initiatorId: session.user.id,
       otherUserId,
-      bookId: bookId || null,
+      bookId: typeof bookId === "string" ? bookId : null,
     })
 
     return NextResponse.json({

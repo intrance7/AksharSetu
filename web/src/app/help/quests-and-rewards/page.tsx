@@ -15,7 +15,7 @@ export default function QuestsAndRewardsDocPage() {
   const banners = COSMETIC_CATALOG.filter((c) => c.type === "banner")
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pb-24">
+    <div className="min-h-screen bg-[#F2EBE1] pb-24">
       <section className="bg-black text-[#f5f5f7] pt-12 pb-16 px-4 sm:px-6 border-b border-white/10">
         <div className="mx-auto max-w-5xl">
           <div className="flex items-center gap-2 text-xs text-[#86868b] mb-4">
@@ -48,8 +48,8 @@ export default function QuestsAndRewardsDocPage() {
             </h2>
             <p className="text-xs text-[#6e6e73] mt-2 leading-relaxed">
               <strong>Experience Points (XP)</strong> measure your all-time
-              literary rank and level progression (`Level 1` to `Level 100+`).
-              XP is never spent.
+              literary rank and level progression (Level 1 to Level 100+). XP is
+              never spent.
               <br />
               <br />
               <strong>Akshar Points (AP)</strong> are reward points earned from
@@ -64,13 +64,13 @@ export default function QuestsAndRewardsDocPage() {
               Reset Windows & Duplicate Claim Protection
             </h2>
             <p className="text-xs text-[#6e6e73] mt-2 leading-relaxed">
-              • <strong>Daily Quests</strong> use the UTC day key (`YYYY-MM-DD`)
-              and can be claimed once per day after meeting the target metric.
-              <br />• <strong>Weekly Quests</strong> use the ISO week key
-              (`YYYY-Wnn`) and reset every Monday at `00:00 UTC`.
+              • <strong>Daily Quests</strong> reset every UTC calendar day and
+              can be claimed once per day after meeting the target metric.
+              <br />• <strong>Weekly Quests</strong> follow ISO weeks and reset
+              every Monday at 00:00 UTC.
               <br />• <strong>Idempotent Claims</strong>: Every quest claim is
-              keyed by `(userId, questId, periodKey)`, guaranteeing zero
-              duplicate payouts.
+              uniquely verified per user and period, guaranteeing zero duplicate
+              payouts.
             </p>
           </div>
         </div>

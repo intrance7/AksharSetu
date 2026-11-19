@@ -55,10 +55,10 @@ export default function FaqPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pb-24">
+    <div className="min-h-screen bg-[#F2EBE1] pb-24">
       <section className="bg-black text-[#f5f5f7] pt-14 pb-18 px-4 sm:px-6 border-b border-white/10">
         <div className="mx-auto max-w-4xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-xs font-bold text-[#0066cc] mb-3">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-xs font-bold text-[#FF8A4C] mb-3">
             <HelpCircle className="h-3.5 w-3.5" /> Instant Answers
           </div>
           <h1 className="text-4xl sm:text-6xl font-bold tracking-tighter">
@@ -90,10 +90,10 @@ export default function FaqPage() {
               key={cat.id}
               type="button"
               onClick={() => setSelectedCategory(cat.id)}
-              className={`rounded-full px-4 py-1.5 text-xs font-bold transition-colors ${
+              className={`rounded-full px-4 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
                 selectedCategory === cat.id
                   ? "bg-[#1d1d1f] text-white"
-                  : "bg-[#f5f5f7] text-[#6e6e73] hover:text-[#1d1d1f]"
+                  : "bg-[#FAF6F0] text-[#6e6e73] hover:text-[#1d1d1f]"
               }`}
             >
               {cat.label}
@@ -113,7 +113,7 @@ export default function FaqPage() {
                 <button
                   type="button"
                   onClick={() => toggleFaq(faq.id)}
-                  className="w-full text-left px-6 py-4 flex items-center justify-between gap-4 hover:bg-[#f5f5f7]/50 transition-colors"
+                  className="w-full text-left px-6 py-4 flex items-center justify-between gap-4 hover:bg-[#FAF6F0]/60 transition-colors cursor-pointer"
                 >
                   <div>
                     <span className="inline-block rounded-full bg-[#0066cc]/10 text-[#0066cc] px-2.5 py-0.5 text-[10px] font-bold uppercase mb-1">

@@ -4,6 +4,14 @@ import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import { checkAndAwardBadges } from "@/services/badgeService"
 
+class VerifyError extends Error {
+  status: number
+  constructor(status: number, message: string) {
+    super(message)
+    this.status = status
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const session = await auth()
@@ -11,7 +19,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const secret = process.env.RAZORPAY_KEY_SECRET
+    const secret = process.env.RAZORPAY_KEY_SECRET?.trim()
     if (!secret || secret === "placeholder") {
       return NextResponse.json(
         { error: "Payment gateway secret is not configured on this server." },
@@ -19,7 +27,13 @@ export async function POST(req: Request) {
       )
     }
 
-    const body = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
+
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = body
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -50,16 +64,16 @@ export async function POST(req: Request) {
 
     const result = await prisma.$transaction(async (tx) => {
       const order = await tx.order.findFirst({
-        where: { paymentId: razorpay_order_id },
+        where: { paymentId: String(razorpay_order_id) },
         include: { book: true },
       })
 
       if (!order) {
-        throw new Error("Order not found")
+        throw new VerifyError(404, "Order not found")
       }
 
       if (order.buyerId !== session.user.id) {
-        throw new Error("Forbidden: Order does not belong to current user")
+        throw new VerifyError(403, "Forbidden: Order does not belong to current user")
       }
 
       if (order.status === "PAID") {
@@ -136,10 +150,13 @@ export async function POST(req: Request) {
       { status: 200 }
     )
   } catch (error: any) {
+    if (error instanceof VerifyError) {
+      return NextResponse.json({ error: error.message }, { status: error.status })
+    }
     console.error("Payment verification error:", error)
     return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
-      { status: 400 }
+      { error: "Internal Server Error" },
+      { status: 500 }
     )
   }
 }

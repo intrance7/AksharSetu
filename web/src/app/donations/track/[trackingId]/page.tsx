@@ -82,11 +82,11 @@ export default async function DonationCertificateTrackingPage({
                 6-Stage Vidya Daan Chain of Custody
               </h2>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right">
               <span className="text-[10px] font-bold uppercase text-[#86868b] block">
                 Verification ID
               </span>
-              <span className="font-mono text-sm font-black text-[#1D1D1F]">
+              <span className="font-mono text-sm font-black text-[#1D1D1F] break-all">
                 {donation.trackingId}
               </span>
             </div>
@@ -188,14 +188,14 @@ export default async function DonationCertificateTrackingPage({
               </div>
             </div>
 
-            <div className="pt-6 flex items-center justify-between text-xs text-[#86868b] font-semibold">
+            <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left text-xs text-[#86868b] font-semibold">
               <div>
                 <p className="font-black text-[#1D1D1F]">
                   Vidya Daan Verification Registry
                 </p>
                 <p>AksharSetu Community Literacy Network</p>
               </div>
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-800 font-black text-[11px]">
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-800 font-black text-[11px] shrink-0">
                 <ShieldCheck className="w-4 h-4" /> Digitally Verified
               </div>
             </div>

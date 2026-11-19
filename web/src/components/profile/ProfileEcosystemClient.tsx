@@ -579,7 +579,7 @@ export function ProfileEcosystemClient({
 
           {/* XP Level Progression Bar */}
           <div className="pt-2 space-y-2">
-            <div className="flex items-center justify-between text-xs font-bold">
+            <div className="flex flex-wrap items-center justify-between gap-1 text-xs font-bold">
               <span className="text-white flex items-center gap-2">
                 Level {computedStats.level} ·{" "}
                 {profileUser.selectedTitle || computedStats.rankTitle}
@@ -624,6 +624,8 @@ export function ProfileEcosystemClient({
                       className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/8 hover:bg-white/15 border border-white/10 text-left transition-colors cursor-pointer"
                     >
                       <VectorBadgeArtwork
+                        code={b.code}
+                        name={b.name}
                         category={b.category}
                         rarity={b.rarity}
                         size={28}
@@ -649,6 +651,8 @@ export function ProfileEcosystemClient({
                       className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-left transition-colors cursor-pointer"
                     >
                       <VectorBadgeArtwork
+                        code={b.code}
+                        name={b.name}
                         category={b.category}
                         rarity={b.rarity}
                         size={28}
@@ -1232,8 +1236,8 @@ export function ProfileEcosystemClient({
           </div>
 
           {/* Category & Rarity Filters */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-black/5">
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+          <div className="flex flex-col gap-3 pb-2 border-b border-black/5">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide max-w-full">
               {[
                 "ALL",
                 "READING",
@@ -1259,7 +1263,7 @@ export function ProfileEcosystemClient({
               ))}
             </div>
 
-            <div className="flex items-center gap-1 overflow-x-auto pb-1">
+            <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide max-w-full">
               {[
                 "ALL",
                 "COMMON",
@@ -1315,6 +1319,8 @@ export function ProfileEcosystemClient({
                   <div className="flex items-start gap-3.5">
                     <div className="shrink-0">
                       <VectorBadgeArtwork
+                        code={badge.code}
+                        name={badge.name}
                         category={badge.category}
                         rarity={badge.rarity}
                         unlocked={badge.unlocked}
@@ -1692,6 +1698,8 @@ export function ProfileEcosystemClient({
               </div>
               <div className="flex justify-center">
                 <VectorBadgeArtwork
+                  code={selectedBadgeModal.code}
+                  name={selectedBadgeModal.name}
                   category={selectedBadgeModal.category}
                   rarity={selectedBadgeModal.rarity}
                   unlocked={selectedBadgeModal.unlocked}

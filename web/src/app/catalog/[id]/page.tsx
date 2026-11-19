@@ -6,7 +6,7 @@ import { RequestBookButton } from "@/components/catalog/RequestBookButton"
 import { SellerReputationCard } from "@/components/catalog/SellerReputationCard"
 import { ProposeSwapModal } from "@/components/catalog/ProposeSwapModal"
 import { OwnerListingControls } from "@/components/catalog/OwnerListingControls"
-import { GeneratedCover } from "@/components/catalog/GeneratedCover"
+import { BookGallery } from "@/components/catalog/BookGallery"
 import Link from "next/link"
 import {
   ArrowLeft,
@@ -17,6 +17,8 @@ import {
   ChevronRight,
   MapPin,
 } from "lucide-react"
+
+export const dynamic = "force-dynamic"
 
 export async function generateMetadata({
   params,
@@ -260,30 +262,22 @@ export default async function ListingDetailPage({
             {book.category}
           </Link>
           <ChevronRight className="w-3.5 h-3.5 opacity-40" />
-          <span className="text-[#1D1D1F] truncate max-w-[260px]">
+          <span className="text-[#1D1D1F] truncate max-w-[160px] sm:max-w-[260px]">
             {book.title}
           </span>
         </nav>
 
         <div className="bg-white rounded-3xl shadow-sm border border-[#1D1D1F]/10 overflow-hidden flex flex-col md:flex-row">
-          {/* Left Column: Editorial Cover Stage */}
-          <div className="w-full md:w-1/2 lg:w-5/12 bg-[#FAF6F0] p-8 md:p-12 flex items-center justify-center border-b md:border-b-0 md:border-r border-[#1D1D1F]/[0.08]">
-            <div className="relative w-[68%] max-w-[280px] aspect-[5/7] rounded-lg overflow-hidden shadow-[18px_22px_44px_rgba(0,0,0,0.22)]">
-              {hasCover ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={book.images[0]}
-                  alt={`${book.title} by ${book.author}`}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <GeneratedCover
-                  title={book.title}
-                  author={book.author}
-                  category={book.category}
-                />
-              )}
-            </div>
+          {/* Left Column: Editorial Cover Stage & Multi-Photo Gallery */}
+          <div className="w-full md:w-1/2 lg:w-5/12">
+            <BookGallery
+              images={book.images || []}
+              title={book.title}
+              author={book.author}
+              category={book.category}
+              isbn={book.isbn}
+              showWishlist={!isOwner}
+            />
           </div>
 
           {/* Right Column: Details */}
@@ -375,9 +369,22 @@ export default async function ListingDetailPage({
               </div>
 
               <div className="mb-6 p-5 bg-[#FAF6F0] rounded-2xl border border-black/[0.08]">
-                <h2 className="text-xs font-black uppercase tracking-widest text-[#86868b] mb-3">
-                  5-Point Condition Breakdown
-                </h2>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <h2 className="text-xs font-black uppercase tracking-widest text-[#86868b]">
+                    5-Point Condition Breakdown
+                  </h2>
+                  <span className="text-[11px] font-black text-emerald-800 bg-emerald-50 border border-emerald-200/70 px-2.5 py-0.5 rounded-full">
+                    {(
+                      ((book.condCover || 5) +
+                        (book.condPages || 5) +
+                        (book.condHighlighting || 5) +
+                        (book.condNotes || 5) +
+                        (book.condBinding || 5)) /
+                      5
+                    ).toFixed(1)}
+                    ★ Avg
+                  </span>
+                </div>
                 <div className="space-y-2.5">
                   {[
                     { label: "Cover & Spine", score: book.condCover || 5 },
@@ -391,12 +398,12 @@ export default async function ListingDetailPage({
                   ].map((item) => (
                     <div
                       key={item.label}
-                      className="flex items-center text-xs font-semibold"
+                      className="flex items-center justify-between gap-3 text-xs font-semibold"
                     >
-                      <span className="w-1/3 text-[#1D1D1F]/80">
+                      <span className="text-[#1D1D1F]/80 min-w-[104px] sm:w-1/3">
                         {item.label}
                       </span>
-                      <div className="flex-1 flex items-center gap-1">
+                      <div className="flex-1 flex items-center gap-1 justify-end sm:justify-start">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <svg
                             key={star}
@@ -422,7 +429,7 @@ export default async function ListingDetailPage({
                 </div>
               </div>
 
-              <div className="mb-6 p-4 rounded-2xl bg-[#FAF6F0] border border-black/[0.08] flex items-center gap-3">
+              <div className="mb-6 p-4 rounded-2xl bg-[#FAF6F0] border border-black/[0.08] flex flex-wrap sm:flex-nowrap items-center gap-3">
                 <Link href={`/profile/${book.owner.id}`} className="shrink-0">
                   {book.owner.image ? (
                     // eslint-disable-next-line @next/next/no-img-element

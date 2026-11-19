@@ -14,9 +14,15 @@ export async function POST(
     }
 
     const { id: clubId } = await params
-    const { chapterLabel, content } = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
+    const { chapterLabel, content } = body
 
-    if (!content || !content.trim()) {
+    if (typeof content !== "string" || !content.trim()) {
       return NextResponse.json(
         { error: "Reflection content is required" },
         { status: 400 }
@@ -46,13 +52,17 @@ export async function POST(
     }
 
     if (!membership) {
-      await prisma.bookClubMember.create({
-        data: {
-          clubId,
-          userId: session.user.id,
-          role: club.creatorId === session.user.id ? "LEADER" : "MEMBER",
-        },
-      })
+      try {
+        await prisma.bookClubMember.create({
+          data: {
+            clubId,
+            userId: session.user.id,
+            role: club.creatorId === session.user.id ? "LEADER" : "MEMBER",
+          },
+        })
+      } catch (err: any) {
+        if (err?.code !== "P2002") throw err
+      }
     }
 
     const post = await prisma.bookClubPost.create({

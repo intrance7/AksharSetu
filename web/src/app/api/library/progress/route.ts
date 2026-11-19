@@ -11,11 +11,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
     const { libraryBookId, bookKey, currentPage, totalPages } = body
 
-    const pageNum = Math.max(1, Number(currentPage) || 1)
-    const totalNum = Math.max(pageNum, Number(totalPages) || 250)
+    const parsedPage = Number(currentPage)
+    const parsedTotal = Number(totalPages)
+    const pageNum = Math.max(
+      1,
+      Math.min(50000, Number.isFinite(parsedPage) ? Math.round(parsedPage) : 1)
+    )
+    const totalNum = Math.max(
+      pageNum,
+      Math.min(50000, Number.isFinite(parsedTotal) && parsedTotal > 0 ? Math.round(parsedTotal) : 250)
+    )
 
     let targetBook = null
 

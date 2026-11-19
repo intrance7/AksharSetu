@@ -14,13 +14,15 @@ type Props = {
 
 export function ShantiModeChooser({ title, author, ebook }: Props) {
   return (
-    <div className="relative w-full max-w-3xl px-6 text-[#F2EBE1]">
-      <Link
-        href="/library"
-        className="fixed top-8 left-8 flex items-center gap-2 text-[#F2EBE1]/60 hover:text-[#F2EBE1] transition-colors text-sm font-bold"
-      >
-        <ArrowLeft className="w-4 h-4" /> Exit Shanti Mode
-      </Link>
+    <div className="relative w-full max-w-3xl px-4 sm:px-6 text-[#F2EBE1]">
+      <div className="mb-8 flex justify-start">
+        <Link
+          href="/library"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-[#F2EBE1]/80 hover:text-[#F2EBE1] transition-colors text-xs sm:text-sm font-bold"
+        >
+          <ArrowLeft className="w-4 h-4" /> Exit Shanti Mode
+        </Link>
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 16 }}

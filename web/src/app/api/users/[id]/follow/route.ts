@@ -22,6 +22,14 @@ export async function POST(
       )
     }
 
+    const targetUser = await prisma.user.findUnique({
+      where: { id: followingId },
+      select: { id: true },
+    })
+    if (!targetUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    }
+
     const existing = await prisma.userFollow.findUnique({
       where: {
         followerId_followingId: {
@@ -36,9 +44,13 @@ export async function POST(
       await prisma.userFollow.delete({ where: { id: existing.id } })
       following = false
     } else {
-      await prisma.userFollow.create({
-        data: { followerId, followingId },
-      })
+      try {
+        await prisma.userFollow.create({
+          data: { followerId, followingId },
+        })
+      } catch (err: any) {
+        if (err?.code !== "P2002") throw err
+      }
       following = true
 
       const followerName =

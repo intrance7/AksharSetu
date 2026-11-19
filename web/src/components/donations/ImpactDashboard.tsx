@@ -64,11 +64,11 @@ export function ImpactDashboard({ donations }: ImpactDashboardProps) {
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
-                <div className="bg-[#f5f5f7] px-4 py-2 rounded-xl">
+                <div className="bg-[#FAF6F0] border border-black/5 px-4 py-2 rounded-xl">
                   <span className="text-[10px] uppercase font-bold text-[#86868b] block">
                     Tracking ID
                   </span>
-                  <span className="text-xs font-mono font-bold text-[#1d1d1f]">
+                  <span className="text-xs font-mono font-bold text-[#1d1d1f] break-all">
                     {donation.trackingId}
                   </span>
                 </div>
@@ -84,13 +84,16 @@ export function ImpactDashboard({ donations }: ImpactDashboardProps) {
             {/* 6-Stage Progress Tracker */}
             <div className="relative overflow-x-auto pb-2">
               <div className="min-w-[520px] relative">
-                <div className="absolute top-5 left-6 right-6 h-1 bg-[#f5f5f7] rounded-full -z-10" />
+                <div className="absolute top-5 left-6 right-6 h-1 bg-[#FAF6F0] rounded-full -z-10" />
                 <div
                   className="absolute top-5 left-6 h-1 bg-[#0066cc] rounded-full -z-10 transition-all duration-700"
                   style={{
-                    width: `calc(${
-                      (currentStepIndex / (STATUS_STEPS.length - 1)) * 100
-                    }% - 3rem)`,
+                    width:
+                      currentStepIndex === 0
+                        ? "0px"
+                        : `calc(${
+                            (currentStepIndex / (STATUS_STEPS.length - 1)) * 100
+                          }% - 3rem)`,
                   }}
                 />
 

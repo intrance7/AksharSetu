@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import { auth } from "@/auth"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
 const CATEGORY_BASE_MRP: Record<string, number> = {
@@ -21,27 +22,41 @@ const CONDITION_MULTIPLIER: Record<string, number> = {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
-    const {
-      title = "",
-      author = "",
-      category = "other",
-      condition = "LIKE_NEW",
-      isBundle = false,
-      booksInBundle = 1,
-      condCover = 5,
-      condPages = 5,
-      condHighlighting = 5,
-      condNotes = 5,
-      condBinding = 5,
-    } = body
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
+
+    const title = typeof body?.title === "string" ? body.title : ""
+    const author = typeof body?.author === "string" ? body.author : ""
+    const category =
+      typeof body?.category === "string" && body.category.trim()
+        ? body.category.trim()
+        : "other"
+    const condition =
+      typeof body?.condition === "string" && body.condition.trim()
+        ? body.condition.trim()
+        : "LIKE_NEW"
+    const isBundle = Boolean(body?.isBundle)
+    const booksInBundle = body?.booksInBundle ?? 1
+
+    const clampScore = (v: unknown) => {
+      const n = Number(v)
+      return Number.isFinite(n) ? Math.min(5, Math.max(1, n)) : 5
+    }
     const fivePointSum =
-      Number(condCover) +
-      Number(condPages) +
-      Number(condHighlighting) +
-      Number(condNotes) +
-      Number(condBinding)
+      clampScore(body?.condCover) +
+      clampScore(body?.condPages) +
+      clampScore(body?.condHighlighting) +
+      clampScore(body?.condNotes) +
+      clampScore(body?.condBinding)
     const integrityPct = Math.max(
       20,
       Math.min(100, Math.round((fivePointSum / 25) * 100))
@@ -97,8 +112,8 @@ export async function POST(req: Request) {
         : `, calibrated for fast student resale in ${category}.`
     }`
 
-    const apiKey = process.env.GEMINI_API_KEY
-    if (apiKey && title.trim()) {
+    const apiKey = process.env.GEMINI_API_KEY?.trim()
+    if (apiKey && apiKey !== "placeholder" && title.trim()) {
       try {
         const genAI = new GoogleGenerativeAI(apiKey)
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
@@ -129,4 +144,3 @@ export async function POST(req: Request) {
     )
   }
 }
-

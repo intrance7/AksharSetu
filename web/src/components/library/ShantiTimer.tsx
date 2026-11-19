@@ -334,14 +334,14 @@ export function ShantiTimer({
   const pct = Math.min(100, Math.round((currentPage / Math.max(1, totalPages)) * 100))
 
   return (
-    <div className="relative w-full min-h-screen flex flex-col items-center justify-center text-white px-6 py-16">
+    <div className="relative w-full min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center text-white px-4 sm:px-6 py-10">
       <AnimatePresence>
         {!isActive && (
           <motion.div
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
-            className="fixed top-16 left-8 z-20"
+            className="w-full max-w-xl mb-6 flex justify-start"
           >
             <Link
               href="/library"
@@ -367,7 +367,7 @@ export function ShantiTimer({
         <p className="text-[#86868b] font-medium mb-8">by {author}</p>
 
         {/* Ambient Soundscape Pills */}
-        <div className="inline-flex items-center gap-1.5 p-1 rounded-full bg-white/5 border border-white/10 mb-10">
+        <div className="flex flex-wrap items-center justify-center gap-1.5 p-1.5 rounded-2xl sm:rounded-full bg-white/5 border border-white/10 mb-10 max-w-full">
           {SOUNDS.map((snd) => (
             <button
               key={snd.id}
@@ -466,7 +466,7 @@ export function ShantiTimer({
               style={{ width: `${pct}%` }}
             />
           </div>
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
               <button
                 type="button"

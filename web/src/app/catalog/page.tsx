@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import prisma from "@/lib/prisma"
 import { CatalogHero } from "@/components/catalog/CatalogHero"
@@ -294,17 +295,33 @@ export default async function CatalogPage({
   )
 
   return (
-    <div className="min-h-screen bg-[#F2EBE1] relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#F2EBE1] relative overflow-x-clip">
       <div className="relative z-10 w-full">
         <CatalogHero isFiltered={isFiltered} />
-        <CatalogLayoutClient
-          books={finalBooks as any}
-          totalCount={totalCount}
-          currentPage={safePage}
-          totalPages={totalPages}
-          isFiltered={isFiltered}
-          userLocation={userLocation}
-        />
+        <Suspense
+          fallback={
+            <div className="container mx-auto max-w-[1400px] px-4 md:px-8 py-12">
+              <div className="h-12 w-full bg-white/60 rounded-2xl mb-6 animate-pulse" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div
+                    key={i}
+                    className="h-[420px] bg-white/80 rounded-3xl animate-pulse"
+                  />
+                ))}
+              </div>
+            </div>
+          }
+        >
+          <CatalogLayoutClient
+            books={finalBooks as any}
+            totalCount={totalCount}
+            currentPage={safePage}
+            totalPages={totalPages}
+            isFiltered={isFiltered}
+            userLocation={userLocation}
+          />
+        </Suspense>
       </div>
     </div>
   )

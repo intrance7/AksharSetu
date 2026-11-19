@@ -4,8 +4,12 @@ import { HELP_ARTICLES } from "@/lib/helpCenterData"
 import { LEGAL_DOCUMENT_LIST } from "@/lib/legalDocumentsData"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl =
-    process.env.AUTH_URL || "https://aksharsetu-iota.vercel.app"
+  const baseUrl = (
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.AUTH_URL ||
+    process.env.NEXTAUTH_URL ||
+    "https://aksharsetu-iota.vercel.app"
+  ).replace(/\/+$/, "")
 
   const staticRoutes = [
     "",

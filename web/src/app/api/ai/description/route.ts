@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { auth } from "@/auth"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
 function buildFallbackDescription(
@@ -16,14 +17,31 @@ function buildFallbackDescription(
 
 export async function POST(req: Request) {
   try {
-    const { title, author, category, condition } = await req.json()
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
+
+    const title = typeof body?.title === "string" ? body.title.trim() : ""
+    const author = typeof body?.author === "string" ? body.author.trim() : undefined
+    const category =
+      typeof body?.category === "string" ? body.category.trim() : undefined
+    const condition =
+      typeof body?.condition === "string" ? body.condition.trim() : undefined
 
     if (!title) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 })
     }
 
-    const apiKey = process.env.GEMINI_API_KEY
-    if (!apiKey) {
+    const apiKey = process.env.GEMINI_API_KEY?.trim()
+    if (!apiKey || apiKey === "placeholder") {
       return NextResponse.json({
         description: buildFallbackDescription(title, author, category, condition),
       })

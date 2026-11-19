@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import { conversationChannel, userChannel } from "@/lib/messaging/constants"
-import { MessagingError, errorResponse } from "@/lib/messaging/http"
+import { MessagingError, errorResponse, readJson } from "@/lib/messaging/http"
 import {
   serializeMessage,
   serializeOffer,
@@ -23,7 +23,7 @@ export async function PATCH(
 
     const myId = session.user.id
     const { id: offerId } = await params
-    const body = await req.json()
+    const body = await readJson<any>(req)
     const { status } = body as { status?: "ACCEPTED" | "REJECTED" | "WITHDRAWN" }
 
     if (!status || !["ACCEPTED", "REJECTED", "WITHDRAWN"].includes(status)) {

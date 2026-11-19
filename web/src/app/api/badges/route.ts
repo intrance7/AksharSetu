@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { ensureDefaultBadges } from "@/services/badgeService"
 
+export const dynamic = "force-dynamic"
+
 export async function GET() {
   try {
     const badges = await ensureDefaultBadges()

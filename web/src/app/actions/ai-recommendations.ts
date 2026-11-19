@@ -179,10 +179,36 @@ Respond STRICTLY with a JSON array of 5 objects with keys: title, author, reason
     const result = await model.generateContent(prompt)
     let jsonStr = result.response.text().trim()
     jsonStr = jsonStr.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/, "").trim()
-    const recommendations: AIRecommendation[] = JSON.parse(jsonStr)
+    const parsed = JSON.parse(jsonStr)
+    const rawList = Array.isArray(parsed)
+      ? parsed
+      : Array.isArray(parsed?.recommendations)
+        ? parsed.recommendations
+        : []
+    const recommendations: AIRecommendation[] = rawList
+      .filter(
+        (rec: any) =>
+          rec &&
+          typeof rec.title === "string" &&
+          rec.title.trim().length > 0 &&
+          typeof rec.author === "string"
+      )
+      .slice(0, 5)
+      .map((rec: any) => ({
+        title: rec.title.trim(),
+        author: rec.author.trim() || "Unknown Author",
+        reason:
+          typeof rec.reason === "string" && rec.reason.trim()
+            ? rec.reason.trim()
+            : "Recommended for your AksharSetu reading list.",
+      }))
+
+    if (recommendations.length === 0) {
+      return buildAlgorithmicRecommendations(userId, preferredCategories, knownTitles)
+    }
 
     const enriched = await Promise.all(
-      recommendations.slice(0, 5).map(async (rec) => {
+      recommendations.map(async (rec) => {
         const availableBook = await prisma.book.findFirst({
           where: {
             title: { contains: rec.title, mode: "insensitive" },

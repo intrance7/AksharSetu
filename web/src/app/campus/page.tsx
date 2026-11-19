@@ -277,33 +277,44 @@ export default async function CampusTextbookHubPage({
           </div>
 
           {/* Quick Campus Chips */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-black uppercase tracking-wider text-[#86868b] mr-1">
-              Campuses:
-            </span>
-            {liveUniversities.map((uni) => {
-              const active =
-                university.toLowerCase() === uni.toLowerCase()
-              return (
-                <Link
-                  key={uni}
-                  href={buildHref({ university: active ? null : uni })}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-                    active
-                      ? "bg-[#C84200]/15 text-[#C84200] border border-[#C84200]/30 font-bold"
-                      : "bg-[#FAF6F0] text-[#86868b] hover:text-[#1D1D1F]"
-                  }`}
-                >
-                  {uni}
-                </Link>
-              )
-            })}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-black uppercase tracking-wider text-[#86868b] mr-1">
+                Campuses:
+              </span>
+              {liveUniversities.map((uni) => {
+                const active =
+                  university.toLowerCase() === uni.toLowerCase()
+                return (
+                  <Link
+                    key={uni}
+                    href={buildHref({ university: active ? null : uni })}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                      active
+                        ? "bg-[#C84200]/15 text-[#C84200] border border-[#C84200]/30 font-bold"
+                        : "bg-[#FAF6F0] text-[#86868b] hover:text-[#1D1D1F]"
+                    }`}
+                  >
+                    {uni}
+                  </Link>
+                )
+              })}
+            </div>
+
+            {(university || course || semesterStr || bundlesOnly || q) && (
+              <Link
+                href="/campus"
+                className="text-xs font-bold text-[#C84200] hover:underline shrink-0"
+              >
+                Reset All Filters
+              </Link>
+            )}
           </div>
         </div>
 
         {/* Results Grid */}
         {books.length === 0 ? (
-          <div className="bg-white rounded-3xl p-14 text-center border border-black/5">
+          <div className="bg-white rounded-3xl p-8 sm:p-14 text-center border border-black/5">
             <BookOpen className="w-12 h-12 text-[#C84200]/40 mx-auto mb-3" />
             <h2 className="text-2xl font-black text-[#1D1D1F] mb-2">
               No textbooks listed for this filter yet
@@ -315,19 +326,19 @@ export default async function CampusTextbookHubPage({
             <div className="flex flex-wrap justify-center gap-3">
               <Link
                 href="/catalog/new?bundle=true"
-                className="px-6 py-3 rounded-full bg-[#C84200] text-white font-bold text-xs uppercase tracking-wider"
+                className="px-6 py-3 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white font-bold text-xs uppercase tracking-wider transition-colors"
               >
                 List a Semester Bundle
               </Link>
               <Link
                 href="/requests"
-                className="px-6 py-3 rounded-full bg-[#FAF6F0] text-[#1D1D1F] font-bold text-xs uppercase tracking-wider border border-black/10"
+                className="px-6 py-3 rounded-full bg-[#FAF6F0] hover:bg-[#E8E2D7] text-[#1D1D1F] font-bold text-xs uppercase tracking-wider border border-black/10 transition-colors"
               >
                 Request from Seniors
               </Link>
               <Link
                 href="/campus"
-                className="px-6 py-3 rounded-full bg-white text-[#86868b] font-bold text-xs uppercase tracking-wider border border-black/10"
+                className="px-6 py-3 rounded-full bg-white hover:bg-black/5 text-[#86868b] font-bold text-xs uppercase tracking-wider border border-black/10 transition-colors"
               >
                 Reset Filters
               </Link>
@@ -335,7 +346,7 @@ export default async function CampusTextbookHubPage({
           </div>
         ) : (
           <div>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
               <h2 className="text-xl font-black text-[#1D1D1F]">
                 Academic Textbooks & Semester Packs ({books.length})
               </h2>

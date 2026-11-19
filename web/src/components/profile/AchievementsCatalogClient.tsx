@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react"
 import Link from "next/link"
+import { toast } from "sonner"
 import { VectorBadgeArtwork } from "@/components/profile/VectorBadgeArtwork"
 import { BADGE_RARITY_META, type BadgeRarity } from "@/lib/gamification"
 import {
@@ -152,38 +153,52 @@ export function AchievementsCatalogClient({
   async function togglePinBadge(badgeId: string) {
     if (!isAuthenticated || savingPin) return
     const exists = pinnedIds.includes(badgeId)
-    let nextPinned: string[]
-    if (exists) {
-      nextPinned = pinnedIds.filter((id) => id !== badgeId)
-    } else {
-      if (pinnedIds.length >= 6) {
-        nextPinned = [...pinnedIds.slice(1), badgeId]
-      } else {
-        nextPinned = [...pinnedIds, badgeId]
-      }
+    if (!exists && pinnedIds.length >= 5) {
+      toast.error("You can pin up to 5 badges. Unpin one first to add another.")
+      return
     }
+    const previousPinned = pinnedIds
+    const nextPinned = exists
+      ? pinnedIds.filter((id) => id !== badgeId)
+      : [...pinnedIds, badgeId]
 
     setPinnedIds(nextPinned)
     setSavingPin(true)
     try {
-      await fetch("/api/profile", {
+      const res = await fetch("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pinnedBadgeIds: nextPinned }),
+        body: JSON.stringify({
+          action: "pin_badge",
+          badgeId,
+          isPinned: !exists,
+        }),
       })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setPinnedIds(previousPinned)
+        toast.error(data.error || "Could not update pinned badge")
+        return
+      }
+      toast.success(
+        exists ? "Removed from profile showcase" : "Pinned to profile showcase!"
+      )
+    } catch {
+      setPinnedIds(previousPinned)
+      toast.error("Could not update pinned badge")
     } finally {
       setSavingPin(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pb-24">
+    <div className="min-h-screen bg-[#F2EBE1] pb-24">
       {/* Deep Black Hero Section */}
       <section className="bg-black text-[#f5f5f7] pt-14 pb-16 px-4 sm:px-6 border-b border-white/10">
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-xs font-bold text-[#0066cc] mb-3">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-xs font-bold text-[#FF8A4C] mb-3">
                 <Trophy className="h-3.5 w-3.5" /> AksharSetu Hall of Emblems
               </div>
               <h1 className="text-4xl sm:text-6xl font-bold tracking-tighter leading-none">
@@ -192,7 +207,7 @@ export function AchievementsCatalogClient({
               <p className="mt-3 text-sm sm:text-base text-[#86868b] max-w-2xl">
                 Collect all {badges.length} original vector medallions across
                 Reading, Reviews, Marketplace, Vidya Daan, Community, and Rank
-                Progression. Pin up to 6 unlocked badges to your public profile.
+                Progression. Pin up to 5 unlocked badges to your public profile.
               </p>
             </div>
 
@@ -200,7 +215,7 @@ export function AchievementsCatalogClient({
               {userId && (
                 <Link
                   href={`/profile/${userId}`}
-                  className="rounded-full bg-[#0066cc] hover:bg-[#0071e3] px-5 py-2.5 text-xs font-bold text-white transition-colors"
+                  className="rounded-full bg-[#C84200] hover:bg-[#A33500] px-5 py-2.5 text-xs font-bold text-white transition-colors"
                 >
                   View My Profile Showcase
                 </Link>
@@ -224,8 +239,8 @@ export function AchievementsCatalogClient({
                   / {badges.length}
                 </span>
               </div>
-              <div className="text-[11px] text-[#0066cc] font-bold mt-1">
-                {pinnedIds.length}/6 pinned to showcase
+              <div className="text-[11px] text-[#FF8A4C] font-bold mt-1">
+                {pinnedIds.length}/5 pinned to showcase
               </div>
             </div>
 

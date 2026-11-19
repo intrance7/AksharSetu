@@ -35,10 +35,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Sign in to save highlights and notes" }, { status: 401 })
     }
 
-    const body = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
     const { bookKey, bookTitle, bookAuthor, quoteText, noteText, color, pageNumber } = body
 
-    if (!bookKey || !quoteText?.trim()) {
+    if (!bookKey || typeof quoteText !== "string" || !quoteText.trim()) {
       return NextResponse.json({ error: "Book key and highlighted passage are required" }, { status: 400 })
     }
 

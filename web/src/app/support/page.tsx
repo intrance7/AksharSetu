@@ -145,10 +145,10 @@ function SupportPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pb-24">
+    <div className="min-h-screen bg-[#F2EBE1] pb-24">
       <section className="bg-black text-[#f5f5f7] pt-14 pb-18 px-4 sm:px-6 border-b border-white/10">
         <div className="mx-auto max-w-5xl">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-xs font-bold text-[#0066cc] mb-3">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-xs font-bold text-[#FF8A4C] mb-3">
             <LifeBuoy className="h-3.5 w-3.5" /> AksharSetu Trust, Safety &
             Support Desk
           </div>
@@ -173,10 +173,10 @@ function SupportPageContent() {
                 key={cat.id}
                 type="button"
                 onClick={() => setCategory(cat.id)}
-                className={`text-left rounded-2xl p-4 border transition-all ${
+                className={`text-left rounded-2xl p-4 border transition-all cursor-pointer ${
                   selected
                     ? "bg-[#1d1d1f] text-white border-[#1d1d1f] shadow-md"
-                    : "bg-white text-[#1d1d1f] border-black/[0.06] hover:border-[#0066cc] shadow-sm"
+                    : "bg-white text-[#1d1d1f] border-black/[0.06] hover:border-[#C84200] shadow-sm"
                 }`}
               >
                 <Icon
@@ -289,7 +289,7 @@ function SupportPageContent() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] disabled:opacity-50 px-7 py-3 text-xs sm:text-sm font-bold text-white transition-colors"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-[#C84200] hover:bg-[#A33500] disabled:opacity-50 px-7 py-3 text-xs sm:text-sm font-bold text-white transition-colors cursor-pointer"
               >
                 <Send className="h-4 w-4" />
                 {submitting ? "Submitting Ticket..." : "Submit Support Ticket"}
@@ -305,8 +305,7 @@ function SupportPageContent() {
                 My Submitted Tickets ({myTickets.length})
               </h3>
               <p className="text-xs text-[#86868b] mt-1 mb-4">
-                Real-time ticket status (`OPEN`, `IN_PROGRESS`,
-                `WAITING_FOR_USER`, `RESOLVED`, `CLOSED`).
+                Live ticket tracking from Open and In Progress through Resolved.
               </p>
 
               {myTickets.length === 0 ? (
@@ -400,7 +399,7 @@ export default function SupportPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#f5f5f7] p-12 text-center text-sm text-[#86868b]">
+        <div className="min-h-screen bg-[#F2EBE1] p-12 text-center text-sm text-[#86868b]">
           Loading Support Desk...
         </div>
       }

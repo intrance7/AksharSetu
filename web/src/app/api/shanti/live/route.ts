@@ -3,6 +3,8 @@ import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import { getMutualFollowIds } from "@/lib/shantiVisibility"
 
+export const dynamic = "force-dynamic"
+
 export async function GET() {
   try {
     const session = await auth()

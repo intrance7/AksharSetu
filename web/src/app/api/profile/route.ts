@@ -8,6 +8,39 @@ import {
   getUnlockedTitles,
 } from "@/lib/gamification"
 
+export const dynamic = "force-dynamic"
+
+const SAFE_PROFILE_SELECT = {
+  id: true,
+  name: true,
+  username: true,
+  email: true,
+  image: true,
+  coverImage: true,
+  profileFrame: true,
+  profileTheme: true,
+  selectedTitle: true,
+  bio: true,
+  favoriteQuote: true,
+  quoteAuthor: true,
+  location: true,
+  latitude: true,
+  longitude: true,
+  liveStatus: true,
+  isShantiModeActive: true,
+  totalXP: true,
+  aksharPoints: true,
+  currentStreak: true,
+  longestStreak: true,
+  readingGoalBooks: true,
+  unlockedCosmetics: true,
+  isPublicProfile: true,
+  showOnlineStatus: true,
+  showReadingActivity: true,
+  showContributionGraph: true,
+  leaderboardOptOut: true,
+} as const
+
 export async function GET() {
   try {
     const session = await auth()
@@ -17,37 +50,12 @@ export async function GET() {
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: {
-        id: true,
-        name: true,
-        username: true,
-        email: true,
-        image: true,
-        coverImage: true,
-        profileFrame: true,
-        profileTheme: true,
-        selectedTitle: true,
-        bio: true,
-        favoriteQuote: true,
-        quoteAuthor: true,
-        location: true,
-        latitude: true,
-        longitude: true,
-        liveStatus: true,
-        isShantiModeActive: true,
-        totalXP: true,
-        aksharPoints: true,
-        currentStreak: true,
-        longestStreak: true,
-        readingGoalBooks: true,
-        unlockedCosmetics: true,
-        isPublicProfile: true,
-        showOnlineStatus: true,
-        showReadingActivity: true,
-        showContributionGraph: true,
-        leaderboardOptOut: true,
-      },
+      select: SAFE_PROFILE_SELECT,
     })
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    }
 
     return NextResponse.json(user)
   } catch (error) {
@@ -64,12 +72,17 @@ export async function PATCH(req: Request) {
     }
 
     const userId = session.user.id
-    const body = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
 
     // 1. Pin / Unpin Achievement Badge (max 5 pinned)
     if (body.action === "pin_badge") {
       const { badgeId, isPinned } = body
-      if (!badgeId) {
+      if (!badgeId || typeof badgeId !== "string") {
         return NextResponse.json({ error: "Missing badgeId" }, { status: 400 })
       }
       if (isPinned) {
@@ -83,16 +96,26 @@ export async function PATCH(req: Request) {
           )
         }
       }
-      const updatedBadge = await prisma.userBadge.update({
-        where: {
-          userId_badgeId: {
-            userId,
-            badgeId,
+      try {
+        const updatedBadge = await prisma.userBadge.update({
+          where: {
+            userId_badgeId: {
+              userId,
+              badgeId,
+            },
           },
-        },
-        data: { isPinned: Boolean(isPinned) },
-      })
-      return NextResponse.json(updatedBadge)
+          data: { isPinned: Boolean(isPinned) },
+        })
+        return NextResponse.json(updatedBadge)
+      } catch (err: any) {
+        if (err?.code === "P2025") {
+          return NextResponse.json(
+            { error: "Badge not unlocked yet" },
+            { status: 404 }
+          )
+        }
+        throw err
+      }
     }
 
     // 2. Unlock or Equip Cosmetic with Akshar Points / Level
@@ -100,17 +123,27 @@ export async function PATCH(req: Request) {
       const { cosmeticId } = body
       const item = COSMETIC_CATALOG.find((c) => c.id === cosmeticId)
       if (!item) {
-        return NextResponse.json({ error: "Cosmetic item not found" }, { status: 404 })
+        return NextResponse.json(
+          { error: "Cosmetic item not found" },
+          { status: 404 }
+        )
       }
 
-      const currentUser = await prisma.user.findUniqueOrThrow({
+      const currentUser = await prisma.user.findUnique({
         where: { id: userId },
       })
+      if (!currentUser) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 })
+      }
+
       const levelInfo = calculateLevelFromXP(currentUser.totalXP)
       const unlockedSet = new Set(currentUser.unlockedCosmetics || [])
 
       if (!unlockedSet.has(item.id)) {
-        if (levelInfo.level < item.minLevel && currentUser.aksharPoints < item.pointsCost) {
+        if (
+          levelInfo.level < item.minLevel &&
+          currentUser.aksharPoints < item.pointsCost
+        ) {
           return NextResponse.json(
             {
               error: `Requires Level ${item.minLevel} or ${item.pointsCost} Akshar Points.`,
@@ -136,16 +169,18 @@ export async function PATCH(req: Request) {
           })
 
           if (deductPoints > 0) {
-            await tx.xpTransaction.create({
-              data: {
-                userId,
-                eventType: "COSMETIC_UNLOCK",
-                idempotencyKey: `cosmetic:${userId}:${item.id}`,
-                xpAmount: 0,
-                pointsAmount: -deductPoints,
-                description: `Unlocked cosmetic "${item.name}"`,
-              },
-            })
+            await tx.xpTransaction
+              .create({
+                data: {
+                  userId,
+                  eventType: "COSMETIC_UNLOCK",
+                  idempotencyKey: `cosmetic:${userId}:${item.id}`,
+                  xpAmount: 0,
+                  pointsAmount: -deductPoints,
+                  description: `Unlocked cosmetic "${item.name}"`,
+                },
+              })
+              .catch(() => {})
           }
         })
       } else {
@@ -194,10 +229,13 @@ export async function PATCH(req: Request) {
       leaderboardOptOut,
     } = body
 
-    const currentUser = await prisma.user.findUniqueOrThrow({
+    const currentUser = await prisma.user.findUnique({
       where: { id: userId },
       select: { totalXP: true, unlockedCosmetics: true },
     })
+    if (!currentUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    }
 
     const updateData: Record<string, any> = {}
 
@@ -205,10 +243,32 @@ export async function PATCH(req: Request) {
     if (bio !== undefined) updateData.bio = String(bio).trim().slice(0, 600)
     if (location !== undefined)
       updateData.location = String(location).trim().slice(0, 100)
-    if (latitude !== undefined) updateData.latitude = latitude
-    if (longitude !== undefined) updateData.longitude = longitude
-    if (image !== undefined) updateData.image = image
-    if (coverImage !== undefined) updateData.coverImage = coverImage
+    if (latitude !== undefined) {
+      if (latitude === null || latitude === "") {
+        updateData.latitude = null
+      } else {
+        const parsedLat = Number(latitude)
+        if (Number.isFinite(parsedLat) && parsedLat >= -90 && parsedLat <= 90) {
+          updateData.latitude = parsedLat
+        }
+      }
+    }
+    if (longitude !== undefined) {
+      if (longitude === null || longitude === "") {
+        updateData.longitude = null
+      } else {
+        const parsedLng = Number(longitude)
+        if (Number.isFinite(parsedLng) && parsedLng >= -180 && parsedLng <= 180) {
+          updateData.longitude = parsedLng
+        }
+      }
+    }
+    if (image !== undefined) {
+      updateData.image = image ? String(image).trim().slice(0, 2000000) : null
+    }
+    if (coverImage !== undefined) {
+      updateData.coverImage = coverImage ? String(coverImage).trim().slice(0, 500) : null
+    }
     if (favoriteQuote !== undefined)
       updateData.favoriteQuote = String(favoriteQuote).trim().slice(0, 320)
     if (quoteAuthor !== undefined)
@@ -242,7 +302,7 @@ export async function PATCH(req: Request) {
     }
 
     if (readingGoalBooks !== undefined) {
-      const goal = Math.max(1, Math.min(200, Number(readingGoalBooks) || 12))
+      const goal = Math.max(1, Math.min(200, Math.round(Number(readingGoalBooks) || 12)))
       updateData.readingGoalBooks = goal
     }
 
@@ -255,10 +315,10 @@ export async function PATCH(req: Request) {
     }
 
     if (profileFrame !== undefined) {
-      updateData.profileFrame = String(profileFrame)
+      updateData.profileFrame = String(profileFrame).slice(0, 40)
     }
     if (profileTheme !== undefined) {
-      updateData.profileTheme = String(profileTheme)
+      updateData.profileTheme = String(profileTheme).slice(0, 40)
     }
 
     if (typeof isPublicProfile === "boolean")
@@ -275,6 +335,7 @@ export async function PATCH(req: Request) {
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: updateData,
+      select: SAFE_PROFILE_SELECT,
     })
 
     checkAndAwardBadges(userId).catch(() => {})

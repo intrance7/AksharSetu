@@ -149,7 +149,7 @@ export function CatalogTopBar({
       </div>
 
       {/* Right: Filter Toggle & Sort Dropdown */}
-      <div className="flex items-center justify-between sm:justify-end gap-3">
+      <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2.5 sm:gap-3">
         {/* Desktop Filter Sidebar Toggle */}
         <button
           type="button"
@@ -169,7 +169,7 @@ export function CatalogTopBar({
         <button
           type="button"
           onClick={onOpenMobileFilters}
-          className="md:hidden inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#1D1D1F]/10 text-xs font-bold text-[#1D1D1F] cursor-pointer"
+          className="md:hidden inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#1D1D1F]/10 text-xs font-bold text-[#1D1D1F] cursor-pointer shrink-0"
         >
           <SlidersHorizontal className="w-3.5 h-3.5 text-[#C84200]" />
           <span>Filters</span>
@@ -181,13 +181,13 @@ export function CatalogTopBar({
         </button>
 
         {/* Sort Control */}
-        <div className="inline-flex items-center gap-2 bg-white border border-[#1D1D1F]/10 rounded-full px-4 py-2">
-          <span className="text-xs font-bold text-[#1D1D1F]/50">Sort:</span>
+        <div className="inline-flex items-center gap-2 bg-white border border-[#1D1D1F]/10 rounded-full px-3.5 sm:px-4 py-2 min-w-0">
+          <span className="text-xs font-bold text-[#1D1D1F]/50 shrink-0">Sort:</span>
           <select
             value={currentSort}
             onChange={handleSortChange}
             aria-label="Sort books"
-            className="bg-transparent text-xs font-bold text-[#1D1D1F] outline-none cursor-pointer pr-2"
+            className="bg-transparent text-xs font-bold text-[#1D1D1F] outline-none cursor-pointer pr-1 min-w-0 max-w-[155px] sm:max-w-none truncate"
           >
             <option value="new">Newest Arrivals</option>
             <option value="popular">Most Popular</option>

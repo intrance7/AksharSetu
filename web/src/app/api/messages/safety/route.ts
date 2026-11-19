@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import { RATE_LIMITS, REPORT_REASONS } from "@/lib/messaging/constants"
-import { MessagingError, errorResponse } from "@/lib/messaging/http"
+import { MessagingError, errorResponse, readJson } from "@/lib/messaging/http"
 
 // POST /api/messages/safety — block/unblock user, submit abuse report, or update notification preferences
 export async function POST(req: Request) {
@@ -13,13 +13,21 @@ export async function POST(req: Request) {
     }
 
     const myId = session.user.id
-    const body = await req.json()
+    const body = await readJson<any>(req)
     const { action } = body
 
     if (action === "block") {
       const { targetUserId } = body
-      if (!targetUserId || targetUserId === myId) {
+      if (!targetUserId || typeof targetUserId !== "string" || targetUserId === myId) {
         throw new MessagingError(400, "Invalid user to block.", "BAD_REQUEST")
+      }
+
+      const targetExists = await prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: { id: true },
+      })
+      if (!targetExists) {
+        throw new MessagingError(404, "User not found.", "NOT_FOUND")
       }
 
       await prisma.userBlock.upsert({
@@ -57,8 +65,20 @@ export async function POST(req: Request) {
 
     if (action === "report") {
       const { reportedUserId, conversationId, messageId, reason, details } = body
-      if (!reportedUserId || reportedUserId === myId) {
+      if (
+        !reportedUserId ||
+        typeof reportedUserId !== "string" ||
+        reportedUserId === myId
+      ) {
         throw new MessagingError(400, "Invalid report target.", "BAD_REQUEST")
+      }
+
+      const reportedExists = await prisma.user.findUnique({
+        where: { id: reportedUserId },
+        select: { id: true },
+      })
+      if (!reportedExists) {
+        throw new MessagingError(404, "Reported user not found.", "NOT_FOUND")
       }
 
       const validReasons = new Set(REPORT_REASONS.map((r) => r.value))

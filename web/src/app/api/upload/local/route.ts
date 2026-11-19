@@ -6,9 +6,17 @@ import { auth } from "@/auth"
 
 const MAX_BYTES = 8 * 1024 * 1024 // 8 MB
 
+const ALLOWED_IMAGE_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif"])
+
 function sanitizeFilename(raw: string): string {
   const base = path.basename(raw).replace(/[^a-zA-Z0-9._-]/g, "_")
-  return base || `${Date.now()}-upload.jpg`
+  if (!base) return `${Date.now()}-upload.jpg`
+  const ext = path.extname(base).toLowerCase()
+  if (!ALLOWED_IMAGE_EXTS.has(ext)) {
+    const stem = base.slice(0, ext ? -ext.length : undefined) || `${Date.now()}-upload`
+    return `${stem}.jpg`
+  }
+  return base
 }
 
 async function compressToWebpDataUrl(buffer: Buffer): Promise<string> {

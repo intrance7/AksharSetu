@@ -531,86 +531,142 @@ export function toWeekKey(date: Date = new Date()): string {
   return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`
 }
 
+let defaultBadgesVerifiedAt = 0
+let defaultQuestsVerifiedAt = 0
+
 export async function ensureDefaultBadges() {
-  const existing = await prisma.badge.findMany()
-  const byName = new Map(existing.map((b) => [b.name.toLowerCase(), b]))
-  const byCode = new Map(
-    existing.filter((b) => b.code).map((b) => [b.code!, b])
-  )
-
-  for (const def of ACHIEVEMENT_CATALOG) {
-    const match = byCode.get(def.code) || byName.get(def.name.toLowerCase())
-    if (!match) {
-      await prisma.badge.create({
-        data: {
-          code: def.code,
-          name: def.name,
-          description: def.description,
-          category: def.category,
-          rarity: def.rarity,
-          iconUrl: def.iconUrl,
-          requirementThreshold: def.requirementThreshold,
-          metricKey: def.metricKey,
-          xpReward: def.xpReward,
-          pointsReward: def.pointsReward,
-          startsAt: def.startsAt || null,
-          endsAt: def.endsAt || null,
-          isActive: true,
-        },
+  try {
+    if (Date.now() - defaultBadgesVerifiedAt < 60_000) {
+      const fastList = await prisma.badge.findMany({
+        where: { isActive: true },
+        orderBy: [{ requirementThreshold: "asc" }, { name: "asc" }],
       })
-    } else if (!match.code || match.metricKey === "MANUAL" || match.iconUrl !== def.iconUrl) {
-      await prisma.badge.update({
-        where: { id: match.id },
-        data: {
-          code: def.code,
-          category: def.category,
-          rarity: def.rarity,
-          iconUrl: def.iconUrl,
-          metricKey: def.metricKey,
-          xpReward: def.xpReward,
-          pointsReward: def.pointsReward,
-          startsAt: def.startsAt || null,
-          endsAt: def.endsAt || null,
-        },
-      })
+      if (fastList.length >= ACHIEVEMENT_CATALOG.length) {
+        return fastList
+      }
     }
-  }
 
-  return prisma.badge.findMany({
-    where: { isActive: true },
-    orderBy: [{ requirementThreshold: "asc" }, { name: "asc" }],
-  })
+    const existing = await prisma.badge.findMany()
+    const byName = new Map(existing.map((b) => [b.name.toLowerCase(), b]))
+    const byCode = new Map(
+      existing.filter((b) => b.code).map((b) => [b.code!, b])
+    )
+
+    for (const def of ACHIEVEMENT_CATALOG) {
+      const match = byCode.get(def.code) || byName.get(def.name.toLowerCase())
+      if (!match) {
+        await prisma.badge
+          .upsert({
+            where: { code: def.code },
+            update: {
+              category: def.category,
+              rarity: def.rarity,
+              iconUrl: def.iconUrl,
+              metricKey: def.metricKey,
+              xpReward: def.xpReward,
+              pointsReward: def.pointsReward,
+              startsAt: def.startsAt || null,
+              endsAt: def.endsAt || null,
+            },
+            create: {
+              code: def.code,
+              name: def.name,
+              description: def.description,
+              category: def.category,
+              rarity: def.rarity,
+              iconUrl: def.iconUrl,
+              requirementThreshold: def.requirementThreshold,
+              metricKey: def.metricKey,
+              xpReward: def.xpReward,
+              pointsReward: def.pointsReward,
+              startsAt: def.startsAt || null,
+              endsAt: def.endsAt || null,
+              isActive: true,
+            },
+          })
+          .catch(() => {})
+      } else if (
+        !match.code ||
+        match.metricKey === "MANUAL" ||
+        match.iconUrl !== def.iconUrl
+      ) {
+        await prisma.badge
+          .update({
+            where: { id: match.id },
+            data: {
+              code: def.code,
+              category: def.category,
+              rarity: def.rarity,
+              iconUrl: def.iconUrl,
+              metricKey: def.metricKey,
+              xpReward: def.xpReward,
+              pointsReward: def.pointsReward,
+              startsAt: def.startsAt || null,
+              endsAt: def.endsAt || null,
+            },
+          })
+          .catch(() => {})
+      }
+    }
+
+    defaultBadgesVerifiedAt = Date.now()
+    return await prisma.badge.findMany({
+      where: { isActive: true },
+      orderBy: [{ requirementThreshold: "asc" }, { name: "asc" }],
+    })
+  } catch {
+    return []
+  }
 }
 
 export async function ensureDefaultQuests() {
-  const existing = await prisma.quest.findMany()
-  const byCode = new Set(existing.map((q) => q.code))
-
-  for (const q of DEFAULT_QUESTS) {
-    if (!byCode.has(q.code)) {
-      await prisma.quest.create({
-        data: {
-          code: q.code,
-          name: q.name,
-          description: q.description,
-          category: q.category,
-          metricKey: q.metricKey,
-          targetCount: q.targetCount,
-          rewardXp: q.rewardXp,
-          rewardPoints: q.rewardPoints,
-          cosmeticReward: q.cosmeticReward || null,
-          startsAt: q.startsAt || null,
-          endsAt: q.endsAt || null,
-          isActive: true,
-        },
+  try {
+    if (Date.now() - defaultQuestsVerifiedAt < 60_000) {
+      const fastQuests = await prisma.quest.findMany({
+        where: { isActive: true },
+        orderBy: { rewardXp: "asc" },
       })
+      if (fastQuests.length >= DEFAULT_QUESTS.length) {
+        return fastQuests
+      }
     }
-  }
 
-  return prisma.quest.findMany({
-    where: { isActive: true },
-    orderBy: { rewardXp: "asc" },
-  })
+    const existing = await prisma.quest.findMany()
+    const byCode = new Set(existing.map((q) => q.code))
+
+    for (const q of DEFAULT_QUESTS) {
+      if (!byCode.has(q.code)) {
+        await prisma.quest
+          .upsert({
+            where: { code: q.code },
+            update: {},
+            create: {
+              code: q.code,
+              name: q.name,
+              description: q.description,
+              category: q.category,
+              metricKey: q.metricKey,
+              targetCount: q.targetCount,
+              rewardXp: q.rewardXp,
+              rewardPoints: q.rewardPoints,
+              cosmeticReward: q.cosmeticReward || null,
+              startsAt: q.startsAt || null,
+              endsAt: q.endsAt || null,
+              isActive: true,
+            },
+          })
+          .catch(() => {})
+      }
+    }
+
+    defaultQuestsVerifiedAt = Date.now()
+    return await prisma.quest.findMany({
+      where: { isActive: true },
+      orderBy: { rewardXp: "asc" },
+    })
+  } catch {
+    return []
+  }
 }
 
 /**
@@ -653,70 +709,78 @@ export async function awardUserXP(params: {
   })
   const prevLevel = calculateLevelFromXP(userBefore?.totalXP || 0).level
 
-  const txRecord = await prisma.$transaction(async (tx) => {
-    const createdTx = await tx.xpTransaction.create({
-      data: {
-        userId,
-        eventType,
-        idempotencyKey,
-        sourceId: sourceId || null,
-        xpAmount,
-        pointsAmount,
-        description,
-      },
-    })
-
-    const updatedUser = await tx.user.update({
-      where: { id: userId },
-      data: {
-        totalXP: { increment: xpAmount },
-        aksharPoints: { increment: pointsAmount },
-      },
-      select: { totalXP: true },
-    })
-
-    if (activityType) {
-      await tx.userActivity.create({
+  let txRecord: { createdTx: any; newLevel: number }
+  try {
+    txRecord = await prisma.$transaction(async (tx) => {
+      const createdTx = await tx.xpTransaction.create({
         data: {
           userId,
-          activityType,
-          title: description,
+          eventType,
+          idempotencyKey,
           sourceId: sourceId || null,
-          xpEarned: xpAmount,
-          visibility,
-          dayKey: toDayKey(),
+          xpAmount,
+          pointsAmount,
+          description,
         },
       })
-    }
 
-    const newLevel = calculateLevelFromXP(updatedUser.totalXP).level
-    if (newLevel > prevLevel) {
-      await tx.userActivity.create({
+      const updatedUser = await tx.user.update({
+        where: { id: userId },
         data: {
-          userId,
-          activityType: "LEVEL_UP",
-          title: `Reached Level ${newLevel} (${
-            calculateLevelFromXP(updatedUser.totalXP).rankTitle
-          })`,
-          xpEarned: 0,
-          visibility: "PUBLIC",
-          dayKey: toDayKey(),
+          totalXP: { increment: xpAmount },
+          aksharPoints: { increment: pointsAmount },
         },
+        select: { totalXP: true },
       })
-      await tx.notification.create({
-        data: {
-          userId,
-          type: "LEVEL_UP",
-          message: `🎉 Level Up! You reached Level ${newLevel} (${
-            calculateLevelFromXP(updatedUser.totalXP).rankTitle
-          }).`,
-          link: `/profile/${userId}`,
-        },
-      })
-    }
 
-    return { createdTx, newLevel }
-  })
+      if (activityType) {
+        await tx.userActivity.create({
+          data: {
+            userId,
+            activityType,
+            title: description,
+            sourceId: sourceId || null,
+            xpEarned: xpAmount,
+            visibility,
+            dayKey: toDayKey(),
+          },
+        })
+      }
+
+      const newLevel = calculateLevelFromXP(updatedUser.totalXP).level
+      if (newLevel > prevLevel) {
+        const nextRank = calculateLevelFromXP(updatedUser.totalXP).rankTitle
+        await tx.userActivity.create({
+          data: {
+            userId,
+            activityType: "LEVEL_UP",
+            title: `Reached Level ${newLevel} (${nextRank})`,
+            xpEarned: 0,
+            visibility: "PUBLIC",
+            dayKey: toDayKey(),
+          },
+        })
+        await tx.notification.create({
+          data: {
+            userId,
+            type: "LEVEL_UP",
+            message: `🎉 Level Up! You reached Level ${newLevel} (${nextRank}).`,
+            link: `/profile/${userId}`,
+          },
+        })
+      }
+
+      return { createdTx, newLevel }
+    })
+  } catch (err: any) {
+    if (err?.code === "P2002") {
+      const existing = await prisma.xpTransaction.findUnique({
+        where: { idempotencyKey },
+      })
+      return { alreadyAwarded: true, transaction: existing, leveledUp: false }
+    }
+    throw err
+  }
 
   return {
     alreadyAwarded: false,
@@ -733,7 +797,8 @@ export async function awardUserXP(params: {
 export async function checkAndAwardBadges(userId: string) {
   if (!userId) return []
 
-  const allBadges = await ensureDefaultBadges()
+  try {
+    const allBadges = await ensureDefaultBadges()
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -941,6 +1006,9 @@ export async function checkAndAwardBadges(userId: string) {
     .catch(() => {})
 
   return newlyUnlocked
+  } catch {
+    return []
+  }
 }
 
 export function getBadgeProgressMap(user: {

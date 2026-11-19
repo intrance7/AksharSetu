@@ -125,45 +125,56 @@ export default function WishlistPage() {
 
   if (status === "unauthenticated") {
     return (
-      <div className="min-h-screen bg-[#F2EBE1] flex flex-col justify-center items-center px-4 text-center">
-        <Bell className="w-12 h-12 text-[#C84200] mb-4" />
-        <h1 className="text-3xl font-black text-[#1D1D1F] mb-2">
-          Wishlist Discovery Radar
-        </h1>
-        <p className="text-[#86868b] font-medium mb-6 max-w-md">
-          Sign in to set instant alerts when any textbook or novel you want is
-          listed—and cross-check our 4-archive Free E-Library automatically.
-        </p>
-        <Link
-          href="/login?callbackUrl=/wishlist"
-          className="px-6 py-3 rounded-full bg-[#C84200] text-white font-bold text-sm"
-        >
-          Sign In to Set Alerts
-        </Link>
+      <div className="min-h-screen bg-[#F2EBE1] pb-20">
+        <section className="bg-black text-[#F5F5F7] py-16 px-4 border-b border-white/10">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 text-xs font-bold uppercase tracking-widest text-[#F5F5F7]/85 mb-4">
+              <Bell className="w-3.5 h-3.5 text-[#C84200]" /> Real-Time Match
+              Radar
+            </div>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none mb-3">
+              Wishlist Discovery Radar.
+            </h1>
+            <p className="text-[#86868b] text-base md:text-lg max-w-xl mx-auto mb-8">
+              Sign in to set instant alerts when any textbook or novel you want
+              is listed—and cross-check our 4-archive Free E-Library
+              automatically.
+            </p>
+            <Link
+              href="/login?callbackUrl=/wishlist"
+              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white font-bold text-sm transition-colors shadow-sm"
+            >
+              Sign In to Set Alerts
+            </Link>
+          </div>
+        </section>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#F2EBE1] py-12 px-4 md:px-10">
-      <div className="max-w-6xl mx-auto space-y-10">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#C84200]/10 text-[#C84200] text-xs font-black uppercase tracking-wider mb-3">
-            <Bell className="w-3.5 h-3.5" /> Real-Time Match Radar
+    <div className="min-h-screen bg-[#F2EBE1] pb-20">
+      <section className="bg-black text-[#F5F5F7] py-14 md:py-16 border-b border-white/10">
+        <div className="container mx-auto max-w-6xl px-4 md:px-8">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 text-[#F5F5F7]/90 text-xs font-bold uppercase tracking-wider mb-4">
+            <Bell className="w-3.5 h-3.5 text-[#C84200]" /> Real-Time Match
+            Radar
           </div>
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight text-[#1D1D1F]">
-            Wishlist & Live Availability
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none mb-3">
+            Wishlist & Live Availability.
           </h1>
-          <p className="text-[#86868b] font-medium mt-2 max-w-2xl">
+          <p className="text-[#86868b] font-medium text-base md:text-lg max-w-2xl">
             Every book on your radar is continuously matched against new
             physical listings and our 4-source Free Legal E-Library.
           </p>
         </div>
+      </section>
 
-        <div className="grid lg:grid-cols-12 gap-8">
+      <div className="container mx-auto max-w-6xl px-4 md:px-8 pt-8 space-y-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Column: Add Alert Form */}
           <div className="lg:col-span-4">
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-black/5 sticky top-24">
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-black/5 lg:sticky lg:top-24">
               <h2 className="text-xl font-black text-[#1D1D1F] mb-2 flex items-center gap-2">
                 <Plus className="w-5 h-5 text-[#C84200]" /> Track a Book
               </h2>
@@ -213,7 +224,7 @@ export default function WishlistPage() {
                 <Button
                   type="submit"
                   disabled={adding}
-                  className="w-full bg-[#C84200] text-white hover:bg-[#A33500] rounded-full font-black py-6 uppercase tracking-wider text-xs"
+                  className="w-full bg-[#C84200] text-white hover:bg-[#A33500] rounded-full font-black py-6 uppercase tracking-wider text-xs cursor-pointer"
                 >
                   {adding ? "Activating..." : "Activate Radar Alert"}
                 </Button>
@@ -222,9 +233,9 @@ export default function WishlistPage() {
           </div>
 
           {/* Right Column: Active Alerts + Live Matches */}
-          <div className="lg:col-span-8 space-y-6">
-            <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-black/5">
-              <div className="flex items-center justify-between mb-6">
+          <div className="lg:col-span-8 space-y-6 min-w-0">
+            <div className="bg-white rounded-3xl p-5 sm:p-6 md:p-8 shadow-sm border border-black/5">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
                 <h2 className="text-xl font-black text-[#1D1D1F] flex items-center gap-2">
                   <BookOpen className="w-5 h-5 text-[#C84200]" /> Active Alerts
                   ({items.length})
@@ -256,16 +267,16 @@ export default function WishlistPage() {
                     return (
                       <div
                         key={item.id}
-                        className="p-5 rounded-2xl border border-black/5 bg-[#FAF6F0]/70 space-y-4"
+                        className="p-4 sm:p-5 rounded-2xl border border-black/5 bg-[#FAF6F0]/70 space-y-4"
                       >
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                          <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <h3 className="font-black text-lg text-[#1D1D1F]">
+                              <h3 className="font-black text-base sm:text-lg text-[#1D1D1F] break-words">
                                 {item.title || `ISBN ${item.isbn}`}
                               </h3>
                               {matches.length > 0 && (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black shrink-0">
                                   <CheckCircle2 className="w-3 h-3" />{" "}
                                   {matches.length} Live Match
                                   {matches.length > 1 ? "es" : ""}
@@ -283,13 +294,13 @@ export default function WishlistPage() {
                             </p>
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 shrink-0">
                             {searchTarget && (
                               <Link
                                 href={`/ebooks?q=${encodeURIComponent(
                                   searchTarget
                                 )}`}
-                                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white hover:bg-black/5 border border-black/10 text-xs font-bold text-[#1D1D1F]"
+                                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white hover:bg-black/5 border border-black/10 text-xs font-bold text-[#1D1D1F] whitespace-nowrap"
                               >
                                 <Sparkles className="w-3.5 h-3.5 text-[#0066cc]" />{" "}
                                 Check Free E-Library
@@ -300,6 +311,7 @@ export default function WishlistPage() {
                               onClick={() => handleDelete(item.id)}
                               className="p-2 text-[#86868b] hover:text-red-600 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
                               title="Remove alert"
+                              aria-label="Remove alert"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>

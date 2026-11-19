@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
-import { generateSabhaCode } from "@/app/api/clubs/route"
+import { generateSabhaCode } from "@/lib/sabha"
 import { checkAndAwardBadges } from "@/services/badgeService"
 
 export async function POST(
@@ -69,13 +69,17 @@ export async function POST(
       )
     }
 
-    await prisma.bookClubMember.create({
-      data: {
-        clubId,
-        userId,
-        role: club.creatorId === userId ? "LEADER" : "MEMBER",
-      },
-    })
+    try {
+      await prisma.bookClubMember.create({
+        data: {
+          clubId,
+          userId,
+          role: club.creatorId === userId ? "LEADER" : "MEMBER",
+        },
+      })
+    } catch (err: any) {
+      if (err?.code !== "P2002") throw err
+    }
 
     checkAndAwardBadges(userId).catch(() => {})
 
@@ -113,11 +117,25 @@ export async function PATCH(
       )
     }
 
-    const body = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
     const updateData: Record<string, unknown> = {}
 
     if (body.regenerateCode) {
-      updateData.inviteCode = generateSabhaCode()
+      let nextCode = generateSabhaCode()
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const conflict = await prisma.bookClub.findUnique({
+          where: { inviteCode: nextCode },
+          select: { id: true },
+        })
+        if (!conflict) break
+        nextCode = generateSabhaCode()
+      }
+      updateData.inviteCode = nextCode
     }
     if (typeof body.isPrivate === "boolean") {
       updateData.isPrivate = body.isPrivate

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { formatDistanceToNow } from "date-fns"
@@ -23,6 +23,7 @@ import {
 import { motion } from "framer-motion"
 import { toast } from "sonner"
 import type { DeliveryState } from "@/lib/messaging/types"
+import { ChatThread } from "./ChatThread"
 
 interface ConversationItem {
   id: string
@@ -81,6 +82,12 @@ interface ReaderProfile {
   }
 }
 
+interface SelectedThread {
+  conversationId?: string
+  userId: string
+  bookId: string | null
+}
+
 type FilterId = "all" | "unread" | "buying" | "selling" | "archived"
 
 export function ConversationList() {
@@ -95,6 +102,10 @@ export function ConversationList() {
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState<"chats" | "discover">(initialTab)
   const [activeFilter, setActiveFilter] = useState<FilterId>("all")
+  const [selectedThread, setSelectedThread] = useState<SelectedThread | null>(
+    null
+  )
+  const didAutoSelectDesktop = useRef(false)
 
   const loadConversations = useCallback(async () => {
     try {
@@ -104,13 +115,30 @@ export function ConversationList() {
       const res = await fetch(`/api/conversations?${params.toString()}`)
       if (!res.ok) return
       const data = await res.json()
-      if (Array.isArray(data)) setConversations(data)
+      if (Array.isArray(data)) {
+        setConversations(data)
+        if (
+          !didAutoSelectDesktop.current &&
+          data.length > 0 &&
+          typeof window !== "undefined" &&
+          window.innerWidth >= 1024 &&
+          initialTab === "chats"
+        ) {
+          didAutoSelectDesktop.current = true
+          const first = data[0] as ConversationItem
+          setSelectedThread({
+            conversationId: first.id,
+            userId: first.otherUser.id,
+            bookId: first.book?.id || null,
+          })
+        }
+      }
     } catch {
       // ignore transient errors
     } finally {
       setLoadingConvos(false)
     }
-  }, [activeFilter, searchQuery])
+  }, [activeFilter, searchQuery, initialTab])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -168,60 +196,73 @@ export function ConversationList() {
     }
   }
 
+  const openThread = (
+    userId: string,
+    bookId: string | null = null,
+    conversationId?: string
+  ) => {
+    setActiveTab("chats")
+    setSelectedThread({ userId, bookId, conversationId })
+  }
+
   const totalUnread = conversations.reduce(
     (sum, c) => sum + (c.unreadCount || 0),
     0
   )
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Top Search & Mode Switcher Bar */}
-      <div className="bg-white rounded-2xl p-4 border border-black/5 shadow-sm space-y-3">
+    <div className="flex flex-col gap-5">
+      {/* Top Search & Mode Switcher Bar (hidden on mobile when actively inside a thread) */}
+      <div
+        className={`bg-white rounded-2xl p-3.5 sm:p-4 border border-black/5 shadow-sm space-y-3 ${
+          selectedThread ? "hidden lg:block" : "block"
+        }`}
+      >
         <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
-          <div className="relative flex-1">
+          <div className="relative flex-1 min-w-0">
             <Search className="w-4 h-4 text-[#86868b] absolute left-4 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search conversations, @usernames, books, or reader profiles..."
-              className="w-full h-11 pl-11 pr-4 rounded-full bg-[#F5F5F7] text-sm font-medium text-[#1D1D1F] placeholder:text-[#86868b] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] border border-transparent transition-all"
+              placeholder="Search chats, @usernames, books, or readers..."
+              className="w-full h-11 pl-11 pr-4 rounded-full bg-[#FAF6F0] text-sm font-medium text-[#1D1D1F] placeholder:text-[#86868b] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] border border-black/5 transition-all"
             />
           </div>
 
-          <div className="flex items-center bg-[#F5F5F7] p-1 rounded-full shrink-0">
+          <div className="grid grid-cols-2 sm:flex items-center bg-[#FAF6F0] p-1 rounded-full border border-black/5 shrink-0">
             <button
               type="button"
               onClick={() => setActiveTab("chats")}
-              className={`px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+              className={`px-3.5 sm:px-4 py-2 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                 activeTab === "chats"
                   ? "bg-[#1D1D1F] text-white shadow-sm"
                   : "text-[#86868b] hover:text-[#1D1D1F]"
               }`}
             >
-              <MessageSquare className="w-3.5 h-3.5" />
-              Conversations
-              <span className="px-2 py-0.5 rounded-full text-[10px] bg-white/15">
+              <MessageSquare className="w-3.5 h-3.5 shrink-0" />
+              <span>Chats</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-white/15">
                 {conversations.length}
               </span>
               {totalUnread > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-[#0066cc] text-white">
-                  {totalUnread} new
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-[#C84200] text-white">
+                  {totalUnread}
                 </span>
               )}
             </button>
             <button
               type="button"
               onClick={() => setActiveTab("discover")}
-              className={`px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+              className={`px-3.5 sm:px-4 py-2 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                 activeTab === "discover"
-                  ? "bg-[#0066cc] text-white shadow-sm"
+                  ? "bg-[#C84200] text-white shadow-sm"
                   : "text-[#86868b] hover:text-[#1D1D1F]"
               }`}
             >
-              <Users className="w-3.5 h-3.5" />
-              New Message / Profiles
-              <span className="px-2 py-0.5 rounded-full text-[10px] bg-black/10">
+              <Users className="w-3.5 h-3.5 shrink-0" />
+              <span>Find Readers</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-black/10">
                 {readers.length}
               </span>
             </button>
@@ -230,7 +271,7 @@ export function ConversationList() {
 
         {/* Filter Chips: All | Unread | Buying | Selling | Archived */}
         {activeTab === "chats" && (
-          <div className="flex items-center gap-1.5 overflow-x-auto pt-1">
+          <div className="flex items-center gap-1.5 overflow-x-auto pt-0.5 scrollbar-hide">
             {(
               [
                 { id: "all", label: "All Conversations" },
@@ -247,7 +288,7 @@ export function ConversationList() {
                 className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
                   activeFilter === f.id
                     ? "bg-[#0066cc] text-white"
-                    : "bg-[#f5f5f7] text-[#86868b] hover:text-[#1d1d1f]"
+                    : "bg-[#FAF6F0] text-[#86868b] hover:text-[#1d1d1f]"
                 }`}
               >
                 {f.label}
@@ -257,64 +298,91 @@ export function ConversationList() {
         )}
       </div>
 
-      {/* Tab 1: Active Conversations */}
+      {/* TAB 1: SPLIT-PANE INBOX (Desktop Split Pane + Smooth Mobile List <-> Thread Switch) */}
       {activeTab === "chats" && (
-        <div className="flex flex-col gap-4">
-          {loadingConvos ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-6 h-6 animate-spin text-[#1D1D1F]/30" />
-            </div>
-          ) : conversations.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-[#1D1D1F]/5 shadow-sm p-10 text-center">
-              <div className="w-14 h-14 rounded-full bg-[#F5F5F7] flex items-center justify-center mx-auto mb-4">
-                <MessageSquare className="w-6 h-6 text-[#86868b]" />
-              </div>
-              <h2 className="text-xl font-black text-[#1D1D1F] mb-2">
-                {searchQuery
-                  ? "No matching conversations"
-                  : activeFilter !== "all"
-                  ? `No ${activeFilter} conversations`
-                  : "No conversations yet"}
-              </h2>
-              <p className="text-[#86868b] font-medium text-sm max-w-md mx-auto mb-6">
-                Message any seller from a book listing or connect with fellow
-                readers below.
-              </p>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:h-[calc(100vh-15.5rem)] lg:min-h-[540px]">
+          {/* LEFT PANE: Conversation List (full width on mobile when no thread active; 4 cols on desktop) */}
+          <div
+            className={`${
+              selectedThread ? "hidden lg:flex" : "flex"
+            } lg:col-span-4 flex-col bg-white rounded-2xl border border-black/5 shadow-sm overflow-hidden`}
+          >
+            <div className="px-4 py-3 border-b border-black/5 flex items-center justify-between shrink-0 bg-[#FAF6F0]/60">
+              <span className="text-xs font-black uppercase tracking-wider text-[#1D1D1F]">
+                Inbox ({conversations.length})
+              </span>
               <button
                 type="button"
                 onClick={() => setActiveTab("discover")}
-                className="inline-flex items-center gap-2 bg-[#0066cc] hover:bg-[#0071e3] text-white px-6 py-3 rounded-full font-bold text-xs transition-colors cursor-pointer"
+                className="text-xs font-bold text-[#C84200] hover:underline cursor-pointer"
               >
-                <Users className="w-4 h-4" /> Start a New Message
+                + New Message
               </button>
             </div>
-          ) : (
-            <div className="flex flex-col gap-2.5">
-              {conversations.map((conv, i) => {
-                const hasUnread = (conv.unreadCount || 0) > 0
-                const chatHref = `/messages/${conv.otherUser.id}${
-                  conv.book ? `?book=${conv.book.id}` : ""
-                }`
 
-                return (
-                  <motion.div
-                    key={conv.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.025, duration: 0.2 }}
+            <div className="flex-1 overflow-y-auto divide-y divide-black/5">
+              {loadingConvos ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#1D1D1F]/30" />
+                </div>
+              ) : conversations.length === 0 ? (
+                <div className="p-8 text-center">
+                  <div className="w-12 h-12 rounded-full bg-[#FAF6F0] flex items-center justify-center mx-auto mb-3">
+                    <MessageSquare className="w-5 h-5 text-[#86868b]" />
+                  </div>
+                  <h2 className="text-base font-black text-[#1D1D1F] mb-1">
+                    {searchQuery
+                      ? "No matching chats"
+                      : activeFilter !== "all"
+                      ? `No ${activeFilter} chats`
+                      : "No conversations yet"}
+                  </h2>
+                  <p className="text-[#86868b] font-medium text-xs max-w-xs mx-auto mb-5">
+                    Message any seller from a listing or connect with fellow
+                    readers.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("discover")}
+                    className="inline-flex items-center gap-2 bg-[#C84200] hover:bg-[#A33500] text-white px-5 py-2.5 rounded-full font-bold text-xs transition-colors cursor-pointer"
                   >
-                    <div
-                      className={`flex items-center gap-4 bg-white hover:bg-[#FAF6F0] rounded-2xl p-4 md:p-5 border shadow-sm transition-all hover:shadow-md ${
-                        hasUnread
-                          ? "border-[#0066cc]/40 ring-1 ring-[#0066cc]/15"
-                          : "border-[#1D1D1F]/5"
+                    <Users className="w-3.5 h-3.5" /> Start a New Message
+                  </button>
+                </div>
+              ) : (
+                conversations.map((conv, i) => {
+                  const hasUnread = (conv.unreadCount || 0) > 0
+                  const isSelected =
+                    selectedThread &&
+                    (selectedThread.conversationId === conv.id ||
+                      (selectedThread.userId === conv.otherUser.id &&
+                        selectedThread.bookId === (conv.book?.id || null)))
+
+                  return (
+                    <motion.div
+                      key={conv.id}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: Math.min(i * 0.02, 0.2), duration: 0.18 }}
+                      className={`flex items-center gap-3 p-3.5 transition-colors ${
+                        isSelected
+                          ? "bg-[#0066cc]/8 border-l-4 border-[#0066cc]"
+                          : hasUnread
+                          ? "bg-[#C84200]/[0.04] hover:bg-[#FAF6F0]"
+                          : "hover:bg-[#FAF6F0]/80"
                       }`}
                     >
-                      {/* Avatar + Online Indicator */}
-                      <Link
-                        href={`/profile/${conv.otherUser.id}`}
-                        className="relative w-14 h-14 rounded-full bg-[#1D1D1F] flex items-center justify-center shrink-0 overflow-hidden hover:opacity-90 transition-opacity"
-                        title="View Profile"
+                      {/* Avatar */}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openThread(
+                            conv.otherUser.id,
+                            conv.book?.id || null,
+                            conv.id
+                          )
+                        }
+                        className="relative w-12 h-12 rounded-full bg-[#1D1D1F] flex items-center justify-center shrink-0 overflow-hidden cursor-pointer"
                       >
                         {conv.otherUser.image ? (
                           // eslint-disable-next-line @next/next/no-img-element
@@ -324,168 +392,179 @@ export function ConversationList() {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <span className="text-white font-black text-lg">
+                          <span className="text-white font-black text-base">
                             {(conv.otherUser.name || "R")
                               .charAt(0)
                               .toUpperCase()}
                           </span>
                         )}
                         {conv.otherUser.online && (
-                          <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+                          <span className="absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white" />
                         )}
-                      </Link>
+                      </button>
 
-                      {/* Main Content */}
-                      <Link href={chatHref} className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                      {/* Main Conversation Row (clicks into thread seamlessly!) */}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openThread(
+                            conv.otherUser.id,
+                            conv.book?.id || null,
+                            conv.id
+                          )
+                        }
+                        className="flex-1 min-w-0 text-left cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-0.5">
+                          <div className="flex items-center gap-1.5 min-w-0">
                             {conv.isPinned && (
-                              <Pin className="w-3.5 h-3.5 text-[#0066cc] shrink-0" />
+                              <Pin className="w-3 h-3 text-[#0066cc] shrink-0" />
                             )}
-                            <h3 className="font-bold text-[#1D1D1F] text-base truncate">
+                            <h3 className="font-bold text-[#1D1D1F] text-sm truncate">
                               {conv.otherUser.name}
                             </h3>
-                            <span className="text-xs font-medium text-[#86868b] hidden sm:inline">
-                              @{conv.otherUser.username}
-                            </span>
                             {conv.isMuted && (
-                              <BellOff className="w-3 h-3 text-[#86868b]" />
-                            )}
-                            {hasUnread && (
-                              <span className="px-2 py-0.5 rounded-full bg-[#0066cc] text-white text-[10px] font-bold shrink-0">
-                                {conv.unreadCount} new
-                              </span>
-                            )}
-                            {conv.role !== "MEMBER" && (
-                              <span
-                                className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
-                                  conv.role === "BUYER"
-                                    ? "bg-[#0066cc]/10 text-[#0066cc]"
-                                    : "bg-amber-50 text-amber-800"
-                                }`}
-                              >
-                                {conv.role === "BUYER" ? "Buying" : "Selling"}
-                              </span>
+                              <BellOff className="w-3 h-3 text-[#86868b] shrink-0" />
                             )}
                           </div>
-                          <span className="text-xs font-medium text-[#86868b] shrink-0 ml-3">
+                          <span className="text-[10px] font-medium text-[#86868b] shrink-0">
                             {formatDistanceToNow(
                               new Date(conv.lastMessage.createdAt),
-                              { addSuffix: true }
+                              { addSuffix: false }
                             )}
                           </span>
                         </div>
 
                         {conv.book && (
-                          <p className="text-xs font-bold text-[#0066cc] truncate mb-0.5">
-                            📚 {conv.book.title} ·{" "}
+                          <p className="text-[11px] font-bold text-[#0066cc] truncate mb-0.5">
+                            {conv.book.title} ·{" "}
                             {conv.book.price === 0
                               ? "Free / Swap"
-                              : `₹${conv.book.price}`}{" "}
-                            ({conv.book.status})
+                              : `₹${conv.book.price}`}
                           </p>
                         )}
 
-                        <div className="flex items-center gap-1.5">
-                          {conv.lastMessage.isMine && (
-                            <span className="inline-flex items-center shrink-0">
-                              {conv.lastMessage.state === "read" ? (
-                                <CheckCheck className="w-3.5 h-3.5 text-[#0066cc]" />
-                              ) : conv.lastMessage.state === "delivered" ? (
-                                <CheckCheck className="w-3.5 h-3.5 text-[#86868b]" />
-                              ) : (
-                                <Check className="w-3.5 h-3.5 text-[#86868b]" />
-                              )}
-                            </span>
-                          )}
-                          <p
-                            className={`text-sm truncate ${
-                              hasUnread
-                                ? "font-bold text-[#1D1D1F]"
-                                : "font-medium text-[#1D1D1F]/70"
-                            }`}
-                          >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1 min-w-0">
                             {conv.lastMessage.isMine && (
-                              <span className="text-[#86868b] font-semibold">
-                                You:{" "}
+                              <span className="inline-flex items-center shrink-0">
+                                {conv.lastMessage.state === "read" ? (
+                                  <CheckCheck className="w-3.5 h-3.5 text-[#0066cc]" />
+                                ) : conv.lastMessage.state === "delivered" ? (
+                                  <CheckCheck className="w-3.5 h-3.5 text-[#86868b]" />
+                                ) : (
+                                  <Check className="w-3.5 h-3.5 text-[#86868b]" />
+                                )}
                               </span>
                             )}
-                            {conv.lastMessage.content}
-                          </p>
+                            <p
+                              className={`text-xs truncate ${
+                                hasUnread
+                                  ? "font-bold text-[#1D1D1F]"
+                                  : "font-medium text-[#86868b]"
+                              }`}
+                            >
+                              {conv.lastMessage.isMine && "You: "}
+                              {conv.lastMessage.content}
+                            </p>
+                          </div>
+
+                          {hasUnread && (
+                            <span className="min-w-[18px] h-[18px] px-1.5 rounded-full bg-[#C84200] text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+                              {conv.unreadCount}
+                            </span>
+                          )}
                         </div>
-                      </Link>
+                      </button>
 
-                      {/* Associated Book Thumbnail + Pin/Archive/Open Actions */}
-                      <div className="flex items-center gap-2 shrink-0">
-                        {conv.book?.image && (
-                          <Link
-                            href={`/catalog/${conv.book.id}`}
-                            title={conv.book.title}
-                            className="hidden sm:block w-10 h-13 rounded-lg overflow-hidden border border-black/10 shrink-0"
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={conv.book.image}
-                              alt={conv.book.title}
-                              className="w-full h-full object-cover"
-                            />
-                          </Link>
-                        )}
-
+                      {/* Quick Pin / Archive on sm+ */}
+                      <div className="hidden sm:flex lg:hidden xl:flex items-center gap-1 shrink-0">
                         <button
                           type="button"
-                          onClick={() =>
+                          onClick={(e) => {
+                            e.stopPropagation()
                             toggleConversationSetting(conv.id, {
                               isPinned: !conv.isPinned,
                             })
-                          }
+                          }}
                           title={conv.isPinned ? "Unpin" : "Pin conversation"}
-                          className={`p-2 rounded-full transition-colors cursor-pointer ${
+                          className={`p-1.5 rounded-full transition-colors cursor-pointer ${
                             conv.isPinned
                               ? "bg-[#0066cc]/10 text-[#0066cc]"
-                              : "bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#86868b]"
+                              : "bg-[#FAF6F0] hover:bg-[#e8e8ed] text-[#86868b]"
                           }`}
                         >
-                          <Pin className="w-3.5 h-3.5" />
+                          <Pin className="w-3 h-3" />
                         </button>
-
                         <button
                           type="button"
-                          onClick={() =>
+                          onClick={(e) => {
+                            e.stopPropagation()
                             toggleConversationSetting(conv.id, {
                               isArchived: !conv.isArchived,
                             })
-                          }
+                          }}
                           title={
                             conv.isArchived ? "Unarchive" : "Archive conversation"
                           }
-                          className="p-2 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#86868b] transition-colors cursor-pointer"
+                          className="p-1.5 rounded-full bg-[#FAF6F0] hover:bg-[#e8e8ed] text-[#86868b] transition-colors cursor-pointer"
                         >
-                          <Archive className="w-3.5 h-3.5" />
+                          <Archive className="w-3 h-3" />
                         </button>
-
-                        <Link
-                          href={chatHref}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-xs font-bold text-white transition-colors"
-                        >
-                          Open
-                        </Link>
                       </div>
-                    </div>
-                  </motion.div>
-                )
-              })}
+                    </motion.div>
+                  )
+                })
+              )}
             </div>
-          )}
+          </div>
+
+          {/* RIGHT PANE: Active Thread (full width on mobile when selected; 8 cols on desktop) */}
+          <div
+            className={`${
+              selectedThread
+                ? "block h-[calc(100vh-8.5rem)] min-h-[500px] lg:h-full"
+                : "hidden lg:flex"
+            } lg:col-span-8 flex-col`}
+          >
+            {selectedThread ? (
+              <ChatThread
+                key={`${selectedThread.userId}-${selectedThread.bookId || "dm"}`}
+                userId={selectedThread.userId}
+                initialBookId={selectedThread.bookId}
+                embedded
+                onBack={() => setSelectedThread(null)}
+              />
+            ) : (
+              <div className="h-full bg-white rounded-2xl border border-black/5 shadow-sm flex flex-col items-center justify-center p-10 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-[#1D1D1F] text-white flex items-center justify-center mb-5 shadow-md">
+                  <MessageSquare className="w-7 h-7 text-[#C84200]" />
+                </div>
+                <h2 className="text-2xl font-black text-[#1D1D1F] tracking-tight mb-2">
+                  Select a conversation
+                </h2>
+                <p className="text-sm text-[#86868b] max-w-sm mb-6 font-medium">
+                  Choose any thread on the left to negotiate book prices, share
+                  condition photos, or coordinate campus handoffs.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("discover")}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-xs font-bold transition-colors cursor-pointer"
+                >
+                  <Users className="w-4 h-4" /> Discover Community Readers
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Reader Discovery Section */}
+      {/* TAB 2 / DISCOVERY SECTION: Community Readers Directory */}
       {(activeTab === "discover" ||
-        conversations.length < 4 ||
-        searchQuery.trim() !== "") && (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
+        (!selectedThread && conversations.length === 0 && !loadingConvos)) && (
+        <div className="flex flex-col gap-4 pt-1">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 className="text-lg font-black text-[#1D1D1F] tracking-tight flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[#C84200]" />
@@ -494,8 +573,7 @@ export function ConversationList() {
                   : "Discover Community Readers"}
               </h2>
               <p className="text-xs font-medium text-[#86868b]">
-                Find profiles, explore their book collections & quotes, and
-                start a conversation.
+                Explore reader profiles and start a real-time conversation.
               </p>
             </div>
             <Link
@@ -517,16 +595,16 @@ export function ConversationList() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {readers.map((reader) => (
                 <div
                   key={reader.id}
                   className="bg-white rounded-2xl p-5 border border-black/5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4"
                 >
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-start gap-3.5">
                     <Link
                       href={`/profile/${reader.id}`}
-                      className="relative w-14 h-14 rounded-full bg-[#1D1D1F] overflow-hidden shrink-0 flex items-center justify-center"
+                      className="relative w-12 h-12 rounded-full bg-[#1D1D1F] overflow-hidden shrink-0 flex items-center justify-center"
                     >
                       {reader.image ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -536,28 +614,28 @@ export function ConversationList() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <span className="text-white font-black text-xl">
+                        <span className="text-white font-black text-lg">
                           {reader.name.charAt(0).toUpperCase()}
                         </span>
                       )}
                     </Link>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <Link
                           href={`/profile/${reader.id}`}
-                          className="font-black text-base text-[#1D1D1F] hover:text-[#0066cc] transition-colors truncate"
+                          className="font-black text-sm text-[#1D1D1F] hover:text-[#C84200] transition-colors truncate"
                         >
                           {reader.name}
                         </Link>
-                        <span className="px-2.5 py-0.5 rounded-full bg-[#C84200]/10 text-[#C84200] font-black text-[10px] uppercase tracking-wider">
-                          LVL {reader.stats.level} • {reader.stats.rankTitle}
+                        <span className="px-2 py-0.5 rounded-full bg-[#C84200]/10 text-[#C84200] font-black text-[10px] uppercase tracking-wider">
+                          LVL {reader.stats.level}
                         </span>
                       </div>
 
                       {reader.location && (
-                        <p className="text-xs font-bold text-[#86868b] flex items-center gap-1 mt-0.5">
-                          <MapPin className="w-3 h-3 text-[#C84200]" />{" "}
+                        <p className="text-[11px] font-bold text-[#86868b] flex items-center gap-1 mt-0.5 truncate">
+                          <MapPin className="w-3 h-3 text-[#C84200] shrink-0" />{" "}
                           {reader.location}
                         </p>
                       )}
@@ -575,14 +653,12 @@ export function ConversationList() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-3 border-t border-black/5">
-                    <div className="flex items-center gap-3 text-[11px] font-bold text-[#86868b]">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-black/5">
+                    <div className="flex items-center gap-2 text-[11px] font-bold text-[#86868b]">
                       <span className="flex items-center gap-1">
-                        <BookOpen className="w-3.5 h-3.5 text-[#C84200]" />
+                        <BookOpen className="w-3 h-3 text-[#C84200]" />
                         {reader.stats.booksListed} listed
                       </span>
-                      <span>•</span>
-                      <span>{reader.stats.booksDonated} donated</span>
                       <span>•</span>
                       <span>{reader.stats.totalXP} XP</span>
                     </div>
@@ -590,16 +666,17 @@ export function ConversationList() {
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/profile/${reader.id}`}
-                        className="px-3.5 py-1.5 rounded-full bg-[#e8e8ed] hover:bg-[#d2d2d7] text-[#1D1D1F] text-xs font-bold transition-colors flex items-center gap-1"
+                        className="px-3 py-1.5 rounded-full bg-[#e8e8ed] hover:bg-[#d2d2d7] text-[#1D1D1F] text-xs font-bold transition-colors flex items-center gap-1"
                       >
                         Profile <ArrowUpRight className="w-3 h-3" />
                       </Link>
-                      <Link
-                        href={`/messages/${reader.id}`}
-                        className="px-4 py-1.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
+                      <button
+                        type="button"
+                        onClick={() => openThread(reader.id, null)}
+                        className="px-3.5 py-1.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
-                        <MessageSquare className="w-3.5 h-3.5" /> Message
-                      </Link>
+                        <MessageSquare className="w-3 h-3" /> Message
+                      </button>
                     </div>
                   </div>
                 </div>

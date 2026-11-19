@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
+import crypto from "crypto"
 import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
+
+export const dynamic = "force-dynamic"
 
 function mapTicketForClient(t: any) {
   const responses = Array.isArray(t.responses) ? t.responses : []
@@ -80,7 +83,12 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const session = await auth()
-    const body = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
     const action = body.action || "create_ticket"
 
     if (action === "create_ticket") {
@@ -103,7 +111,7 @@ export async function POST(req: Request) {
         )
       }
 
-      const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase()
+      const randomCode = crypto.randomBytes(4).toString("hex").toUpperCase()
       const ticketCode = `TKT-${randomCode}`
 
       const ticket = await prisma.supportTicket.create({
@@ -138,7 +146,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ ticket: mapTicketForClient(ticket) })
     }
 
-    if ((session?.user as any)?.role !== "ADMIN") {
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const dbUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    })
+    if (dbUser?.role !== "ADMIN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -151,6 +166,9 @@ export async function POST(req: Request) {
       const existing = await prisma.supportTicket.findUnique({
         where: { id: String(ticketId) },
       })
+      if (!existing) {
+        return NextResponse.json({ error: "Ticket not found" }, { status: 404 })
+      }
       const prevResponses = Array.isArray(existing?.responses)
         ? (existing.responses as any[])
         : []

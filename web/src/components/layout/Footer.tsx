@@ -9,7 +9,7 @@ export function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-1 space-y-4">
             <Link href="/" className="flex items-center gap-2">
-              <BookOpen className="h-6 w-6 text-[#0066cc]" />
+              <BookOpen className="h-6 w-6 text-[#C84200]" />
               <span className="text-xl font-black tracking-tight text-[#1d1d1f]">
                 Aksharसेतु
               </span>

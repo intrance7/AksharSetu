@@ -52,7 +52,12 @@ export async function PATCH(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const body = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
     const updateData: Record<string, unknown> = {}
 
     if (typeof body.title === "string" && body.title.trim()) {
@@ -95,7 +100,14 @@ export async function PATCH(
       updateData.course = body.course.trim() || null
     }
     if (body.semester !== undefined) {
-      updateData.semester = body.semester ? Number(body.semester) : null
+      if (body.semester === null || body.semester === "") {
+        updateData.semester = null
+      } else {
+        const parsedSem = parseInt(String(body.semester), 10)
+        if (Number.isFinite(parsedSem) && parsedSem >= 1 && parsedSem <= 12) {
+          updateData.semester = parsedSem
+        }
+      }
     }
 
     const updated = await prisma.book.update({

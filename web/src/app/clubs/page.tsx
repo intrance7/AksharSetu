@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import { CreateClubModal } from "@/components/clubs/CreateClubModal"
 import { JoinClubByCodeBar } from "@/components/clubs/JoinClubByCodeBar"
-import { generateSabhaCode } from "@/app/api/clubs/route"
+import { generateSabhaCode } from "@/lib/sabha"
 import {
   Users,
   BookOpen,

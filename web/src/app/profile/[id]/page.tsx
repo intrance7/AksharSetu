@@ -376,7 +376,7 @@ export default async function ProfilePage({
     (user.name || "reader").toLowerCase().replace(/[^a-z0-9]/g, "")
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pt-22 pb-16">
+    <div className="min-h-screen bg-[#F2EBE1] pt-8 pb-16">
       <div className="container max-w-6xl mx-auto px-4 md:px-6">
         <ProfileEcosystemClient
           profileUser={{

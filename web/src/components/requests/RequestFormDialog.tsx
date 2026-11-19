@@ -9,17 +9,17 @@ import { toast } from "sonner"
 export function RequestFormDialog() {
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
-    
+
     try {
       const formData = new FormData(e.currentTarget)
       await createCommunityRequest(formData)
       toast.success("Request posted successfully!")
       setIsOpen(false)
-    } catch (error) {
+    } catch {
       toast.error("Failed to post request.")
     } finally {
       setIsSubmitting(false)
@@ -28,35 +28,41 @@ export function RequestFormDialog() {
 
   return (
     <>
-      <button 
+      <button
+        type="button"
         onClick={() => setIsOpen(true)}
-        className="bg-[#C84200] hover:bg-[#A33500] text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-colors shadow-sm"
+        className="bg-[#C84200] hover:bg-[#A33500] text-white px-6 py-3 rounded-full text-sm font-bold flex items-center gap-2 transition-colors shadow-sm cursor-pointer"
       >
-        <Plus className="w-5 h-5" /> Post a Request
+        <Plus className="w-4 h-4" /> Post a Request
       </button>
 
       <AnimatePresence>
         {isOpen && (
-          <>
-            <motion.div 
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+              className="absolute inset-0 bg-black/55 backdrop-blur-xs"
             />
-            
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white rounded-3xl p-8 z-50 shadow-2xl"
+              exit={{ opacity: 0, scale: 0.96, y: 16 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="relative z-10 w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto text-[#1d1d1f]"
             >
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-black text-[#1d1d1f]">What are you looking for?</h2>
-                <button 
+              <div className="flex justify-between items-center gap-3 mb-6">
+                <h2 className="text-xl sm:text-2xl font-black text-[#1d1d1f]">
+                  What are you looking for?
+                </h2>
+                <button
+                  type="button"
                   onClick={() => setIsOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-[#1d1d1f]/5 text-[#1d1d1f]/60 hover:bg-[#1d1d1f]/10 hover:text-[#1d1d1f] transition-colors"
+                  aria-label="Close modal"
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-[#FAF6F0] text-[#1d1d1f]/70 hover:bg-[#e8e2d7] hover:text-[#1d1d1f] transition-colors shrink-0 cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -64,44 +70,54 @@ export function RequestFormDialog() {
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                 <div>
-                  <label className="block text-xs font-bold text-[#1d1d1f] mb-2">Book Title <span className="text-red-500">*</span></label>
-                  <input 
+                  <label className="block text-xs font-bold text-[#1d1d1f] mb-2">
+                    Book Title <span className="text-red-500">*</span>
+                  </label>
+                  <input
                     name="title"
                     required
                     placeholder="e.g. Introduction to Algorithms"
-                    className="w-full bg-[#F2EBE1] border-transparent focus:border-[#C84200]/30 focus:bg-white focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-3 font-medium text-[#1d1d1f] outline-none transition-all placeholder:text-[#86868b]/60"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-xs font-bold text-[#1d1d1f] mb-2">Author (Optional)</label>
-                  <input 
-                    name="author"
-                    placeholder="e.g. Thomas H. Cormen"
-                    className="w-full bg-[#F2EBE1] border-transparent focus:border-[#C84200]/30 focus:bg-white focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-3 font-medium text-[#1d1d1f] outline-none transition-all placeholder:text-[#86868b]/60"
+                    className="w-full bg-[#FAF6F0] border border-black/5 focus:border-[#C84200]/40 focus:bg-white focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-3 font-medium text-[#1d1d1f] outline-none transition-all placeholder:text-[#86868b]/60"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#1d1d1f] mb-2">Additional Details (Optional)</label>
-                  <textarea 
+                  <label className="block text-xs font-bold text-[#1d1d1f] mb-2">
+                    Author (Optional)
+                  </label>
+                  <input
+                    name="author"
+                    placeholder="e.g. Thomas H. Cormen"
+                    className="w-full bg-[#FAF6F0] border border-black/5 focus:border-[#C84200]/40 focus:bg-white focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-3 font-medium text-[#1d1d1f] outline-none transition-all placeholder:text-[#86868b]/60"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#1d1d1f] mb-2">
+                    Additional Details (Optional)
+                  </label>
+                  <textarea
                     name="description"
                     rows={3}
                     placeholder="e.g. Need the 3rd edition for my CS101 class..."
-                    className="w-full bg-[#F2EBE1] border-transparent focus:border-[#C84200]/30 focus:bg-white focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-3 font-medium text-[#1d1d1f] outline-none transition-all resize-none placeholder:text-[#86868b]/60"
+                    className="w-full bg-[#FAF6F0] border border-black/5 focus:border-[#C84200]/40 focus:bg-white focus:ring-4 focus:ring-[#C84200]/10 rounded-xl px-4 py-3 font-medium text-[#1d1d1f] outline-none transition-all resize-none placeholder:text-[#86868b]/60"
                   />
                 </div>
 
-                <button 
+                <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-[#C84200] hover:bg-[#A33500] text-white py-4 rounded-xl font-black text-sm tracking-widest uppercase transition-colors disabled:opacity-70 flex items-center justify-center gap-2 mt-2"
+                  className="w-full bg-[#C84200] hover:bg-[#A33500] text-white py-3.5 rounded-full font-black text-xs tracking-widest uppercase transition-colors disabled:opacity-70 flex items-center justify-center gap-2 mt-2 cursor-pointer"
                 >
-                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Post Request"}
+                  {isSubmitting ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    "Post Request"
+                  )}
                 </button>
               </form>
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
     </>

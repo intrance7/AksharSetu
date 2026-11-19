@@ -1,34 +1,14 @@
-import path from "path"
-import type { PrismaClient } from "@prisma/client"
+import { PrismaClient } from "@prisma/client"
 
-const createFreshPrismaClient = (): PrismaClient => {
-  try {
-    const nodeRequire = eval("require") as NodeRequire
-    for (const key of Object.keys(nodeRequire.cache || {})) {
-      if (key.includes(".prisma") || key.includes("@prisma")) {
-        delete nodeRequire.cache[key]
-      }
-    }
-    const clientPath = path.join(
-      process.cwd(),
-      "node_modules",
-      ".prisma",
-      "client",
-      "index.js"
-    )
-    const { PrismaClient: FreshPrismaClient } = nodeRequire(clientPath)
-    return new FreshPrismaClient()
-  } catch {
-    const { PrismaClient: FallbackClient } = require("@prisma/client")
-    return new FallbackClient()
-  }
+const createPrismaClient = (): PrismaClient => {
+  return new PrismaClient()
 }
 
 declare const globalThis: {
-  prismaGlobalV10?: PrismaClient
+  prismaGlobalV11?: PrismaClient
 } & typeof global
 
-const existing = globalThis.prismaGlobalV10
+const existing = globalThis.prismaGlobalV11
 const prisma: PrismaClient =
   existing &&
   "bookNote" in existing &&
@@ -39,10 +19,8 @@ const prisma: PrismaClient =
   "xpTransaction" in existing &&
   "supportTicket" in existing
     ? existing
-    : createFreshPrismaClient()
+    : createPrismaClient()
+
+globalThis.prismaGlobalV11 = prisma
 
 export default prisma
-
-if (process.env.NODE_ENV !== "production") {
-  globalThis.prismaGlobalV10 = prisma
-}

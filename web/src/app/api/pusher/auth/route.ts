@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
-import { pusherServer, isPusherServerConfigured } from "@/lib/pusher"
+import { pusherServer, isPusherServerConfigured } from "@/lib/pusher-server"
 
 export async function POST(req: Request) {
   try {

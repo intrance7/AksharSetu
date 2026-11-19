@@ -5,13 +5,20 @@ function isSafePublicUrl(rawUrl: string): URL | null {
   try {
     const parsed = new URL(rawUrl)
     if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null
-    const host = parsed.hostname.toLowerCase()
+    const host = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, "")
     if (
       host === "localhost" ||
       host === "127.0.0.1" ||
       host === "0.0.0.0" ||
+      host === "::1" ||
       host.startsWith("10.") ||
+      host.startsWith("127.") ||
+      host.startsWith("169.254.") ||
       host.startsWith("192.168.") ||
+      /^172\.(1[6-9]|2\d|3[01])\./.test(host) ||
+      host.startsWith("fc") ||
+      host.startsWith("fd") ||
+      host.startsWith("fe80:") ||
       host.endsWith(".local") ||
       host.endsWith(".internal")
     ) {

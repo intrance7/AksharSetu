@@ -156,12 +156,12 @@ export function HelpCenterClient({
   )
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pb-24">
+    <div className="min-h-screen bg-[#F2EBE1] pb-24">
       {/* Deep Black Hero Section */}
       <section className="bg-black text-[#f5f5f7] pt-16 pb-20 px-4 sm:px-6 border-b border-white/10">
         <div className="mx-auto max-w-5xl text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs font-semibold text-white/80 mb-6">
-            <BookOpen className="h-3.5 w-3.5 text-[#0066cc]" />
+            <BookOpen className="h-3.5 w-3.5 text-[#C84200]" />
             AksharSetu Documentation, Policies & Support Hub
           </div>
           <h1 className="text-4xl sm:text-6xl font-bold tracking-tighter leading-none">
@@ -402,12 +402,12 @@ export function HelpCenterClient({
 
           <Link
             href="/help/badges-and-achievements"
-            className="rounded-2xl bg-white p-5 shadow-sm border border-black/[0.06] hover:border-[#0066cc] transition-all group"
+            className="rounded-2xl bg-white p-5 shadow-sm border border-black/[0.06] hover:border-[#C84200] transition-all group"
           >
-            <div className="h-9 w-9 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center mb-3">
+            <div className="h-9 w-9 rounded-xl bg-[#C84200]/10 text-[#C84200] flex items-center justify-center mb-3">
               <Trophy className="h-4 w-4" />
             </div>
-            <h3 className="text-sm font-bold text-[#1d1d1f] group-hover:text-[#0066cc]">
+            <h3 className="text-sm font-bold text-[#1d1d1f] group-hover:text-[#C84200]">
               Badges & Rarity
             </h3>
             <p className="text-xs text-[#86868b] mt-1">
@@ -497,10 +497,10 @@ export function HelpCenterClient({
                   onClick={() =>
                     setSelectedCategory(isSelected ? "all" : cat.id)
                   }
-                  className={`text-left rounded-2xl p-5 transition-all border ${
+                  className={`text-left rounded-2xl p-5 transition-all border cursor-pointer ${
                     isSelected
                       ? "bg-[#1d1d1f] text-white border-[#1d1d1f] shadow-md"
-                      : "bg-white text-[#1d1d1f] border-black/[0.06] hover:border-[#0066cc] shadow-sm"
+                      : "bg-white text-[#1d1d1f] border-black/[0.06] hover:border-[#C84200] shadow-sm"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">

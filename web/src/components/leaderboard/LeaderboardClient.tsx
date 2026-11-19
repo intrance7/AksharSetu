@@ -139,25 +139,25 @@ export function LeaderboardClient({
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pb-20">
+    <div className="min-h-screen bg-[#F2EBE1] pb-20">
       {/* High-Impact Hero Section (#000000 per AksharSetu Design System) */}
-      <section className="bg-[#000000] text-[#f5f5f7] pt-28 pb-16 px-4 border-b border-white/10">
+      <section className="bg-[#000000] text-[#f5f5f7] py-12 md:py-16 px-4 border-b border-white/10">
         <div className="container mx-auto max-w-6xl">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
             <div>
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-xs font-bold uppercase tracking-widest text-[#f5f5f7] mb-4">
-                <Trophy className="w-3.5 h-3.5 text-[#0066cc]" /> Community Standings & Profiles
+                <Trophy className="w-3.5 h-3.5 text-[#C84200]" /> Community Standings & Profiles
               </div>
               <h1 className="text-4xl md:text-6xl font-bold tracking-tighter leading-none text-[#f5f5f7]">
                 Reader Leaderboard &{" "}
-                <span className="text-[#0066cc]">Profiles.</span>
+                <span className="text-[#FF8A4C]">Profiles.</span>
               </h1>
               <p className="text-[#86868b] text-base md:text-lg font-medium max-w-2xl mt-4">
                 Celebrating readers, Vidya Daan book donors, and Shanti Mode scholars. Explore community profiles, read their favorite literary quotes, and start a conversation.
               </p>
             </div>
 
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
               {currentUserId && (
                 <Link
                   href={`/profile/${currentUserId}`}
@@ -168,7 +168,7 @@ export function LeaderboardClient({
               )}
               <Link
                 href="/messages"
-                className="px-5 py-2.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-bold flex items-center gap-2 transition-colors"
+                className="px-5 py-2.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-xs font-bold flex items-center gap-2 transition-colors"
               >
                 <MessageSquare className="w-3.5 h-3.5" /> Open Messenger
               </Link>
@@ -278,7 +278,7 @@ export function LeaderboardClient({
               </div>
             </div>
 
-            <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+            <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-start md:justify-end">
               <Link
                 href={`/profile/${myStanding.user.id}`}
                 className="px-4 py-2 rounded-full bg-[#e8e8ed] hover:bg-[#d2d2d7] text-[#1d1d1f] text-xs font-bold transition-colors"
@@ -564,7 +564,7 @@ export function LeaderboardClient({
                         )}
                       </div>
 
-                      <div className="flex items-center justify-between pt-4 border-t border-current/10">
+                      <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-current/10">
                         <div className="flex items-center gap-3 text-xs font-semibold text-[#86868b]">
                           <span>{u.stats.booksListed} listed</span>
                           <span>•</span>
@@ -602,7 +602,7 @@ export function LeaderboardClient({
 
             {/* Full Leaderboard List */}
             <div className="bg-white rounded-2xl shadow-sm border border-black/5 overflow-hidden">
-              <div className="px-6 py-4 border-b border-black/5 flex items-center justify-between">
+              <div className="px-4 sm:px-6 py-4 border-b border-black/5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                 <h2 className="text-sm font-bold uppercase tracking-wider text-[#86868b]">
                   Community Standings ({sortedUsers.length} Readers)
                 </h2>
@@ -696,7 +696,7 @@ export function LeaderboardClient({
                         </div>
 
                         {/* Stats & Actions */}
-                        <div className="flex items-center justify-between md:justify-end gap-4 pl-13 md:pl-0 shrink-0">
+                        <div className="flex flex-wrap items-center justify-between md:justify-end gap-3 md:gap-4 shrink-0">
                           <div className="hidden sm:flex items-center gap-4 text-xs font-semibold text-[#86868b]">
                             <span title="Books Listed">
                               <strong className="text-[#1d1d1f]">

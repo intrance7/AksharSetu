@@ -7,7 +7,7 @@ import {
   conversationChannel,
   userChannel,
 } from "@/lib/messaging/constants"
-import { MessagingError, errorResponse } from "@/lib/messaging/http"
+import { MessagingError, errorResponse, readJson } from "@/lib/messaging/http"
 import {
   requireConversationParticipant,
   checkBlockStatus,
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     }
 
     const myId = session.user.id
-    const body = await req.json()
+    const body = await readJson<any>(req)
     const { conversationId, bookId, amount, note } = body
 
     if (!conversationId || typeof conversationId !== "string") {
@@ -77,11 +77,27 @@ export async function POST(req: Request) {
       )
     }
 
-    if (book.status === "SOLD") {
+    if (book.ownerId !== otherParticipant.userId) {
       throw new MessagingError(
         400,
-        "This book has already been marked as sold.",
-        "BOOK_SOLD"
+        "This book does not belong to the other participant in this conversation.",
+        "INVALID_BOOK_OWNER"
+      )
+    }
+
+    if (book.price <= 0) {
+      throw new MessagingError(
+        400,
+        "Free donations do not accept price offers — request the book directly instead.",
+        "FREE_BOOK"
+      )
+    }
+
+    if (book.status !== "AVAILABLE" && book.status !== "RESERVED") {
+      throw new MessagingError(
+        400,
+        "This book is no longer available for offers.",
+        "BOOK_UNAVAILABLE"
       )
     }
 

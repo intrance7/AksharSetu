@@ -6,6 +6,8 @@ import { ShantiModeChooser } from "@/components/library/ShantiModeChooser"
 import { ShantiTimer } from "@/components/library/ShantiTimer"
 import EReader from "@/components/ebooks/EReader"
 
+export const dynamic = "force-dynamic"
+
 export default async function ShantiModePage({
   params,
   searchParams,

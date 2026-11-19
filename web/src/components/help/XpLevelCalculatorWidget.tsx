@@ -76,11 +76,11 @@ export function XpLevelCalculatorWidget() {
           </p>
         </div>
 
-        <div className="inline-flex rounded-full bg-[#f5f5f7] p-1">
+        <div className="inline-flex self-start rounded-full bg-[#FAF6F0] p-1 border border-black/5">
           <button
             type="button"
             onClick={() => setMode("xp")}
-            className={`rounded-full px-4 py-1.5 text-xs font-bold transition-colors ${
+            className={`rounded-full px-4 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
               mode === "xp"
                 ? "bg-[#1d1d1f] text-white"
                 : "text-[#6e6e73] hover:text-[#1d1d1f]"
@@ -91,7 +91,7 @@ export function XpLevelCalculatorWidget() {
           <button
             type="button"
             onClick={() => setMode("activity")}
-            className={`rounded-full px-4 py-1.5 text-xs font-bold transition-colors ${
+            className={`rounded-full px-4 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
               mode === "activity"
                 ? "bg-[#1d1d1f] text-white"
                 : "text-[#6e6e73] hover:text-[#1d1d1f]"

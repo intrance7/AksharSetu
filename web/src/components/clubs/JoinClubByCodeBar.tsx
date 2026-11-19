@@ -68,8 +68,8 @@ export function JoinClubByCodeBar({ isLoggedIn }: { isLoggedIn: boolean }) {
         type="text"
         value={code}
         onChange={(e) => setCode(e.target.value.toUpperCase())}
-        placeholder="Enter Team Code (e.g. SABHA-TAGORE)"
-        className="bg-transparent text-xs sm:text-sm font-mono font-bold text-white placeholder:text-white/45 outline-none w-48 sm:w-56 uppercase tracking-wider"
+        placeholder="Team code (SABHA-TAGORE)"
+        className="bg-transparent text-xs sm:text-sm font-mono font-bold text-white placeholder:text-white/45 outline-none flex-1 min-w-0 sm:flex-none sm:w-56 uppercase tracking-wider"
       />
       <button
         type="submit"

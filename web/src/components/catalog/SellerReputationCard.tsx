@@ -2,77 +2,104 @@ import { Star, ShieldCheck, Zap, Activity } from "lucide-react"
 
 interface SellerReputationProps {
   user: {
-    sellerRating: number
-    booksSold: number
-    successfulExchanges: number
-    responseTime: string
-    conditionAccuracy: boolean
-    meetupReliability: boolean
+    sellerRating?: number | null
+    booksSold?: number | null
+    successfulExchanges?: number | null
+    responseTime?: string | null
+    conditionAccuracy?: boolean | null
+    meetupReliability?: boolean | null
   }
 }
 
 export function SellerReputationCard({ user }: SellerReputationProps) {
+  const rating = typeof user.sellerRating === "number" ? user.sellerRating : 5
+  const sold = user.booksSold ?? 0
+  const exchanges = user.successfulExchanges ?? 0
+  const responseTime = user.responseTime || "Fast"
+
   return (
-    <div className="bg-[#F9F9FB] rounded-2xl border border-[#1D1D1F]/5 p-5 w-full">
+    <div className="bg-[#FAF6F0] rounded-2xl border border-[#1D1D1F]/[0.08] p-5 w-full">
       <h3 className="text-xs font-black uppercase tracking-widest text-[#1D1D1F]/60 mb-4 flex items-center gap-2">
         <ShieldCheck className="w-4 h-4 text-[#C84200]" />
         Seller Reputation
       </h3>
-      
-      {/* Top Stats */}
-      <div className="flex items-center gap-6 mb-5">
-        <div>
-          <div className="flex items-center gap-1.5 text-2xl font-black text-[#1D1D1F]">
-            <Star className="w-5 h-5 text-[#F4B22B] fill-[#F4B22B]" />
-            {user.sellerRating.toFixed(1)}
+
+      {/* Top Stats (responsive 3-col grid so 375px never overflows) */}
+      <div className="grid grid-cols-3 divide-x divide-[#1D1D1F]/10 mb-5">
+        <div className="pr-2 sm:pr-4">
+          <div className="flex items-center gap-1 text-xl sm:text-2xl font-black text-[#1D1D1F]">
+            <Star className="w-4 h-4 sm:w-5 sm:h-5 text-[#F4B22B] fill-[#F4B22B] shrink-0" />
+            {rating.toFixed(1)}
           </div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#1D1D1F]/40 mt-1">Rating</p>
-        </div>
-        
-        <div className="h-8 w-px bg-[#1D1D1F]/10" />
-        
-        <div>
-          <div className="text-2xl font-black text-[#1D1D1F]">{user.booksSold}</div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#1D1D1F]/40 mt-1">Books Sold</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[#1D1D1F]/45 mt-1">
+            Rating
+          </p>
         </div>
 
-        <div className="h-8 w-px bg-[#1D1D1F]/10" />
-        
-        <div>
-          <div className="text-2xl font-black text-[#1D1D1F]">{user.successfulExchanges}</div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#1D1D1F]/40 mt-1">Exchanges</p>
+        <div className="px-2 sm:px-4">
+          <div className="text-xl sm:text-2xl font-black text-[#1D1D1F]">
+            {sold}
+          </div>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[#1D1D1F]/45 mt-1">
+            Books Sold
+          </p>
+        </div>
+
+        <div className="pl-2 sm:pl-4">
+          <div className="text-xl sm:text-2xl font-black text-[#1D1D1F]">
+            {exchanges}
+          </div>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[#1D1D1F]/45 mt-1">
+            Exchanges
+          </p>
         </div>
       </div>
-      
+
       {/* Metrics List */}
-      <div className="space-y-3 pt-4 border-t border-[#1D1D1F]/5">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-[#1D1D1F]/60 font-medium">Response Time</span>
+      <div className="space-y-3 pt-4 border-t border-[#1D1D1F]/[0.08]">
+        <div className="flex items-center justify-between gap-2 text-xs sm:text-sm">
+          <span className="text-[#1D1D1F]/65 font-medium">Response Time</span>
           <span className="flex items-center gap-1.5 font-bold text-[#1D1D1F]">
-            {user.responseTime === "Fast" ? (
-              <><Zap className="w-4 h-4 text-[#F4B22B]" /> Fast</>
-            ) : user.responseTime}
-          </span>
-        </div>
-        
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-[#1D1D1F]/60 font-medium">Condition Accuracy</span>
-          <span className="flex items-center gap-1.5 font-bold text-[#1D1D1F]">
-            {user.conditionAccuracy ? (
-              <><ShieldCheck className="w-4 h-4 text-[#287F56]" /> Accurate</>
+            {responseTime === "Fast" ? (
+              <>
+                <Zap className="w-4 h-4 text-[#F4B22B]" /> Fast
+              </>
             ) : (
-              <><Activity className="w-4 h-4 text-[#C84200]" /> Variable</>
+              responseTime
             )}
           </span>
         </div>
-        
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-[#1D1D1F]/60 font-medium">Meetup Reliability</span>
+
+        <div className="flex items-center justify-between gap-2 text-xs sm:text-sm">
+          <span className="text-[#1D1D1F]/65 font-medium">
+            Condition Accuracy
+          </span>
           <span className="flex items-center gap-1.5 font-bold text-[#1D1D1F]">
-            {user.meetupReliability ? (
-              <><ShieldCheck className="w-4 h-4 text-[#287F56]" /> Reliable</>
+            {user.conditionAccuracy !== false ? (
+              <>
+                <ShieldCheck className="w-4 h-4 text-[#287F56]" /> Accurate
+              </>
             ) : (
-              <><Activity className="w-4 h-4 text-[#C84200]" /> Variable</>
+              <>
+                <Activity className="w-4 h-4 text-[#C84200]" /> Variable
+              </>
+            )}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between gap-2 text-xs sm:text-sm">
+          <span className="text-[#1D1D1F]/65 font-medium">
+            Meetup Reliability
+          </span>
+          <span className="flex items-center gap-1.5 font-bold text-[#1D1D1F]">
+            {user.meetupReliability !== false ? (
+              <>
+                <ShieldCheck className="w-4 h-4 text-[#287F56]" /> Reliable
+              </>
+            ) : (
+              <>
+                <Activity className="w-4 h-4 text-[#C84200]" /> Variable
+              </>
             )}
           </span>
         </div>

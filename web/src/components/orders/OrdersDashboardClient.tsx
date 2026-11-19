@@ -21,8 +21,31 @@ import {
   Plus,
 } from "lucide-react"
 import { toast } from "sonner"
+import { GeneratedCover } from "@/components/catalog/GeneratedCover"
 
 type TabId = "purchases" | "sales" | "incoming" | "outgoing" | "listings"
+
+function OrderThumb({ book }: { book: any }) {
+  const [err, setErr] = useState(false)
+  if (book?.images?.[0] && !err) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={book.images[0]}
+        alt={book.title || "Book cover"}
+        onError={() => setErr(true)}
+        className="w-full h-full object-cover"
+      />
+    )
+  }
+  return (
+    <GeneratedCover
+      title={book?.title || "Book"}
+      author={book?.author || "Reader"}
+      category={book?.category}
+    />
+  )
+}
 
 const SHIPMENT_STEPS = ["READY_TO_SHIP", "SHIPPED", "DELIVERED"] as const
 
@@ -208,18 +231,18 @@ export function OrdersDashboardClient({
               key={t.id}
               type="button"
               onClick={() => setActiveTab(t.id)}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer shrink-0 ${
                 active
-                  ? "bg-[#0066cc] text-white shadow-sm"
-                  : "bg-white text-[#1d1d1f] hover:bg-[#e8e8ed] border border-black/5"
+                  ? "bg-[#1D1D1F] text-white shadow-sm"
+                  : "bg-white text-[#1d1d1f] hover:bg-[#FAF6F0] border border-black/5"
               }`}
             >
               <span>{t.label}</span>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                   active
-                    ? "bg-white/20 text-white"
-                    : "bg-[#f5f5f7] text-[#86868b]"
+                    ? "bg-[#C84200] text-white"
+                    : "bg-[#FAF6F0] text-[#86868b]"
                 }`}
               >
                 {t.count}
@@ -244,7 +267,7 @@ export function OrdersDashboardClient({
               </p>
               <Link
                 href="/catalog"
-                className="inline-flex px-5 py-2.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-semibold transition"
+                className="inline-flex px-5 py-2.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-xs font-bold transition shadow-sm"
               >
                 Browse Marketplace
               </Link>
@@ -260,26 +283,19 @@ export function OrdersDashboardClient({
                   className="bg-white rounded-2xl p-6 border border-black/5 shadow-sm space-y-5"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-20 rounded-xl bg-[#f5f5f7] overflow-hidden shrink-0">
-                        {order.book.images?.[0] && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={order.book.images[0]}
-                            alt={order.book.title}
-                            className="w-full h-full object-cover"
-                          />
-                        )}
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="w-14 h-20 rounded-xl bg-[#FAF6F0] overflow-hidden shrink-0 border border-black/5">
+                        <OrderThumb book={order.book} />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full mb-1">
                           <ShieldCheck className="w-3 h-3" /> {order.status} · ₹
                           {order.amount}
                         </span>
-                        <h3 className="text-lg font-bold text-[#1d1d1f]">
+                        <h3 className="text-base sm:text-lg font-bold text-[#1d1d1f] break-words">
                           {order.book.title}
                         </h3>
-                        <p className="text-xs text-[#86868b]">
+                        <p className="text-xs text-[#86868b] truncate">
                           Seller: {order.book.owner?.name || "Reader"} ·{" "}
                           {order.shipment?.awbCode
                             ? `AWB #${order.shipment.awbCode}`
@@ -335,7 +351,7 @@ export function OrdersDashboardClient({
 
                   {/* Visual Shipment Timeline */}
                   <div className="pt-4 border-t border-black/5">
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       {[
                         { label: "Ready to Ship", sub: "Escrow Verified" },
                         {
@@ -417,10 +433,10 @@ export function OrdersDashboardClient({
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Link
                       href={`/messages/${order.buyerId}?orderId=${order.id}`}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] text-xs font-semibold transition"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#FAF6F0] hover:bg-[#e8e2d7] text-[#1d1d1f] text-xs font-semibold transition"
                     >
                       <MessageCircle className="w-3.5 h-3.5" /> Message Buyer
                     </Link>
@@ -619,14 +635,14 @@ export function OrdersDashboardClient({
       {/* TAB 5: MY LISTINGS (SELLER LISTING MANAGER) */}
       {activeTab === "listings" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs font-semibold text-[#86868b]">
               Edit pricing, toggle 1-for-1 swap preferences, or unlist books you
               have shared outside the platform.
             </p>
             <Link
               href="/catalog/new"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-semibold transition"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-xs font-bold transition shadow-sm shrink-0"
             >
               <Plus className="w-3.5 h-3.5" /> New Listing
             </Link>
@@ -644,7 +660,7 @@ export function OrdersDashboardClient({
               </p>
               <Link
                 href="/catalog/new"
-                className="inline-flex px-5 py-2.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-semibold transition"
+                className="inline-flex px-5 py-2.5 rounded-full bg-[#C84200] hover:bg-[#A33500] text-white text-xs font-bold transition shadow-sm"
               >
                 Create Your First Listing
               </Link>
@@ -655,20 +671,11 @@ export function OrdersDashboardClient({
                 key={book.id}
                 className="bg-white rounded-2xl p-5 border border-black/5 shadow-sm flex flex-wrap items-center justify-between gap-4"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-13 h-18 rounded-xl bg-[#f5f5f7] overflow-hidden shrink-0 flex items-center justify-center">
-                    {book.images?.[0] ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={book.images[0]}
-                        alt={book.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <BookOpen className="w-5 h-5 text-[#86868b]" />
-                    )}
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="w-13 h-18 rounded-xl bg-[#FAF6F0] overflow-hidden shrink-0 border border-black/5">
+                    <OrderThumb book={book} />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span
                         className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full ${
@@ -743,7 +750,7 @@ export function OrdersDashboardClient({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 16 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-10 w-full max-w-md bg-white rounded-2xl p-6 sm:p-8 shadow-2xl"
+              className="relative z-10 w-full max-w-md bg-white rounded-2xl p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto"
             >
               <button
                 type="button"
@@ -753,10 +760,10 @@ export function OrdersDashboardClient({
                 <X className="w-4 h-4 text-[#1d1d1f]" />
               </button>
 
-              <p className="text-[10px] font-bold uppercase tracking-widest text-[#0066cc] mb-1">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[#C84200] mb-1">
                 Listing Manager
               </p>
-              <h2 className="text-xl font-bold text-[#1d1d1f] mb-5">
+              <h2 className="text-xl font-bold text-[#1d1d1f] mb-5 pr-8">
                 Edit “{editBook.title}”
               </h2>
 
@@ -914,7 +921,7 @@ export function OrdersDashboardClient({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 16 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-10 w-full max-w-md bg-white rounded-2xl p-6 sm:p-8 shadow-2xl"
+              className="relative z-10 w-full max-w-md bg-white rounded-2xl p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto"
             >
               <button
                 type="button"
@@ -927,7 +934,7 @@ export function OrdersDashboardClient({
               <p className="text-[10px] font-bold uppercase tracking-widest text-[#0066cc] mb-1">
                 Verified Trust Rating
               </p>
-              <h2 className="text-xl font-bold text-[#1d1d1f] mb-1">
+              <h2 className="text-xl font-bold text-[#1d1d1f] mb-1 pr-8">
                 Rate {reviewTarget.sellerName}
               </h2>
               <p className="text-xs text-[#86868b] mb-6">
