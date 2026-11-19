@@ -38,24 +38,27 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
   const [status, setStatus] = useState<"starting" | "live" | "error">("starting")
   const [errorMsg, setErrorMsg] = useState("")
   const [cameras, setCameras] = useState<{ id: string; label: string }[]>([])
-  const [selectedCameraId, setSelectedCameraId] = useState<string>("")
+  const [activeCameraId, setActiveCameraId] = useState<string>("")
+  // Only changes when user manually picks a different camera from the dropdown
+  const [requestedCameraId, setRequestedCameraId] = useState<string>("")
   const [isMirrored, setIsMirrored] = useState(true)
   const [retryTick, setRetryTick] = useState(0)
 
   useEffect(() => {
     let cancelled = false
-    let started = false
     let nativeInterval: ReturnType<typeof setInterval> | null = null
     detectedRef.current = false
 
-    const stopAndClear = async (instance: Html5Qrcode | null) => {
+    const safeStopAndClear = async (instance: Html5Qrcode | null) => {
       if (nativeInterval) {
         clearInterval(nativeInterval)
         nativeInterval = null
       }
       if (!instance) return
       try {
-        if (instance.isScanning) {
+        const state = instance.getState()
+        // 2 = SCANNING, 3 = PAUSED
+        if (state === 2 || state === 3) {
           await instance.stop()
         }
       } catch {}
@@ -67,10 +70,9 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
     const triggerDetection = (rawText: string, qr: Html5Qrcode) => {
       if (detectedRef.current) return
       const clean = rawText.replace(/[^0-9Xx]/g, "")
-      // ISBN-10 / ISBN-13 / EAN-8+ codes are at least 8 characters
       if (clean.length < 8) return
       detectedRef.current = true
-      stopAndClear(qr).finally(() => {
+      safeStopAndClear(qr).finally(() => {
         onScanRef.current(clean)
       })
     }
@@ -100,6 +102,14 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
         return
       }
 
+      // Ensure any previous instance is fully stopped first
+      if (scannerRef.current) {
+        await safeStopAndClear(scannerRef.current)
+        scannerRef.current = null
+      }
+
+      if (cancelled) return
+
       try {
         const qr = new Html5Qrcode(containerId, {
           formatsToSupport: ISBN_FORMATS,
@@ -110,55 +120,54 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
         })
         scannerRef.current = qr
 
-        let cameraConfig: string | MediaTrackConstraints = {
-          facingMode: "user",
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
+        // html5-qrcode start() requires EITHER a string cameraId OR a single-key facingMode object
+        let cameraIdOrConfig: string | { facingMode: string } = {
+          facingMode: "environment",
         }
 
         try {
           const devices = await Html5Qrcode.getCameras()
           if (cancelled) {
-            await stopAndClear(qr)
+            await safeStopAndClear(qr)
             return
           }
           if (devices && devices.length > 0) {
             setCameras(devices)
             if (
-              selectedCameraId &&
-              devices.some((d) => d.id === selectedCameraId)
+              requestedCameraId &&
+              devices.some((d) => d.id === requestedCameraId)
             ) {
-              cameraConfig = {
-                deviceId: { exact: selectedCameraId },
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-              }
+              cameraIdOrConfig = requestedCameraId
+              setActiveCameraId(requestedCameraId)
             } else {
               const rearCam = devices.find((d) =>
                 /back|rear|environment/i.test(d.label)
               )
               const chosen = rearCam || devices[0]
-              cameraConfig = {
-                deviceId: { exact: chosen.id },
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-              }
-              setSelectedCameraId(chosen.id)
+              cameraIdOrConfig = chosen.id
+              setActiveCameraId(chosen.id)
             }
           }
         } catch {
-          cameraConfig = {
-            facingMode: "environment",
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          }
+          cameraIdOrConfig = { facingMode: "user" }
+        }
+
+        if (cancelled) {
+          await safeStopAndClear(qr)
+          return
         }
 
         const config = {
           fps: 15,
           qrbox: (viewfinderWidth: number, viewfinderHeight: number) => ({
-            width: Math.min(440, Math.max(220, Math.floor(viewfinderWidth * 0.78))),
-            height: Math.min(200, Math.max(110, Math.floor(viewfinderHeight * 0.42))),
+            width: Math.min(
+              440,
+              Math.max(220, Math.floor(viewfinderWidth * 0.78))
+            ),
+            height: Math.min(
+              200,
+              Math.max(110, Math.floor(viewfinderHeight * 0.42))
+            ),
           }),
           aspectRatio: 1.6,
           disableFlip: false,
@@ -168,26 +177,16 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
           triggerDetection(decodedText, qr)
         }
 
-        try {
-          await qr.start(cameraConfig, config, handleDecoded, () => {})
-          started = true
-        } catch {
-          if (cancelled) {
-            await stopAndClear(qr)
-            return
-          }
-          await qr.start({ facingMode: "user" }, config, handleDecoded, () => {})
-          started = true
-        }
+        await qr.start(cameraIdOrConfig, config, handleDecoded, () => {})
 
         if (cancelled) {
-          await stopAndClear(qr)
+          await safeStopAndClear(qr)
           return
         }
 
         setStatus("live")
 
-        // Fast-path native browser BarcodeDetector loop (Chrome/Edge/Brave) for crisp 1D EAN-13 ISBN detection
+        // Native browser BarcodeDetector fast-path loop (Chrome/Brave/Edge)
         if (typeof window !== "undefined" && "BarcodeDetector" in window) {
           try {
             const detector = new (window as any).BarcodeDetector({
@@ -244,20 +243,22 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
 
     return () => {
       cancelled = true
-      if (started || scannerRef.current) {
-        stopAndClear(scannerRef.current)
-        scannerRef.current = null
-      }
+      const current = scannerRef.current
+      scannerRef.current = null
+      safeStopAndClear(current)
     }
-  }, [containerId, selectedCameraId, retryTick])
+  }, [containerId, requestedCameraId, retryTick])
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
     try {
-      if (scannerRef.current?.isScanning) {
-        await scannerRef.current.stop().catch(() => {})
+      if (scannerRef.current) {
+        const state = scannerRef.current.getState()
+        if (state === 2 || state === 3) {
+          await scannerRef.current.stop().catch(() => {})
+        }
       }
       const qr =
         scannerRef.current ||
@@ -271,7 +272,9 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
       if (clean.length >= 8) {
         onScanRef.current(clean)
       } else {
-        setErrorMsg("No ISBN barcode detected in that image. Try a clearer photo.")
+        setErrorMsg(
+          "No ISBN barcode detected in that image. Try a clearer photo."
+        )
       }
     } catch {
       setErrorMsg(
@@ -313,8 +316,8 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
 
           {cameras.length > 1 && (
             <select
-              value={selectedCameraId}
-              onChange={(e) => setSelectedCameraId(e.target.value)}
+              value={activeCameraId}
+              onChange={(e) => setRequestedCameraId(e.target.value)}
               className="rounded-full bg-white/10 text-white text-[11px] font-semibold px-2.5 py-1 outline-none"
             >
               {cameras.map((c, idx) => (
