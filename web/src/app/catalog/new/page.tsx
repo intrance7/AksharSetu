@@ -1,4 +1,5 @@
 import { auth } from "@/auth"
+import prisma from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
@@ -12,6 +13,11 @@ export default async function ListBookPage() {
   if (!session?.user?.id) {
     redirect("/login?callbackUrl=/catalog/new")
   }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { latitude: true, longitude: true, location: true },
+  })
 
   return (
     <div className="min-h-screen bg-[#F2EBE1] pt-24 pb-12 relative overflow-hidden">
@@ -60,7 +66,13 @@ export default async function ListBookPage() {
         </div>
         
         {/* Form Container */}
-        <ListBookForm />
+        <ListBookForm
+          initialLocation={{
+            latitude: user?.latitude ?? null,
+            longitude: user?.longitude ?? null,
+            location: user?.location ?? "",
+          }}
+        />
       </div>
     </div>
   )

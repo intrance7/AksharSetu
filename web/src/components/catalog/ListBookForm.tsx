@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Search,
@@ -14,6 +14,9 @@ import {
   Sparkles,
   Calculator,
   Check,
+  MapPin,
+  Navigation,
+  CheckCircle2,
 } from "lucide-react"
 import { createBook } from "@/app/actions/book"
 import { IsbnCameraScanner } from "./IsbnCameraScanner"
@@ -28,13 +31,35 @@ const CONDITION_DIMENSIONS = [
   { key: "condBinding", label: "Spine & Binding" },
 ] as const
 
-export function ListBookForm() {
+type InitialLocation = {
+  latitude: number | null
+  longitude: number | null
+  location?: string
+}
+
+export function ListBookForm({
+  initialLocation,
+}: {
+  initialLocation?: InitialLocation
+}) {
   const [isbn, setIsbn] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGeneratingDesc, setIsGeneratingDesc] = useState(false)
   const [isEstimatingPrice, setIsEstimatingPrice] = useState(false)
+  const [latitude, setLatitude] = useState<number | null>(
+    initialLocation?.latitude ?? null
+  )
+  const [longitude, setLongitude] = useState<number | null>(
+    initialLocation?.longitude ?? null
+  )
+  const [locationName, setLocationName] = useState<string>(
+    initialLocation?.location ?? ""
+  )
+  const [isLocating, setIsLocating] = useState(false)
+  const [locationError, setLocationError] = useState("")
+  const locationCardRef = useRef<HTMLDivElement>(null)
   const [priceEstimate, setPriceEstimate] = useState<{
     suggestedPrice: number
     minPrice: number
@@ -327,6 +352,54 @@ export function ListBookForm() {
     }
   }
 
+  const requestLocationAccess = () => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setLocationError("Geolocation is not supported in this browser.")
+      return
+    }
+    setIsLocating(true)
+    setLocationError("")
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude
+        const lng = pos.coords.longitude
+        setLatitude(lat)
+        setLongitude(lng)
+        setError("")
+
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+          )
+          if (res.ok) {
+            const data = await res.json()
+            const addr = data?.address || {}
+            const label = [
+              addr.suburb || addr.neighbourhood || addr.road,
+              addr.city || addr.town || addr.village || addr.state_district,
+              addr.state,
+            ]
+              .filter(Boolean)
+              .slice(0, 2)
+              .join(", ")
+            if (label) setLocationName(label)
+          }
+        } catch {}
+
+        setIsLocating(false)
+      },
+      (err) => {
+        setLocationError(
+          err.code === err.PERMISSION_DENIED
+            ? "Location permission denied. Please allow location access in your browser to pin this book on the map."
+            : "Could not detect your location. Please try again."
+        )
+        setIsLocating(false)
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+    )
+  }
+
   // Consistent Randomization for Doodles based on title or isbn
   const seedString = formData.title || isbn || "new-book"
   const hash = seedString
@@ -497,7 +570,23 @@ export function ListBookForm() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
         action={async (form) => {
+          if (
+            formData.listingType === "SELL" &&
+            (latitude === null || longitude === null)
+          ) {
+            const msg =
+              "Location access is required to post a book for sale and pin it on the map."
+            setLocationError(msg)
+            setError(msg)
+            locationCardRef.current?.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            })
+            return
+          }
+
           setIsSubmitting(true)
+          setError("")
           form.set("isDonation", (formData.listingType === "DONATE").toString())
           form.set(
             "acceptsExchange",
@@ -514,12 +603,23 @@ export function ListBookForm() {
           form.set("isBundle", formData.isBundle.toString())
           form.set("booksInBundle", formData.booksInBundle.toString())
           form.set("bundleDescription", formData.bundleDescription)
+          if (latitude !== null && longitude !== null) {
+            form.set("latitude", String(latitude))
+            form.set("longitude", String(longitude))
+          }
+          if (locationName.trim()) {
+            form.set("location", locationName.trim())
+          }
 
           try {
             await createBook(form)
-          } catch {
+          } catch (err: any) {
+            if (err?.digest?.startsWith("NEXT_REDIRECT")) {
+              throw err
+            }
             setError(
-              "Failed to list the book. Please check all fields and try again."
+              err?.message ||
+                "Failed to list the book. Please check all fields and try again."
             )
             setIsSubmitting(false)
           }
@@ -1022,6 +1122,102 @@ export function ListBookForm() {
               />
             </motion.div>
           )}
+
+          {/* Map Location Access */}
+          <div
+            ref={locationCardRef}
+            className={`mb-8 p-5 rounded-2xl border transition-colors ${
+              locationError
+                ? "bg-red-50/70 border-red-300"
+                : latitude !== null && longitude !== null
+                ? "bg-[#F0FAF5] border-[#0A7D4F]/25"
+                : "bg-[#FAF6F0] border-[#1d1d1f]/10"
+            }`}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div
+                  className={`p-2.5 rounded-xl shrink-0 ${
+                    latitude !== null && longitude !== null
+                      ? "bg-[#0A7D4F]/15 text-[#0A7D4F]"
+                      : "bg-[#C84200]/10 text-[#C84200]"
+                  }`}
+                >
+                  {latitude !== null && longitude !== null ? (
+                    <CheckCircle2 className="w-5 h-5" />
+                  ) : (
+                    <MapPin className="w-5 h-5" />
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-sm font-black text-[#1D1D1F]">
+                      Map Location Pin
+                    </h3>
+                    {formData.listingType === "SELL" ? (
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#C84200]/10 text-[#C84200]">
+                        Required for Sale
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/5 text-[#86868b]">
+                        Optional
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-[#86868b] font-medium mt-0.5">
+                    {latitude !== null && longitude !== null
+                      ? `Pinned on Books Near Me map (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`
+                      : "Allow location access so nearby buyers can discover this book on the campus & city map."}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={requestLocationAccess}
+                disabled={isLocating}
+                className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-black uppercase tracking-wider transition-all shrink-0 cursor-pointer disabled:opacity-60 ${
+                  latitude !== null && longitude !== null
+                    ? "bg-white text-[#1D1D1F] border border-black/10 hover:bg-black/5"
+                    : "bg-[#C84200] text-white hover:bg-[#A33500] shadow-sm"
+                }`}
+              >
+                {isLocating ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Locating...
+                  </>
+                ) : (
+                  <>
+                    <Navigation className="w-3.5 h-3.5" />
+                    {latitude !== null && longitude !== null
+                      ? "Update GPS"
+                      : "Allow Location"}
+                  </>
+                )}
+              </button>
+            </div>
+
+            {latitude !== null && longitude !== null && (
+              <div className="mt-3 pt-3 border-t border-black/5">
+                <label className="block text-[11px] font-bold text-[#1D1D1F] mb-1.5">
+                  Neighborhood / City Label (shown on map)
+                </label>
+                <input
+                  type="text"
+                  value={locationName}
+                  onChange={(e) => setLocationName(e.target.value)}
+                  placeholder="e.g. Koramangala, Bengaluru"
+                  className="w-full bg-white border border-black/10 focus:border-[#C84200]/40 focus:ring-2 focus:ring-[#C84200]/10 rounded-xl px-3.5 py-2 text-sm font-medium text-[#1D1D1F] outline-none"
+                />
+              </div>
+            )}
+
+            {locationError && (
+              <div className="mt-3 flex items-center gap-2 text-red-600 text-xs font-bold">
+                <AlertCircle className="w-4 h-4 shrink-0" /> {locationError}
+              </div>
+            )}
+          </div>
 
           <button
             type="submit"

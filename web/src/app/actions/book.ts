@@ -49,8 +49,46 @@ export async function createBook(formData: FormData) {
   const booksInBundle = booksInBundleStr ? parseInt(booksInBundleStr, 10) : 1
   const bundleDescription = formData.get("bundleDescription") as string
 
+  // Location for Books Near Me Map
+  const latRaw = formData.get("latitude") as string | null
+  const lngRaw = formData.get("longitude") as string | null
+  const locationLabel = ((formData.get("location") as string) || "").trim()
+  const parsedLat = latRaw ? parseFloat(latRaw) : NaN
+  const parsedLng = lngRaw ? parseFloat(lngRaw) : NaN
+  const hasValidCoords =
+    Number.isFinite(parsedLat) &&
+    Number.isFinite(parsedLng) &&
+    parsedLat >= -90 &&
+    parsedLat <= 90 &&
+    parsedLng >= -180 &&
+    parsedLng <= 180
+
   if (!title || !author || !condition || !category) {
     throw new Error("Missing required fields")
+  }
+
+  const isForSale = !isDonation && !acceptsExchange
+  if (isForSale && !hasValidCoords) {
+    const existingUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { latitude: true, longitude: true },
+    })
+    if (existingUser?.latitude == null || existingUser?.longitude == null) {
+      throw new Error(
+        "Location access is required to post a book for sale and pin it on the map."
+      )
+    }
+  }
+
+  if (hasValidCoords) {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        latitude: parsedLat,
+        longitude: parsedLng,
+        ...(locationLabel ? { location: locationLabel.slice(0, 120) } : {}),
+      },
+    })
   }
 
   const createdBook = await prisma.book.create({
