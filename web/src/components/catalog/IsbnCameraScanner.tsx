@@ -2,7 +2,14 @@
 
 import { useEffect, useId, useRef, useState } from "react"
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode"
-import { Camera, RefreshCw, Upload, AlertCircle, Loader2 } from "lucide-react"
+import {
+  Camera,
+  RefreshCw,
+  Upload,
+  AlertCircle,
+  Loader2,
+  FlipHorizontal2,
+} from "lucide-react"
 
 interface IsbnCameraScannerProps {
   onScan: (cleanIsbn: string) => void
@@ -25,19 +32,27 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const onScanRef = useRef(onScan)
+  const detectedRef = useRef(false)
   onScanRef.current = onScan
 
   const [status, setStatus] = useState<"starting" | "live" | "error">("starting")
   const [errorMsg, setErrorMsg] = useState("")
   const [cameras, setCameras] = useState<{ id: string; label: string }[]>([])
   const [selectedCameraId, setSelectedCameraId] = useState<string>("")
+  const [isMirrored, setIsMirrored] = useState(true)
   const [retryTick, setRetryTick] = useState(0)
 
   useEffect(() => {
     let cancelled = false
     let started = false
+    let nativeInterval: ReturnType<typeof setInterval> | null = null
+    detectedRef.current = false
 
     const stopAndClear = async (instance: Html5Qrcode | null) => {
+      if (nativeInterval) {
+        clearInterval(nativeInterval)
+        nativeInterval = null
+      }
       if (!instance) return
       try {
         if (instance.isScanning) {
@@ -49,11 +64,21 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
       } catch {}
     }
 
+    const triggerDetection = (rawText: string, qr: Html5Qrcode) => {
+      if (detectedRef.current) return
+      const clean = rawText.replace(/[^0-9Xx]/g, "")
+      // ISBN-10 / ISBN-13 / EAN-8+ codes are at least 8 characters
+      if (clean.length < 8) return
+      detectedRef.current = true
+      stopAndClear(qr).finally(() => {
+        onScanRef.current(clean)
+      })
+    }
+
     const startCamera = async () => {
       setStatus("starting")
       setErrorMsg("")
 
-      // Check secure context (HTTPS or localhost)
       if (
         typeof window !== "undefined" &&
         !window.isSecureContext &&
@@ -78,12 +103,19 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
       try {
         const qr = new Html5Qrcode(containerId, {
           formatsToSupport: ISBN_FORMATS,
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true,
+          },
           verbose: false,
         })
         scannerRef.current = qr
 
-        // Request camera list (triggers browser permission prompt immediately)
-        let cameraConfig: string | MediaTrackConstraints = { facingMode: "user" }
+        let cameraConfig: string | MediaTrackConstraints = {
+          facingMode: "user",
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        }
+
         try {
           const devices = await Html5Qrcode.getCameras()
           if (cancelled) {
@@ -96,40 +128,50 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
               selectedCameraId &&
               devices.some((d) => d.id === selectedCameraId)
             ) {
-              cameraConfig = selectedCameraId
+              cameraConfig = {
+                deviceId: { exact: selectedCameraId },
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+              }
             } else {
               const rearCam = devices.find((d) =>
                 /back|rear|environment/i.test(d.label)
               )
               const chosen = rearCam || devices[0]
-              cameraConfig = chosen.id
+              cameraConfig = {
+                deviceId: { exact: chosen.id },
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+              }
               setSelectedCameraId(chosen.id)
             }
           }
         } catch {
-          // Fallback directly to default camera constraint if getCameras fails
-          cameraConfig = { facingMode: "environment" }
+          cameraConfig = {
+            facingMode: "environment",
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          }
         }
 
         const config = {
-          fps: 10,
-          qrbox: { width: 260, height: 140 },
+          fps: 15,
+          qrbox: (viewfinderWidth: number, viewfinderHeight: number) => ({
+            width: Math.min(440, Math.max(220, Math.floor(viewfinderWidth * 0.78))),
+            height: Math.min(200, Math.max(110, Math.floor(viewfinderHeight * 0.42))),
+          }),
           aspectRatio: 1.6,
+          disableFlip: false,
         }
 
         const handleDecoded = (decodedText: string) => {
-          const clean = decodedText.replace(/[^0-9Xx]/g, "")
-          if (!clean) return
-          stopAndClear(qr).finally(() => {
-            onScanRef.current(clean)
-          })
+          triggerDetection(decodedText, qr)
         }
 
         try {
           await qr.start(cameraConfig, config, handleDecoded, () => {})
           started = true
         } catch {
-          // Second fallback: try facingMode: "user" (standard laptop webcam)
           if (cancelled) {
             await stopAndClear(qr)
             return
@@ -144,6 +186,35 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
         }
 
         setStatus("live")
+
+        // Fast-path native browser BarcodeDetector loop (Chrome/Edge/Brave) for crisp 1D EAN-13 ISBN detection
+        if (typeof window !== "undefined" && "BarcodeDetector" in window) {
+          try {
+            const detector = new (window as any).BarcodeDetector({
+              formats: [
+                "ean_13",
+                "ean_8",
+                "upc_a",
+                "upc_e",
+                "code_128",
+                "qr_code",
+              ],
+            })
+            nativeInterval = setInterval(async () => {
+              if (cancelled || detectedRef.current) return
+              const video = document.querySelector(
+                `#${containerId} video`
+              ) as HTMLVideoElement | null
+              if (!video || video.readyState < 2) return
+              try {
+                const results = await detector.detect(video)
+                if (results && results.length > 0 && results[0].rawValue) {
+                  triggerDetection(results[0].rawValue, qr)
+                }
+              } catch {}
+            }, 220)
+          } catch {}
+        }
       } catch (err: any) {
         if (cancelled) return
         setStatus("error")
@@ -192,11 +263,12 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
         scannerRef.current ||
         new Html5Qrcode(containerId, {
           formatsToSupport: ISBN_FORMATS,
+          experimentalFeatures: { useBarCodeDetectorIfSupported: true },
           verbose: false,
         })
       const decoded = await qr.scanFile(file, true)
       const clean = decoded.replace(/[^0-9Xx]/g, "")
-      if (clean) {
+      if (clean.length >= 8) {
         onScanRef.current(clean)
       } else {
         setErrorMsg("No ISBN barcode detected in that image. Try a clearer photo.")
@@ -219,12 +291,26 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
             {status === "starting"
               ? "Opening camera..."
               : status === "live"
-              ? "Point camera at the ISBN barcode on the back cover"
+              ? "Hold the ISBN barcode steady inside the frame"
               : "Camera unavailable"}
           </span>
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsMirrored((m) => !m)}
+            title="Flip camera view horizontally"
+            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold transition-colors cursor-pointer ${
+              isMirrored
+                ? "bg-[#C84200] text-white"
+                : "bg-white/10 text-white/80 hover:bg-white/20"
+            }`}
+          >
+            <FlipHorizontal2 className="w-3.5 h-3.5" />
+            {isMirrored ? "Mirrored" : "Normal"}
+          </button>
+
           {cameras.length > 1 && (
             <select
               value={selectedCameraId}
@@ -254,9 +340,12 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
         </div>
       </div>
 
-      {/* Live Video Container */}
-      <div className="relative w-full min-h-[220px] rounded-xl overflow-hidden bg-black flex items-center justify-center">
-        <div id={containerId} className="w-full" />
+      {/* Live Video Container (flipped horizontally by default for natural webcam alignment) */}
+      <div className="relative w-full min-h-[240px] rounded-xl overflow-hidden bg-black flex items-center justify-center">
+        <div
+          id={containerId}
+          className={`w-full ${isMirrored ? "[&_video]:-scale-x-100" : ""}`}
+        />
 
         {status === "starting" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/80 text-xs font-semibold text-white/80">
@@ -283,9 +372,9 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
       </div>
 
       {/* Upload Photo Fallback */}
-      <div className="flex items-center justify-between gap-2 pt-1">
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
         <span className="text-[11px] text-white/55">
-          Supports EAN-13, ISBN-10/13, UPC &amp; QR barcodes
+          Tip: Hold barcode 15–25cm from camera in good light · EAN-13 / ISBN
         </span>
         <input
           ref={fileInputRef}
