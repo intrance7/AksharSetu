@@ -12,6 +12,8 @@ import {
   Volume2,
   VolumeX,
   BookOpen,
+  Maximize2,
+  Minimize2,
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -49,9 +51,63 @@ export function ShantiTimer({
   const [soundMode, setSoundMode] = useState<SoundMode>("off")
   const [currentPage, setCurrentPage] = useState(initialPage)
   const [totalPages, setTotalPages] = useState(initialTotalPages)
+  const [isFullscreen, setIsFullscreen] = useState(false)
 
+  const containerRef = useRef<HTMLDivElement | null>(null)
   const audioCtxRef = useRef<AudioContext | null>(null)
   const cleanupSoundRef = useRef<(() => void) | null>(null)
+
+  const enterFullscreen = useCallback(() => {
+    if (typeof document === "undefined") return
+    if (document.fullscreenElement) return
+    const target = compact
+      ? document.documentElement
+      : containerRef.current || document.documentElement
+    const req =
+      target.requestFullscreen ||
+      (target as any).webkitRequestFullscreen ||
+      (target as any).msRequestFullscreen
+    if (typeof req === "function") {
+      Promise.resolve(req.call(target)).catch(() => {})
+    }
+  }, [compact])
+
+  const exitFullscreen = useCallback(() => {
+    if (typeof document === "undefined") return
+    const activeEl =
+      document.fullscreenElement || (document as any).webkitFullscreenElement
+    if (!activeEl) return
+    const exit =
+      document.exitFullscreen ||
+      (document as any).webkitExitFullscreen ||
+      (document as any).msExitFullscreen
+    if (typeof exit === "function") {
+      Promise.resolve(exit.call(document)).catch(() => {})
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof document === "undefined") return
+    const onFsChange = () => {
+      setIsFullscreen(
+        Boolean(
+          document.fullscreenElement || (document as any).webkitFullscreenElement
+        )
+      )
+    }
+    document.addEventListener("fullscreenchange", onFsChange)
+    document.addEventListener("webkitfullscreenchange", onFsChange)
+    return () => {
+      document.removeEventListener("fullscreenchange", onFsChange)
+      document.removeEventListener("webkitfullscreenchange", onFsChange)
+    }
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      exitFullscreen()
+    }
+  }, [exitFullscreen])
 
   const stopAmbientAudio = useCallback(() => {
     if (cleanupSoundRef.current) {
@@ -172,6 +228,7 @@ export function ShantiTimer({
     setIsSubmitting(true)
     setIsActive(false)
     stopAmbientAudio()
+    exitFullscreen()
     try {
       await fetch("/api/shanti/status", {
         method: "POST",
@@ -198,7 +255,7 @@ export function ShantiTimer({
     } finally {
       setIsSubmitting(false)
     }
-  }, [bookId, compact, durationMinutes, router, stopAmbientAudio])
+  }, [bookId, compact, durationMinutes, exitFullscreen, router, stopAmbientAudio])
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -219,6 +276,8 @@ export function ShantiTimer({
   }
 
   const handleStart = async () => {
+    // Must invoke Fullscreen API synchronously inside the user click gesture before any await
+    enterFullscreen()
     setIsSubmitting(true)
     try {
       await fetch("/api/shanti/status", {
@@ -240,6 +299,7 @@ export function ShantiTimer({
   const handleStop = async () => {
     setIsSubmitting(true)
     stopAmbientAudio()
+    exitFullscreen()
     try {
       await fetch("/api/shanti/status", {
         method: "POST",
@@ -334,7 +394,32 @@ export function ShantiTimer({
   const pct = Math.min(100, Math.round((currentPage / Math.max(1, totalPages)) * 100))
 
   return (
-    <div className="relative w-full min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center text-white px-4 sm:px-6 py-10">
+    <div
+      ref={containerRef}
+      className={`w-full bg-black flex flex-col items-center justify-center text-white px-4 sm:px-6 py-10 transition-colors ${
+        isActive
+          ? "fixed inset-0 z-[100] min-h-screen overflow-y-auto"
+          : "relative min-h-[calc(100vh-4rem)]"
+      }`}
+    >
+      {isActive && (
+        <button
+          type="button"
+          onClick={isFullscreen ? exitFullscreen : enterFullscreen}
+          title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+          className="fixed top-5 right-5 z-20 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white/75 hover:text-white text-xs font-semibold transition cursor-pointer"
+        >
+          {isFullscreen ? (
+            <>
+              <Minimize2 className="w-3.5 h-3.5" /> Exit Fullscreen
+            </>
+          ) : (
+            <>
+              <Maximize2 className="w-3.5 h-3.5" /> Fullscreen
+            </>
+          )}
+        </button>
+      )}
       <AnimatePresence>
         {!isActive && (
           <motion.div
