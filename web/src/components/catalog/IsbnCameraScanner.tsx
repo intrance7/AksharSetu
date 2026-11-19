@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useId, useRef, useState } from "react"
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode"
+import { useEffect, useRef, useState } from "react"
+import { BarcodeDetector as BarcodeDetectorPonyfill } from "barcode-detector/ponyfill"
 import {
   Camera,
   RefreshCw,
@@ -16,18 +16,28 @@ interface IsbnCameraScannerProps {
   onClose?: () => void
 }
 
-// 99.9% of book ISBN barcodes are EAN-13 (978/979); keeping the format list minimal cuts per-frame decode time >50%
-const ISBN_FORMATS = [
-  Html5QrcodeSupportedFormats.EAN_13,
-  Html5QrcodeSupportedFormats.EAN_8,
-  Html5QrcodeSupportedFormats.UPC_A,
-]
+const ISBN_FORMATS = ["ean_13", "ean_8", "upc_a"] as const
+
+type DetectorLike = {
+  detect: (
+    source: HTMLVideoElement | ImageBitmap | HTMLImageElement | HTMLCanvasElement
+  ) => Promise<Array<{ rawValue?: string }>>
+}
+
+function createDetector(): DetectorLike {
+  if (typeof window !== "undefined" && "BarcodeDetector" in window) {
+    try {
+      const NativeDetector = (window as any).BarcodeDetector
+      return new NativeDetector({ formats: [...ISBN_FORMATS] })
+    } catch {}
+  }
+  return new BarcodeDetectorPonyfill({ formats: [...ISBN_FORMATS] })
+}
 
 export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
-  const reactId = useId().replace(/:/g, "")
-  const containerId = `isbn-cam-${reactId}`
-
-  const scannerRef = useRef<Html5Qrcode | null>(null)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const detectorRef = useRef<DetectorLike | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const onScanRef = useRef(onScan)
   const detectedRef = useRef(false)
@@ -37,42 +47,36 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
   const [errorMsg, setErrorMsg] = useState("")
   const [cameras, setCameras] = useState<{ id: string; label: string }[]>([])
   const [activeCameraId, setActiveCameraId] = useState<string>("")
-  // Only changes when user manually picks a different camera from the dropdown
   const [requestedCameraId, setRequestedCameraId] = useState<string>("")
   const [isMirrored, setIsMirrored] = useState(true)
   const [retryTick, setRetryTick] = useState(0)
 
   useEffect(() => {
     let cancelled = false
-    let nativeInterval: ReturnType<typeof setInterval> | null = null
+    let loopTimer: ReturnType<typeof setTimeout> | null = null
     detectedRef.current = false
 
-    const safeStopAndClear = async (instance: Html5Qrcode | null) => {
-      if (nativeInterval) {
-        clearInterval(nativeInterval)
-        nativeInterval = null
+    const stopStream = () => {
+      if (loopTimer) {
+        clearTimeout(loopTimer)
+        loopTimer = null
       }
-      if (!instance) return
-      try {
-        const state = instance.getState()
-        // 2 = SCANNING, 3 = PAUSED
-        if (state === 2 || state === 3) {
-          await instance.stop()
-        }
-      } catch {}
-      try {
-        instance.clear()
-      } catch {}
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop())
+        streamRef.current = null
+      }
+      if (videoRef.current) {
+        videoRef.current.srcObject = null
+      }
     }
 
-    const triggerDetection = (rawText: string, qr: Html5Qrcode) => {
+    const triggerDetection = (rawText: string) => {
       if (detectedRef.current) return
       const clean = rawText.replace(/[^0-9Xx]/g, "")
       if (clean.length < 8) return
       detectedRef.current = true
-      safeStopAndClear(qr).finally(() => {
-        onScanRef.current(clean)
-      })
+      stopStream()
+      onScanRef.current(clean)
     }
 
     const startCamera = async () => {
@@ -100,121 +104,102 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
         return
       }
 
-      // Ensure any previous instance is fully stopped first
-      if (scannerRef.current) {
-        await safeStopAndClear(scannerRef.current)
-        scannerRef.current = null
-      }
-
-      if (cancelled) return
+      stopStream()
 
       try {
-        const qr = new Html5Qrcode(containerId, {
-          formatsToSupport: ISBN_FORMATS,
-          experimentalFeatures: {
-            useBarCodeDetectorIfSupported: true,
-          },
-          verbose: false,
-        })
-        scannerRef.current = qr
-
-        // html5-qrcode start() requires EITHER a string cameraId OR a single-key facingMode object
-        let cameraIdOrConfig: string | { facingMode: string } = {
-          facingMode: "environment",
+        // Initialize WASM / Native BarcodeDetector in parallel with camera open
+        if (!detectorRef.current) {
+          detectorRef.current = createDetector()
         }
 
-        try {
-          const devices = await Html5Qrcode.getCameras()
-          if (cancelled) {
-            await safeStopAndClear(qr)
-            return
-          }
-          if (devices && devices.length > 0) {
-            setCameras(devices)
-            if (
-              requestedCameraId &&
-              devices.some((d) => d.id === requestedCameraId)
-            ) {
-              cameraIdOrConfig = requestedCameraId
-              setActiveCameraId(requestedCameraId)
-            } else {
-              const rearCam = devices.find((d) =>
-                /back|rear|environment/i.test(d.label)
-              )
-              const chosen = rearCam || devices[0]
-              cameraIdOrConfig = chosen.id
-              setActiveCameraId(chosen.id)
+        const videoConstraints: MediaTrackConstraints = requestedCameraId
+          ? {
+              deviceId: { exact: requestedCameraId },
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+              frameRate: { ideal: 30 },
             }
-          }
+          : {
+              facingMode: { ideal: "environment" },
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+              frameRate: { ideal: 30 },
+            }
+
+        let stream: MediaStream
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: videoConstraints,
+            audio: false,
+          })
         } catch {
-          cameraIdOrConfig = { facingMode: "user" }
+          // Fallback to default camera without strict constraints
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false,
+          })
         }
 
         if (cancelled) {
-          await safeStopAndClear(qr)
+          stream.getTracks().forEach((t) => t.stop())
           return
         }
 
-        const config = {
-          fps: 25,
-          qrbox: (viewfinderWidth: number, viewfinderHeight: number) => ({
-            width: Math.min(
-              480,
-              Math.max(240, Math.floor(viewfinderWidth * 0.85))
-            ),
-            height: Math.min(
-              180,
-              Math.max(100, Math.floor(viewfinderHeight * 0.36))
-            ),
-          }),
-          aspectRatio: 1.6,
-          // CSS -scale-x-100 only mirrors the visual display; raw webcam pixels are un-flipped,
-          // so disableFlip: true avoids wasting 50% CPU decoding every frame backwards.
-          disableFlip: true,
-        }
+        streamRef.current = stream
 
-        const handleDecoded = (decodedText: string) => {
-          triggerDetection(decodedText, qr)
-        }
-
-        await qr.start(cameraIdOrConfig, config, handleDecoded, () => {})
-
-        // Upgrade active track to 720p HD for sharper 1D barcode bars (best-effort)
+        // Populate camera selector after permission is granted
         try {
-          await qr.applyVideoConstraints({
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          })
+          const allDevices = await navigator.mediaDevices.enumerateDevices()
+          const videoInputs = allDevices
+            .filter((d) => d.kind === "videoinput")
+            .map((d, i) => ({
+              id: d.deviceId,
+              label: d.label || `Camera ${i + 1}`,
+            }))
+          if (!cancelled && videoInputs.length > 0) {
+            setCameras(videoInputs)
+            const activeTrackDeviceId =
+              stream.getVideoTracks()[0]?.getSettings()?.deviceId || ""
+            setActiveCameraId(activeTrackDeviceId || videoInputs[0].id)
+          }
         } catch {}
 
+        const video = videoRef.current
+        if (!video) {
+          stopStream()
+          return
+        }
+
+        video.srcObject = stream
+        await video.play()
+
         if (cancelled) {
-          await safeStopAndClear(qr)
+          stopStream()
           return
         }
 
         setStatus("live")
 
-        // Native browser BarcodeDetector fast-path loop (Chrome/Brave/Edge) every 80ms
-        if (typeof window !== "undefined" && "BarcodeDetector" in window) {
-          try {
-            const detector = new (window as any).BarcodeDetector({
-              formats: ["ean_13", "ean_8", "upc_a"],
-            })
-            nativeInterval = setInterval(async () => {
-              if (cancelled || detectedRef.current) return
-              const video = document.querySelector(
-                `#${containerId} video`
-              ) as HTMLVideoElement | null
-              if (!video || video.readyState < 2) return
-              try {
-                const results = await detector.detect(video)
-                if (results && results.length > 0 && results[0].rawValue) {
-                  triggerDetection(results[0].rawValue, qr)
-                }
-              } catch {}
-            }, 80)
-          } catch {}
+        // Tight non-overlapping WASM/Native scan loop directly on full-resolution HD video frames
+        const scanLoop = async () => {
+          if (cancelled || detectedRef.current) return
+          const v = videoRef.current
+          const detector = detectorRef.current
+          if (v && detector && v.readyState >= 2 && v.videoWidth > 0) {
+            try {
+              const results = await detector.detect(v)
+              if (results && results.length > 0 && results[0].rawValue) {
+                triggerDetection(results[0].rawValue)
+                return
+              }
+            } catch {}
+          }
+          if (!cancelled && !detectedRef.current) {
+            loopTimer = setTimeout(scanLoop, 45)
+          }
         }
+
+        scanLoop()
       } catch (err: any) {
         if (cancelled) return
         setStatus("error")
@@ -244,38 +229,35 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
 
     return () => {
       cancelled = true
-      const current = scannerRef.current
-      scannerRef.current = null
-      safeStopAndClear(current)
+      stopStream()
     }
-  }, [containerId, requestedCameraId, retryTick])
+  }, [requestedCameraId, retryTick])
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
     try {
-      if (scannerRef.current) {
-        const state = scannerRef.current.getState()
-        if (state === 2 || state === 3) {
-          await scannerRef.current.stop().catch(() => {})
+      const detector = detectorRef.current || createDetector()
+      detectorRef.current = detector
+      const bitmap = await createImageBitmap(file)
+      try {
+        const results = await detector.detect(bitmap)
+        const raw = results?.[0]?.rawValue || ""
+        const clean = raw.replace(/[^0-9Xx]/g, "")
+        if (clean.length >= 8) {
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((t) => t.stop())
+            streamRef.current = null
+          }
+          onScanRef.current(clean)
+        } else {
+          setErrorMsg(
+            "No ISBN barcode detected in that image. Try a clearer photo."
+          )
         }
-      }
-      const qr =
-        scannerRef.current ||
-        new Html5Qrcode(containerId, {
-          formatsToSupport: ISBN_FORMATS,
-          experimentalFeatures: { useBarCodeDetectorIfSupported: true },
-          verbose: false,
-        })
-      const decoded = await qr.scanFile(file, true)
-      const clean = decoded.replace(/[^0-9Xx]/g, "")
-      if (clean.length >= 8) {
-        onScanRef.current(clean)
-      } else {
-        setErrorMsg(
-          "No ISBN barcode detected in that image. Try a clearer photo."
-        )
+      } finally {
+        bitmap.close()
       }
     } catch {
       setErrorMsg(
@@ -319,7 +301,7 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
             <select
               value={activeCameraId}
               onChange={(e) => setRequestedCameraId(e.target.value)}
-              className="rounded-full bg-white/10 text-white text-[11px] font-semibold px-2.5 py-1 outline-none"
+              className="rounded-full bg-white/10 text-white text-[11px] font-semibold px-2.5 py-1 outline-none max-w-[160px] truncate"
             >
               {cameras.map((c, idx) => (
                 <option
@@ -344,26 +326,35 @@ export function IsbnCameraScanner({ onScan, onClose }: IsbnCameraScannerProps) {
         </div>
       </div>
 
-      {/* Live Video Container (flipped horizontally by default for natural webcam alignment) */}
-      <div className="relative w-full min-h-[240px] rounded-xl overflow-hidden bg-black flex items-center justify-center">
-        <div
-          id={containerId}
-          className={`w-full ${isMirrored ? "[&_video]:-scale-x-100" : ""}`}
+      {/* Full-HD Live Video Container (reads native 720p pixels even inside compact modals) */}
+      <div className="relative w-full aspect-[16/10] min-h-[210px] rounded-xl overflow-hidden bg-black flex items-center justify-center">
+        <video
+          ref={videoRef}
+          playsInline
+          muted
+          autoPlay
+          className={`w-full h-full object-cover ${
+            isMirrored ? "-scale-x-100" : ""
+          }`}
         />
 
         {status === "live" && (
-          <div className="pointer-events-none absolute inset-x-[12%] top-1/2 -translate-y-1/2 h-[2px] bg-[#C84200]/80 shadow-[0_0_8px_#C84200] z-10" />
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-10">
+            <div className="w-[82%] h-[42%] rounded-xl border-2 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)] relative flex items-center justify-center">
+              <div className="w-[90%] h-[2px] bg-[#C84200] shadow-[0_0_10px_#C84200]" />
+            </div>
+          </div>
         )}
 
         {status === "starting" && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/80 text-xs font-semibold text-white/80">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/80 text-xs font-semibold text-white/80 z-20">
             <Loader2 className="w-6 h-6 animate-spin text-[#C84200]" />
             <span>Requesting camera access...</span>
           </div>
         )}
 
         {status === "error" && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-5 text-center bg-black/90">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-5 text-center bg-black/90 z-20">
             <AlertCircle className="w-7 h-7 text-amber-400" />
             <p className="text-xs text-white/85 max-w-sm leading-relaxed">
               {errorMsg}
