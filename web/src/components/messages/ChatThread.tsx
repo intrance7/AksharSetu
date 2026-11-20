@@ -685,9 +685,15 @@ export function ChatThread({
         throw new Error(saved.error || "Failed to send message")
       }
 
-      setMessages((prev) =>
-        prev.map((m) => (m.id === optimisticMessage.id ? saved : m))
-      )
+      if (saved.conversationId) {
+        setConversationId((prev) => prev || saved.conversationId)
+      }
+      setMessages((prev) => {
+        const withoutDup = prev.filter(
+          (m) => m.id !== optimisticMessage.id && m.id !== saved.id
+        )
+        return [...withoutDup, saved]
+      })
       fetchSidebar()
     } catch (err: any) {
       toast.error(err.message || "Failed to send message")

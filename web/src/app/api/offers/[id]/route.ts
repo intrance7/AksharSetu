@@ -123,7 +123,7 @@ export async function PATCH(
       })
 
       return { updatedOffer: uOffer, sysMsg: sMsg }
-    })
+    }, { maxWait: 10000, timeout: 20000 })
 
     const offerDto = serializeOffer(updatedOffer)
     const msgDto = serializeMessage(sysMsg)

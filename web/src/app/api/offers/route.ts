@@ -189,7 +189,7 @@ export async function POST(req: Request) {
       })
 
       return { offer: createdOffer, message: createdMsg }
-    })
+    }, { maxWait: 10000, timeout: 20000 })
 
     const msgDto = serializeMessage(message)
     const offerDto = serializeOffer(offer)

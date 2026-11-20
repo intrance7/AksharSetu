@@ -41,11 +41,15 @@ export async function triggerRealtime(channel: string, event: string, payload: u
   await triggerPusherEvent(channel, event, payload)
 }
 
+const syncedLegacyUsers = new Set<string>()
+
 /**
  * Ensures any legacy Message rows (where conversationId is null) involving `userId`
  * are attached to a normalized `Conversation` with `ConversationParticipant` records.
  */
 export async function syncLegacyMessagesForUser(userId: string) {
+  if (syncedLegacyUsers.has(userId)) return
+
   const orphans = await prisma.message.findMany({
     where: {
       conversationId: null,
@@ -55,7 +59,10 @@ export async function syncLegacyMessagesForUser(userId: string) {
     take: 200,
   })
 
-  if (orphans.length === 0) return
+  if (orphans.length === 0) {
+    syncedLegacyUsers.add(userId)
+    return
+  }
 
   const pairMap = new Map<string, typeof orphans>()
   for (const m of orphans) {

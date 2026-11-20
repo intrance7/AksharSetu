@@ -383,7 +383,35 @@ export async function POST(
       await resolveConversationContext(paramId, myId, bookId)
     const otherUserId = otherParticipant.userId
 
-    const block = await checkBlockStatus(myId, otherUserId)
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000)
+    const [block, existingByClient, recentSent, targetReply] = await Promise.all([
+      checkBlockStatus(myId, otherUserId),
+      clientId && typeof clientId === "string"
+        ? prisma.message.findUnique({
+            where: {
+              senderId_clientId: {
+                senderId: myId,
+                clientId,
+              },
+            },
+            include: MESSAGE_INCLUDE,
+          })
+        : Promise.resolve(null),
+      prisma.message.findMany({
+        where: {
+          senderId: myId,
+          createdAt: { gte: oneMinuteAgo },
+        },
+        select: { content: true },
+      }),
+      typeof replyToId === "string" && replyToId.trim()
+        ? prisma.message.findFirst({
+            where: { id: replyToId.trim(), conversationId: conv.id },
+            select: { id: true },
+          })
+        : Promise.resolve(null),
+    ])
+
     if (block.isBlocked) {
       throw new MessagingError(
         403,
@@ -394,31 +422,9 @@ export async function POST(
       )
     }
 
-    // Idempotency check if clientId is provided
-    if (clientId && typeof clientId === "string") {
-      const existingByClient = await prisma.message.findUnique({
-        where: {
-          senderId_clientId: {
-            senderId: myId,
-            clientId,
-          },
-        },
-        include: MESSAGE_INCLUDE,
-      })
-      if (existingByClient) {
-        return NextResponse.json(serializeMessage(existingByClient), { status: 200 })
-      }
+    if (existingByClient) {
+      return NextResponse.json(serializeMessage(existingByClient), { status: 200 })
     }
-
-    // Rate limiting: messages per minute + duplicate spam detection
-    const oneMinuteAgo = new Date(Date.now() - 60 * 1000)
-    const recentSent = await prisma.message.findMany({
-      where: {
-        senderId: myId,
-        createdAt: { gte: oneMinuteAgo },
-      },
-      select: { content: true },
-    })
 
     if (recentSent.length >= RATE_LIMITS.messagesPerMinute) {
       throw new MessagingError(
@@ -439,71 +445,60 @@ export async function POST(
       }
     }
 
-    // Validate replyToId belongs to this conversation (prevents cross-conversation leaks & FK errors)
-    let validReplyToId: string | null = null
-    if (typeof replyToId === "string" && replyToId.trim()) {
-      const targetReply = await prisma.message.findFirst({
-        where: { id: replyToId.trim(), conversationId: conv.id },
-        select: { id: true },
-      })
-      if (targetReply) {
-        validReplyToId = targetReply.id
-      }
-    }
-
+    const validReplyToId = targetReply?.id ?? null
     const now = new Date()
     const previewText =
       trimmed ||
       (validAttachmentIds.length > 0 ? "📎 Shared an attachment" : "New message")
 
-    const createdMessage = await prisma.$transaction(async (tx) => {
-      const msg = await tx.message.create({
-        data: {
+    // Create message directly without a long-running interactive transaction (avoids 5s P2028 timeout on remote Postgres)
+    let createdMessage = await prisma.message.create({
+      data: {
+        conversationId: conv.id,
+        type: "TEXT",
+        content: trimmed,
+        clientId: typeof clientId === "string" ? clientId : null,
+        senderId: myId,
+        receiverId: otherUserId,
+        replyToId: validReplyToId,
+        requestId: requestId || null,
+        orderId: orderId || null,
+        read: false,
+      },
+      include: MESSAGE_INCLUDE,
+    })
+
+    if (validAttachmentIds.length > 0) {
+      await prisma.messageAttachment.updateMany({
+        where: {
+          id: { in: validAttachmentIds },
+          uploaderId: myId,
           conversationId: conv.id,
-          type: "TEXT",
-          content: trimmed,
-          clientId: typeof clientId === "string" ? clientId : null,
-          senderId: myId,
-          receiverId: otherUserId,
-          replyToId: validReplyToId,
-          requestId: requestId || null,
-          orderId: orderId || null,
-          read: false,
         },
+        data: { messageId: createdMessage.id },
       })
+      createdMessage = await prisma.message.findUniqueOrThrow({
+        where: { id: createdMessage.id },
+        include: MESSAGE_INCLUDE,
+      })
+    }
 
-      if (validAttachmentIds.length > 0) {
-        await tx.messageAttachment.updateMany({
-          where: {
-            id: { in: validAttachmentIds },
-            uploaderId: myId,
-            conversationId: conv.id,
-          },
-          data: { messageId: msg.id },
-        })
-      }
-
-      await tx.conversation.update({
+    await Promise.allSettled([
+      prisma.conversation.update({
         where: { id: conv.id },
         data: {
-          lastMessageId: msg.id,
+          lastMessageId: createdMessage.id,
           lastMessageAt: now,
           lastMessagePreview: previewText.slice(0, 140),
           lastMessageSenderId: myId,
           updatedAt: now,
         },
-      })
-
-      await tx.conversationParticipant.update({
+      }),
+      prisma.conversationParticipant.update({
         where: { id: meParticipant.id },
         data: { lastReadAt: now, lastDeliveredAt: now, isArchived: false },
-      })
-
-      return tx.message.findUniqueOrThrow({
-        where: { id: msg.id },
-        include: MESSAGE_INCLUDE,
-      })
-    })
+      }),
+    ])
 
     const dto = serializeMessage(createdMessage)
     const senderName =
@@ -778,7 +773,7 @@ export async function PATCH(
         })
 
         return [b, m] as const
-      })
+      }, { maxWait: 10000, timeout: 20000 })
 
       const dto = serializeMessage(sysMsg)
       await Promise.all([
@@ -855,7 +850,7 @@ export async function DELETE(
       }
 
       return deletedMsg
-    })
+    }, { maxWait: 10000, timeout: 20000 })
 
     const dto = serializeMessage(updated)
     const legacyChannel = `chat-dm-${[myId, existing.receiverId].sort().join("-")}`
