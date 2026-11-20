@@ -26,11 +26,17 @@ export function isUserOnline(lastSeenAt?: Date | string | null, isShantiModeActi
   return Date.now() - ts <= ONLINE_WINDOW_MS
 }
 
+const lastPresenceTouch = new Map<string, number>()
+
 export async function touchUserPresence(userId: string) {
+  const now = Date.now()
+  const prev = lastPresenceTouch.get(userId) || 0
+  if (now - prev < 60_000) return
+  lastPresenceTouch.set(userId, now)
   try {
     await prisma.user.update({
       where: { id: userId },
-      data: { lastSeenAt: new Date() },
+      data: { lastSeenAt: new Date(now) },
     })
   } catch {
     // Non-fatal

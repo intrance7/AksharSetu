@@ -14,6 +14,7 @@ import {
 import { isAllowedEmoji } from "@/lib/messaging/emoji"
 import { MessagingError, errorResponse, readJson } from "@/lib/messaging/http"
 import { areMutualFollowers } from "@/lib/shantiVisibility"
+import { invalidateCacheKey } from "@/lib/cache"
 import {
   syncLegacyMessagesForUser,
   touchUserPresence,

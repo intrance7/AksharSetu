@@ -14,7 +14,7 @@ function buildResilientDatabaseUrl(): string | undefined {
       parsed.searchParams.set("pool_timeout", "20")
     }
     if (!parsed.searchParams.has("connection_limit")) {
-      parsed.searchParams.set("connection_limit", "5")
+      parsed.searchParams.set("connection_limit", "10")
     }
     return parsed.toString()
   } catch {
