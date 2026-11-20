@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import { invalidateCache } from "@/lib/fastCache"
+import { invalidateCacheKey, invalidateCachePrefix } from "@/lib/cache"
 import {
   ensureUserUsername,
   hasLegacyUuidSuffix,
@@ -366,6 +367,8 @@ export async function PATCH(req: Request) {
     invalidateCache(`session-user:${userId}`)
     invalidateCache(`user-loc:${userId}`)
     invalidateCache("leaderboard:")
+    invalidateCacheKey(`profile:bundle:${userId}`)
+    invalidateCachePrefix("profile:lookup:")
     checkAndAwardBadges(userId).catch(() => {})
 
     return NextResponse.json(updatedUser)
