@@ -175,8 +175,8 @@ export async function GET(
     const nextCursor = hasMore ? slice[slice.length - 1]?.id || null : null
     const chronological = [...slice].reverse().map(serializeMessage)
 
-    // Fetch other user's shelf, shared attachments, offers, and block state in parallel
-    const [otherBooks, sharedAttachments, offersRaw, blockState, myPrefs] =
+    // Fetch other user's shelf, shared attachments, offers, active book request, and block state in parallel
+    const [otherBooks, sharedAttachments, offersRaw, blockState, myPrefs, activeBookRequest] =
       await Promise.all([
         prisma.book.findMany({
           where: { ownerId: otherRaw.id, status: { in: ["AVAILABLE", "RESERVED"] } },
@@ -222,6 +222,21 @@ export async function GET(
           where: { id: myId },
           select: { notifyMessages: true, notifyOffers: true },
         }),
+        conv.book
+          ? prisma.bookRequest.findFirst({
+              where: {
+                bookId: conv.book.id,
+                requesterId: { in: [myId, otherRaw.id] },
+              },
+              orderBy: { createdAt: "desc" },
+              select: {
+                id: true,
+                status: true,
+                requesterId: true,
+                createdAt: true,
+              },
+            })
+          : Promise.resolve(null),
       ])
 
     const serializedOffers = offersRaw.map(serializeOffer)
@@ -286,6 +301,14 @@ export async function GET(
         acceptedOffer,
         pendingOffer,
         offers: serializedOffers,
+        activeBookRequest: activeBookRequest
+          ? {
+              id: activeBookRequest.id,
+              status: activeBookRequest.status,
+              requesterId: activeBookRequest.requesterId,
+              createdAt: activeBookRequest.createdAt.toISOString(),
+            }
+          : null,
         sharedMedia: sharedAttachments.map((a) => ({
           id: a.id,
           kind: a.kind,
@@ -791,6 +814,269 @@ export async function PATCH(
 
       return NextResponse.json({
         bookStatus: updatedBook.status,
+        message: dto,
+      })
+    }
+
+    // 6. Seller/Donator accepts a book request directly inside chat
+    if (action === "accept_request") {
+      if (!conv.book || conv.book.ownerId !== myId) {
+        throw new MessagingError(
+          403,
+          "Only the book owner can accept this request.",
+          "FORBIDDEN"
+        )
+      }
+
+      const pendingReq = await prisma.bookRequest.findFirst({
+        where: {
+          bookId: conv.book.id,
+          requesterId: otherParticipant.userId,
+          status: "PENDING",
+        },
+        orderBy: { createdAt: "desc" },
+      })
+
+      if (pendingReq) {
+        await prisma.bookRequest.update({
+          where: { id: pendingReq.id },
+          data: { status: "APPROVED" },
+        })
+      }
+
+      await prisma.book.update({
+        where: { id: conv.book.id },
+        data: { status: "RESERVED" },
+      })
+
+      const actorName = session.user.name || "Owner"
+      const sysMsg = await prisma.message.create({
+        data: {
+          conversationId: conv.id,
+          type: "SYSTEM",
+          content: `${actorName} accepted the book request for "${conv.book.title}".`,
+          senderId: myId,
+          receiverId: otherParticipant.userId,
+          meta: {
+            kind: "BOOK_REQUEST_ACCEPTED",
+            bookId: conv.book.id,
+            bookTitle: conv.book.title,
+            bookAuthor: conv.book.author,
+            bookImage: conv.book.images?.[0] || null,
+            bookCondition: conv.book.condition,
+            bookPrice: conv.book.price,
+            requestId: pendingReq?.id || null,
+          },
+          read: false,
+        },
+        include: MESSAGE_INCLUDE,
+      })
+
+      await Promise.allSettled([
+        prisma.conversation.update({
+          where: { id: conv.id },
+          data: {
+            lastMessageId: sysMsg.id,
+            lastMessageAt: sysMsg.createdAt,
+            lastMessagePreview: sysMsg.content.slice(0, 140),
+            lastMessageSenderId: myId,
+          },
+        }),
+        prisma.notification.create({
+          data: {
+            userId: otherParticipant.userId,
+            type: "REQUEST_APPROVED",
+            message: `${actorName} accepted your request for "${conv.book.title}"!`,
+            link: `/messages/${myId}?book=${conv.book.id}`,
+          },
+        }),
+      ])
+
+      const dto = serializeMessage(sysMsg)
+      await Promise.all([
+        triggerRealtime(conversationChannel(conv.id), "new-message", dto),
+        triggerRealtime(conversationChannel(conv.id), "listing-updated", {
+          bookId: conv.book.id,
+          status: "RESERVED",
+        }),
+        triggerRealtime(legacyChannel, "new-message", dto),
+      ])
+
+      return NextResponse.json({
+        bookStatus: "RESERVED",
+        requestStatus: "APPROVED",
+        message: dto,
+      })
+    }
+
+    // 7. Seller/Donator ships the book and adds Tracking ID in chat
+    if (action === "add_tracking") {
+      if (!conv.book || conv.book.ownerId !== myId) {
+        throw new MessagingError(
+          403,
+          "Only the book owner can add shipment tracking.",
+          "FORBIDDEN"
+        )
+      }
+
+      const courier = String(body.courier || "").trim().slice(0, 80)
+      const trackingId = String(body.trackingId || "").trim().slice(0, 100)
+      const rawUrl = String(body.trackingUrl || "").trim().slice(0, 400)
+      const note = String(body.note || "").trim().slice(0, 240)
+
+      if (!courier || !trackingId) {
+        throw new MessagingError(
+          400,
+          "Please enter both the courier name and tracking ID.",
+          "BAD_REQUEST"
+        )
+      }
+
+      let safeTrackingUrl: string | null = null
+      if (rawUrl && /^https?:\/\//i.test(rawUrl)) {
+        safeTrackingUrl = rawUrl
+      } else {
+        const c = courier.toLowerCase()
+        const enc = encodeURIComponent(trackingId)
+        if (c.includes("india post") || c.includes("speed post")) {
+          safeTrackingUrl = `https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx`
+        } else if (c.includes("delhivery")) {
+          safeTrackingUrl = `https://www.delhivery.com/track/package/${enc}`
+        } else if (c.includes("bluedart") || c.includes("blue dart")) {
+          safeTrackingUrl = `https://www.bluedart.com/tracking`
+        } else if (c.includes("dtdc")) {
+          safeTrackingUrl = `https://www.dtdc.in/tracking.asp`
+        } else {
+          safeTrackingUrl = `https://t.17track.net/en#nums=${enc}`
+        }
+      }
+
+      const actorName = session.user.name || "Owner"
+      const shippedAt = new Date().toISOString()
+
+      const sysMsg = await prisma.message.create({
+        data: {
+          conversationId: conv.id,
+          type: "SYSTEM",
+          content: `${actorName} shipped "${conv.book.title}" via ${courier} (Tracking ID: ${trackingId}).`,
+          senderId: myId,
+          receiverId: otherParticipant.userId,
+          meta: {
+            kind: "SHIPMENT_TRACKING",
+            bookId: conv.book.id,
+            bookTitle: conv.book.title,
+            bookAuthor: conv.book.author,
+            bookImage: conv.book.images?.[0] || null,
+            bookCondition: conv.book.condition,
+            bookPrice: conv.book.price,
+            courier,
+            trackingId,
+            trackingUrl: safeTrackingUrl,
+            note: note || null,
+            shippedAt,
+          },
+          read: false,
+        },
+        include: MESSAGE_INCLUDE,
+      })
+
+      await Promise.allSettled([
+        prisma.conversation.update({
+          where: { id: conv.id },
+          data: {
+            lastMessageId: sysMsg.id,
+            lastMessageAt: sysMsg.createdAt,
+            lastMessagePreview: `📦 Shipped via ${courier} · ${trackingId}`.slice(0, 140),
+            lastMessageSenderId: myId,
+          },
+        }),
+        prisma.notification.create({
+          data: {
+            userId: otherParticipant.userId,
+            type: "BOOK_SHIPPED",
+            message: `${actorName} shipped "${conv.book.title}" via ${courier}. Tracking ID: ${trackingId}`,
+            link: `/messages/${myId}?book=${conv.book.id}`,
+          },
+        }),
+      ])
+
+      const dto = serializeMessage(sysMsg)
+      await Promise.all([
+        triggerRealtime(conversationChannel(conv.id), "new-message", dto),
+        triggerRealtime(legacyChannel, "new-message", dto),
+      ])
+
+      return NextResponse.json({ message: dto }, { status: 201 })
+    }
+
+    // 8. Recipient/Buyer confirms book received
+    if (action === "confirm_received") {
+      if (!conv.book || conv.book.ownerId === myId) {
+        throw new MessagingError(
+          403,
+          "Only the recipient can confirm delivery.",
+          "FORBIDDEN"
+        )
+      }
+
+      const finalStatus = conv.book.price === 0 ? "DONATED" : "SOLD"
+      await Promise.allSettled([
+        prisma.bookRequest.updateMany({
+          where: {
+            bookId: conv.book.id,
+            requesterId: myId,
+            status: { in: ["PENDING", "APPROVED"] },
+          },
+          data: { status: "COMPLETED" },
+        }),
+        prisma.book.update({
+          where: { id: conv.book.id },
+          data: { status: finalStatus },
+        }),
+      ])
+
+      const actorName = session.user.name || "Reader"
+      const sysMsg = await prisma.message.create({
+        data: {
+          conversationId: conv.id,
+          type: "SYSTEM",
+          content: `${actorName} confirmed receiving "${conv.book.title}".`,
+          senderId: myId,
+          receiverId: otherParticipant.userId,
+          meta: {
+            kind: "BOOK_DELIVERED",
+            bookId: conv.book.id,
+            bookTitle: conv.book.title,
+            deliveredAt: new Date().toISOString(),
+          },
+          read: false,
+        },
+        include: MESSAGE_INCLUDE,
+      })
+
+      await prisma.conversation.update({
+        where: { id: conv.id },
+        data: {
+          lastMessageId: sysMsg.id,
+          lastMessageAt: sysMsg.createdAt,
+          lastMessagePreview: `✅ Confirmed receipt of "${conv.book.title}"`.slice(0, 140),
+          lastMessageSenderId: myId,
+        },
+      })
+
+      const dto = serializeMessage(sysMsg)
+      await Promise.all([
+        triggerRealtime(conversationChannel(conv.id), "new-message", dto),
+        triggerRealtime(conversationChannel(conv.id), "listing-updated", {
+          bookId: conv.book.id,
+          status: finalStatus,
+        }),
+        triggerRealtime(legacyChannel, "new-message", dto),
+      ])
+
+      return NextResponse.json({
+        bookStatus: finalStatus,
+        requestStatus: "COMPLETED",
         message: dto,
       })
     }

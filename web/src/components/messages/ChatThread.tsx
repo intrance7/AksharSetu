@@ -51,6 +51,8 @@ import {
   XCircle,
   Clock,
   ChevronUp,
+  Truck,
+  PackageCheck,
 } from "lucide-react"
 import { getPusherClient, isPusherClientConfigured } from "@/lib/pusher"
 import {
@@ -269,6 +271,16 @@ export function ChatThread({
   const [submittingOffer, setSubmittingOffer] = useState(false)
   const [busyOfferId, setBusyOfferId] = useState<string | null>(null)
   const [updatingListingStatus, setUpdatingListingStatus] = useState(false)
+
+  // In-Chat Request Accept + Shipment Tracking State
+  const [showTrackingForm, setShowTrackingForm] = useState(false)
+  const [trackingCourier, setTrackingCourier] = useState("India Post")
+  const [trackingIdInput, setTrackingIdInput] = useState("")
+  const [trackingUrlInput, setTrackingUrlInput] = useState("")
+  const [trackingNoteInput, setTrackingNoteInput] = useState("")
+  const [submittingTracking, setSubmittingTracking] = useState(false)
+  const [acceptingRequest, setAcceptingRequest] = useState(false)
+  const [confirmingReceipt, setConfirmingReceipt] = useState(false)
 
   // Search & Info Panel State
   const [showSearchInChat, setShowSearchInChat] = useState(false)
@@ -917,6 +929,124 @@ export function ChatThread({
       toast.error(err.message || "Failed to update listing")
     } finally {
       setUpdatingListingStatus(false)
+    }
+  }
+
+  const handleAcceptBookRequest = async () => {
+    if (!conversationId || acceptingRequest) return
+    setAcceptingRequest(true)
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "accept_request" }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Could not accept request")
+      setConvMeta((prev: any) =>
+        prev
+          ? {
+              ...prev,
+              book: prev.book ? { ...prev.book, status: "RESERVED" } : prev.book,
+              activeBookRequest: prev.activeBookRequest
+                ? { ...prev.activeBookRequest, status: "APPROVED" }
+                : { status: "APPROVED" },
+            }
+          : prev
+      )
+      if (data.message) {
+        setMessages((prev) =>
+          prev.some((m) => m.id === data.message.id)
+            ? prev
+            : [...prev, data.message]
+        )
+      }
+      setShowTrackingForm(true)
+      toast.success("Book request accepted! Add shipping & tracking ID below once shipped.")
+    } catch (err: any) {
+      toast.error(err.message || "Could not accept request")
+    } finally {
+      setAcceptingRequest(false)
+    }
+  }
+
+  const handleSubmitTracking = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!conversationId || submittingTracking) return
+    if (!trackingCourier.trim() || !trackingIdInput.trim()) {
+      toast.error("Please enter both courier name and tracking ID.")
+      return
+    }
+    setSubmittingTracking(true)
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "add_tracking",
+          courier: trackingCourier.trim(),
+          trackingId: trackingIdInput.trim(),
+          trackingUrl: trackingUrlInput.trim() || undefined,
+          note: trackingNoteInput.trim() || undefined,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Could not add tracking details")
+      if (data.message) {
+        setMessages((prev) =>
+          prev.some((m) => m.id === data.message.id)
+            ? prev
+            : [...prev, data.message]
+        )
+      }
+      setTrackingIdInput("")
+      setTrackingUrlInput("")
+      setTrackingNoteInput("")
+      setShowTrackingForm(false)
+      toast.success("Shipping & tracking details shared in chat!")
+    } catch (err: any) {
+      toast.error(err.message || "Could not share tracking details")
+    } finally {
+      setSubmittingTracking(false)
+    }
+  }
+
+  const handleConfirmReceived = async () => {
+    if (!conversationId || confirmingReceipt) return
+    setConfirmingReceipt(true)
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "confirm_received" }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Could not confirm receipt")
+      setConvMeta((prev: any) =>
+        prev
+          ? {
+              ...prev,
+              book: prev.book
+                ? { ...prev.book, status: data.bookStatus || "SOLD" }
+                : prev.book,
+              activeBookRequest: prev.activeBookRequest
+                ? { ...prev.activeBookRequest, status: "COMPLETED" }
+                : { status: "COMPLETED" },
+            }
+          : prev
+      )
+      if (data.message) {
+        setMessages((prev) =>
+          prev.some((m) => m.id === data.message.id)
+            ? prev
+            : [...prev, data.message]
+        )
+      }
+      toast.success("Delivery confirmed! Enjoy your book.")
+    } catch (err: any) {
+      toast.error(err.message || "Could not confirm delivery")
+    } finally {
+      setConfirmingReceipt(false)
     }
   }
 
@@ -1828,61 +1958,144 @@ export function ChatThread({
 
             {/* Contextual Buyer OR Seller Action Bar */}
             {isSellerOfActiveBook ? (
-              <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
-                <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#6E6E73] shrink-0 mr-1">
-                  Seller:
-                </span>
-                <button
-                  type="button"
-                  disabled={
-                    updatingListingStatus || activeBook.status === "AVAILABLE"
-                  }
-                  onClick={() => handleSellerListingStatus("AVAILABLE")}
-                  className="px-3 py-1.5 rounded-full bg-white hover:bg-emerald-50 border border-[#1D1D1F]/10 text-xs font-semibold text-[#0A7D4F] whitespace-nowrap disabled:opacity-40 cursor-pointer"
-                >
-                  Confirm Available
-                </button>
-                <button
-                  type="button"
-                  disabled={
-                    updatingListingStatus || activeBook.status === "RESERVED"
-                  }
-                  onClick={() => handleSellerListingStatus("RESERVED")}
-                  className="px-3 py-1.5 rounded-full bg-white hover:bg-amber-50 border border-[#1D1D1F]/10 text-xs font-semibold text-amber-800 whitespace-nowrap disabled:opacity-40 cursor-pointer"
-                >
-                  Mark Reserved
-                </button>
-                <button
-                  type="button"
-                  disabled={
-                    updatingListingStatus || activeBook.status === "SOLD"
-                  }
-                  onClick={() => handleSellerListingStatus("SOLD")}
-                  className="px-3 py-1.5 rounded-full bg-white hover:bg-red-50 border border-[#1D1D1F]/10 text-xs font-semibold text-red-700 whitespace-nowrap disabled:opacity-40 cursor-pointer"
-                >
-                  Mark Sold
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="px-3 py-1.5 rounded-full bg-white hover:bg-[#EFE7DC] border border-[#1D1D1F]/10 text-xs font-semibold text-[#1D1D1F] whitespace-nowrap flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Camera className="w-3.5 h-3.5 text-[#C84200]" /> Share Photos
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setNewMessage(
-                      `The book is available for pickup${
-                        otherUser?.location ? ` or courier` : ""
-                      }. Let me know what time works best for you!`
-                    )
-                    textareaRef.current?.focus()
-                  }}
-                  className="px-3 py-1.5 rounded-full bg-white hover:bg-[#EFE7DC] border border-[#1D1D1F]/10 text-xs font-semibold text-[#1D1D1F] whitespace-nowrap cursor-pointer"
-                >
-                  Send Pickup Info
-                </button>
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
+                  <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#6E6E73] shrink-0 mr-1">
+                    Owner:
+                  </span>
+                  {convMeta?.activeBookRequest?.status !== "APPROVED" &&
+                    convMeta?.activeBookRequest?.status !== "COMPLETED" && (
+                      <button
+                        type="button"
+                        disabled={acceptingRequest}
+                        onClick={handleAcceptBookRequest}
+                        className="px-3.5 py-1.5 rounded-full bg-[#0A7D4F] hover:bg-emerald-800 text-white text-xs font-bold whitespace-nowrap flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        {acceptingRequest ? "Accepting..." : "Accept Request"}
+                      </button>
+                    )}
+                  <button
+                    type="button"
+                    onClick={() => setShowTrackingForm((v) => !v)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1.5 cursor-pointer transition-colors ${
+                      showTrackingForm
+                        ? "bg-[#0066cc] text-white"
+                        : "bg-[#0B0B0D] hover:bg-[#1D1D1F] text-white"
+                    }`}
+                  >
+                    <Truck className="w-3.5 h-3.5" />
+                    Add Shipping & Tracking ID
+                  </button>
+                  <button
+                    type="button"
+                    disabled={
+                      updatingListingStatus || activeBook.status === "AVAILABLE"
+                    }
+                    onClick={() => handleSellerListingStatus("AVAILABLE")}
+                    className="px-3 py-1.5 rounded-full bg-white hover:bg-emerald-50 border border-[#1D1D1F]/10 text-xs font-semibold text-[#0A7D4F] whitespace-nowrap disabled:opacity-40 cursor-pointer"
+                  >
+                    Confirm Available
+                  </button>
+                  <button
+                    type="button"
+                    disabled={
+                      updatingListingStatus || activeBook.status === "RESERVED"
+                    }
+                    onClick={() => handleSellerListingStatus("RESERVED")}
+                    className="px-3 py-1.5 rounded-full bg-white hover:bg-amber-50 border border-[#1D1D1F]/10 text-xs font-semibold text-amber-800 whitespace-nowrap disabled:opacity-40 cursor-pointer"
+                  >
+                    Mark Reserved
+                  </button>
+                  <button
+                    type="button"
+                    disabled={
+                      updatingListingStatus || activeBook.status === "SOLD"
+                    }
+                    onClick={() => handleSellerListingStatus("SOLD")}
+                    className="px-3 py-1.5 rounded-full bg-white hover:bg-red-50 border border-[#1D1D1F]/10 text-xs font-semibold text-red-700 whitespace-nowrap disabled:opacity-40 cursor-pointer"
+                  >
+                    Mark Sold
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-3 py-1.5 rounded-full bg-white hover:bg-[#EFE7DC] border border-[#1D1D1F]/10 text-xs font-semibold text-[#1D1D1F] whitespace-nowrap flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Camera className="w-3.5 h-3.5 text-[#C84200]" /> Share Photos
+                  </button>
+                </div>
+
+                {/* Inline Shipping & Tracking ID Composer */}
+                {showTrackingForm && (
+                  <form
+                    onSubmit={handleSubmitTracking}
+                    className="p-3.5 rounded-2xl bg-white border border-[#0066cc]/25 shadow-xs space-y-2.5"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold text-[#1D1D1F] flex items-center gap-1.5">
+                        <Truck className="w-3.5 h-3.5 text-[#0066cc]" />
+                        Share Shipment & Tracking Details for “{activeBook.title}”
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowTrackingForm(false)}
+                        className="p-1 text-[#6E6E73] hover:text-[#1D1D1F] cursor-pointer"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <select
+                        value={trackingCourier}
+                        onChange={(e) => setTrackingCourier(e.target.value)}
+                        className="rounded-xl bg-[#FAF6F0] border border-[#1D1D1F]/10 px-3 py-2 text-xs font-semibold text-[#1D1D1F] outline-none focus:bg-white focus:border-[#0066cc]"
+                      >
+                        <option value="India Post">India Post / Speed Post</option>
+                        <option value="Delhivery">Delhivery</option>
+                        <option value="Blue Dart">Blue Dart</option>
+                        <option value="DTDC">DTDC</option>
+                        <option value="Xpressbees">Xpressbees</option>
+                        <option value="Shadowfax">Shadowfax</option>
+                        <option value="Other Courier">Other Courier</option>
+                      </select>
+                      <input
+                        type="text"
+                        required
+                        value={trackingIdInput}
+                        onChange={(e) => setTrackingIdInput(e.target.value)}
+                        placeholder="Tracking ID / AWB Number *"
+                        className="rounded-xl bg-[#FAF6F0] border border-[#1D1D1F]/10 px-3 py-2 text-xs font-mono font-bold text-[#1D1D1F] outline-none focus:bg-white focus:border-[#0066cc]"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <input
+                        type="url"
+                        value={trackingUrlInput}
+                        onChange={(e) => setTrackingUrlInput(e.target.value)}
+                        placeholder="Tracking URL (optional — auto-filled)"
+                        className="rounded-xl bg-[#FAF6F0] border border-[#1D1D1F]/10 px-3 py-2 text-xs text-[#1D1D1F] outline-none focus:bg-white focus:border-[#0066cc]"
+                      />
+                      <input
+                        type="text"
+                        value={trackingNoteInput}
+                        onChange={(e) => setTrackingNoteInput(e.target.value)}
+                        placeholder="Optional note (e.g., expected in 3 days)"
+                        className="rounded-xl bg-[#FAF6F0] border border-[#1D1D1F]/10 px-3 py-2 text-xs text-[#1D1D1F] outline-none focus:bg-white focus:border-[#0066cc]"
+                      />
+                    </div>
+                    <div className="flex justify-end">
+                      <button
+                        type="submit"
+                        disabled={submittingTracking}
+                        className="px-4 py-2 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-bold cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
+                      >
+                        <Truck className="w-3.5 h-3.5" />
+                        {submittingTracking ? "Sharing..." : "Share Tracking in Chat"}
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
             ) : (
               <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
@@ -1904,8 +2117,8 @@ export function ChatThread({
           </div>
         )}
 
-        {/* Optional External Context Banner (Fulfill Request / Swap / Quote) */}
-        {activeContext && !activeBook && (
+        {/* External Context Banner (Book Request / Fulfill Request / Swap / Quote) */}
+        {activeContext && (
           <div className="mx-4 mt-3 p-3.5 rounded-2xl bg-[#FAF6F0] border border-[#C84200]/25 flex items-center justify-between gap-3 shrink-0">
             <div className="min-w-0">
               <span className="inline-flex items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-wider text-[#C84200]">
@@ -2034,13 +2247,142 @@ export function ChatThread({
                     </div>
                   )}
 
-                  {/* SYSTEM MESSAGE */}
+                  {/* SYSTEM MESSAGE (Plain Pill OR Rich Book Request / Shipment Tracking Card) */}
                   {msg.type === "SYSTEM" ? (
-                    <div className="flex justify-center my-2">
-                      <span className="px-4 py-1.5 rounded-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] text-xs font-semibold text-[#5E5E63]">
-                        {msg.content}
-                      </span>
-                    </div>
+                    msg.meta?.kind === "SHIPMENT_TRACKING" ? (
+                      <div className="flex justify-center my-3">
+                        <div className="w-full max-w-md rounded-3xl border border-[#1D1D1F]/10 bg-white shadow-sm overflow-hidden">
+                          <div className="px-5 py-3 bg-[#0B0B0D] text-white flex items-center justify-between gap-2">
+                            <span className="font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                              <Truck className="w-3.5 h-3.5 text-[#FF8A4C]" />
+                              Book Shipped · Tracking
+                            </span>
+                            <span className="px-2.5 py-0.5 rounded-full bg-[#0066cc] text-white font-mono text-[11px] font-bold">
+                              {String(msg.meta.courier || "Courier")}
+                            </span>
+                          </div>
+                          <div className="p-4 space-y-3">
+                            <div className="flex items-center gap-3">
+                              {typeof msg.meta.bookImage === "string" && msg.meta.bookImage && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={msg.meta.bookImage}
+                                  alt={String(msg.meta.bookTitle || "Book")}
+                                  className="w-12 h-16 rounded-xl object-cover border border-black/10 shrink-0"
+                                />
+                              )}
+                              <div className="min-w-0">
+                                <p className="text-sm font-black text-[#1D1D1F] truncate">
+                                  {String(msg.meta.bookTitle || "Book")}
+                                </p>
+                                {typeof msg.meta.bookAuthor === "string" && (
+                                  <p className="text-xs text-[#6E6E73] truncate">
+                                    by {msg.meta.bookAuthor}
+                                  </p>
+                                )}
+                                <div className="flex items-center gap-1.5 mt-1">
+                                  {typeof msg.meta.bookCondition === "string" && (
+                                    <span className="px-2 py-0.5 rounded-full bg-[#FAF6F0] border border-black/10 text-[10px] font-bold text-[#1D1D1F]">
+                                      {msg.meta.bookCondition.replace("_", " ")}
+                                    </span>
+                                  )}
+                                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-[#0A7D4F] text-[10px] font-bold">
+                                    {Number(msg.meta.bookPrice) === 0
+                                      ? "Vidya Daan · Free"
+                                      : `₹${msg.meta.bookPrice}`}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="rounded-2xl bg-[#FAF6F0] border border-black/[0.07] p-3 flex items-center justify-between gap-2">
+                              <div className="min-w-0">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[#6E6E73]">
+                                  Tracking ID / AWB
+                                </p>
+                                <p className="font-mono text-sm font-black text-[#1D1D1F] truncate">
+                                  {String(msg.meta.trackingId || "")}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(
+                                      String(msg.meta?.trackingId || "")
+                                    )
+                                    toast.success("Tracking ID copied!")
+                                  }}
+                                  className="px-2.5 py-1.5 rounded-full bg-white border border-black/10 hover:bg-black/5 text-xs font-bold text-[#1D1D1F] inline-flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Copy className="w-3 h-3" /> Copy
+                                </button>
+                                {typeof msg.meta.trackingUrl === "string" && (
+                                  <a
+                                    href={msg.meta.trackingUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="px-3 py-1.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] text-white text-xs font-bold inline-flex items-center gap-1"
+                                  >
+                                    Track <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+
+                            {typeof msg.meta.note === "string" && msg.meta.note && (
+                              <p className="text-xs text-[#5E5E63] italic bg-black/[0.02] rounded-xl px-3 py-2">
+                                “{msg.meta.note}”
+                              </p>
+                            )}
+
+                            {!isSellerOfActiveBook &&
+                              convMeta?.activeBookRequest?.status !== "COMPLETED" && (
+                                <button
+                                  type="button"
+                                  disabled={confirmingReceipt}
+                                  onClick={handleConfirmReceived}
+                                  className="w-full py-2.5 rounded-full bg-[#0A7D4F] hover:bg-emerald-800 text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                                >
+                                  <PackageCheck className="w-4 h-4" />
+                                  {confirmingReceipt
+                                    ? "Confirming..."
+                                    : "Confirm Book Received"}
+                                </button>
+                              )}
+                          </div>
+                        </div>
+                      </div>
+                    ) : msg.meta?.kind === "BOOK_REQUEST_ACCEPTED" ? (
+                      <div className="flex justify-center my-2.5">
+                        <div className="w-full max-w-md rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-3 flex items-center gap-3">
+                          <CheckCircle2 className="w-5 h-5 text-[#0A7D4F] shrink-0" />
+                          <div className="min-w-0 text-xs">
+                            <p className="font-bold text-[#0A7D4F]">
+                              Request Accepted · “{String(msg.meta.bookTitle || "Book")}”
+                            </p>
+                            <p className="text-emerald-800/80 mt-0.5">
+                              {isSellerOfActiveBook
+                                ? "Once shipped, click Add Shipping & Tracking ID above to share tracking with the reader."
+                                : "The owner accepted your request! Tracking details will appear right here once shipped."}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : msg.meta?.kind === "BOOK_DELIVERED" ? (
+                      <div className="flex justify-center my-2.5">
+                        <div className="px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-[#0A7D4F] inline-flex items-center gap-1.5">
+                          <PackageCheck className="w-4 h-4" />
+                          {msg.content}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex justify-center my-2">
+                        <span className="px-4 py-1.5 rounded-full bg-[#FAF6F0] border border-[#1D1D1F]/[0.07] text-xs font-semibold text-[#5E5E63]">
+                          {msg.content}
+                        </span>
+                      </div>
+                    )
                   ) : msg.type === "OFFER" && msg.offer ? (
                     /* STRUCTURED PRICE OFFER CARD */
                     <div

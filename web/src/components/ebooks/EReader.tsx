@@ -8,6 +8,8 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  SlidersHorizontal,
   Bookmark,
   Sun,
   Moon,
@@ -25,6 +27,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import StartShantiButton from "./StartShantiButton"
+import { COOKIE_KEYS, getJsonCookie, setJsonCookie } from "@/lib/cookies"
 
 type ThemeMode = "paper" | "sepia" | "night"
 type FontFamily = "serif" | "sans"
@@ -40,22 +43,30 @@ interface SavedBookNote {
   createdAt: string
 }
 
-const COLOR_STYLES: Record<NoteColor, { dot: string; card: string }> = {
+const COLOR_STYLES: Record<NoteColor, { dot: string; card: string; mark: string; markNight: string }> = {
   amber: {
     dot: "bg-amber-400",
     card: "border-l-4 border-l-amber-400 bg-amber-50/70 text-[#1d1d1f]",
+    mark: "bg-amber-300/65 text-[#1d1d1f] rounded px-0.5 cursor-pointer hover:bg-amber-300/90 transition-colors",
+    markNight: "bg-amber-400/30 text-amber-100 rounded px-0.5 cursor-pointer hover:bg-amber-400/45 transition-colors",
   },
   blue: {
     dot: "bg-[#0066cc]",
     card: "border-l-4 border-l-[#0066cc] bg-blue-50/70 text-[#1d1d1f]",
+    mark: "bg-sky-300/60 text-[#0c2340] rounded px-0.5 cursor-pointer hover:bg-sky-300/85 transition-colors",
+    markNight: "bg-sky-400/30 text-sky-100 rounded px-0.5 cursor-pointer hover:bg-sky-400/45 transition-colors",
   },
   emerald: {
     dot: "bg-emerald-500",
     card: "border-l-4 border-l-emerald-500 bg-emerald-50/70 text-[#1d1d1f]",
+    mark: "bg-emerald-300/60 text-[#0b2e1e] rounded px-0.5 cursor-pointer hover:bg-emerald-300/85 transition-colors",
+    markNight: "bg-emerald-400/30 text-emerald-100 rounded px-0.5 cursor-pointer hover:bg-emerald-400/45 transition-colors",
   },
   rose: {
     dot: "bg-rose-500",
     card: "border-l-4 border-l-rose-500 bg-rose-50/70 text-[#1d1d1f]",
+    mark: "bg-rose-300/65 text-[#3b0a18] rounded px-0.5 cursor-pointer hover:bg-rose-300/90 transition-colors",
+    markNight: "bg-rose-400/30 text-rose-100 rounded px-0.5 cursor-pointer hover:bg-rose-400/45 transition-colors",
   },
 }
 
@@ -133,6 +144,7 @@ export default function EReader({
   const [theme, setTheme] = useState<ThemeMode>("sepia")
   const [fontFamily, setFontFamily] = useState<FontFamily>("serif")
   const [bookmarked, setBookmarked] = useState(false)
+  const [toolbarOpen, setToolbarOpen] = useState(false)
 
   // Literary Highlights & Margin Notes state
   const [notes, setNotes] = useState<SavedBookNote[]>([])
@@ -152,7 +164,7 @@ export default function EReader({
     const pages: string[][] = []
     let current: string[] = []
     let charCount = 0
-    const targetChars = fontSize > 20 ? 900 : fontSize < 17 ? 1450 : 1200
+    const targetChars = fontSize > 20 ? 660 : fontSize < 17 ? 1050 : 840
 
     for (const para of book.paragraphs) {
       if (current.length > 0 && charCount + para.length > targetChars) {
@@ -206,14 +218,17 @@ export default function EReader({
         }
       }
     }
+    const cookiePrefs = getJsonCookie<{
+      theme?: ThemeMode
+      fontSize?: number
+      fontFamily?: FontFamily
+    }>(COOKIE_KEYS.READER_PREFS)
     const savedPrefs = localStorage.getItem(prefsKey)
-    if (savedPrefs) {
-      try {
-        const parsed = JSON.parse(savedPrefs)
-        if (parsed.theme && THEMES[parsed.theme as ThemeMode]) setTheme(parsed.theme)
-        if (parsed.fontSize) setFontSize(parsed.fontSize)
-        if (parsed.fontFamily) setFontFamily(parsed.fontFamily)
-      } catch {}
+    const parsed = cookiePrefs || (savedPrefs ? (() => { try { return JSON.parse(savedPrefs) } catch { return null } })() : null)
+    if (parsed) {
+      if (parsed.theme && THEMES[parsed.theme as ThemeMode]) setTheme(parsed.theme)
+      if (parsed.fontSize) setFontSize(parsed.fontSize)
+      if (parsed.fontFamily) setFontFamily(parsed.fontFamily)
     }
   }, [progressKey, spreadKey, totalClassicPages, totalSpreads, initialCloudPage])
 
@@ -226,15 +241,14 @@ export default function EReader({
   }, [bookSpread, spreadKey])
 
   useEffect(() => {
-    localStorage.setItem(
-      prefsKey,
-      JSON.stringify({
-        theme,
-        fontSize,
-        fontFamily,
-        viewMode: viewMode === "scan" ? "book" : viewMode,
-      })
-    )
+    const payload = {
+      theme,
+      fontSize,
+      fontFamily,
+      viewMode: viewMode === "scan" ? "book" : viewMode,
+    }
+    localStorage.setItem(prefsKey, JSON.stringify(payload))
+    setJsonCookie(COOKIE_KEYS.READER_PREFS, payload)
   }, [theme, fontSize, fontFamily, viewMode])
 
   // Debounced Cloud Progress Sync
@@ -259,9 +273,11 @@ export default function EReader({
 
   // Text selection listener for In-Reader Highlights & Quotes
   useEffect(() => {
-    const handleSelection = () => {
+    const handleSelection = (e: Event) => {
+      const target = e.target as HTMLElement | null
+      if (target?.closest?.("[data-highlight-toolbar]")) return
       const sel = window.getSelection()?.toString().trim() || ""
-      if (sel.length >= 10 && sel.length <= 900) {
+      if (sel.length >= 3 && sel.length <= 900) {
         setSelectedQuote(sel)
       }
     }
@@ -275,7 +291,7 @@ export default function EReader({
 
   const goNextSpread = useCallback(() => {
     const sel = window.getSelection()?.toString().trim() || ""
-    if (sel.length >= 10) return
+    if (sel.length > 0) return
     if (bookSpread < totalSpreads - 1) {
       setFlipDirection(1)
       setBookSpread((s) => Math.min(totalSpreads - 1, s + 1))
@@ -284,7 +300,7 @@ export default function EReader({
 
   const goPrevSpread = useCallback(() => {
     const sel = window.getSelection()?.toString().trim() || ""
-    if (sel.length >= 10) return
+    if (sel.length > 0) return
     if (bookSpread > 0) {
       setFlipDirection(-1)
       setBookSpread((s) => Math.max(0, s - 1))
@@ -412,9 +428,69 @@ export default function EReader({
       ? Math.round(((bookSpread + 1) / totalSpreads) * 100)
       : Math.round((page / totalClassicPages) * 100)
 
+  // Render saved highlights inline inside paragraph text
+  const renderHighlightedText = useCallback(
+    (text: string): React.ReactNode => {
+      if (!notes.length || !text) return text
+      const validNotes = notes.filter((n) => n.quoteText && n.quoteText.trim().length >= 3)
+      if (!validNotes.length) return text
+
+      const matches: { start: number; end: number; note: SavedBookNote }[] = []
+      const lower = text.toLowerCase()
+      for (const note of validNotes) {
+        const needle = note.quoteText.trim().toLowerCase()
+        let pos = lower.indexOf(needle)
+        while (pos !== -1) {
+          matches.push({ start: pos, end: pos + needle.length, note })
+          pos = lower.indexOf(needle, pos + needle.length)
+        }
+      }
+      if (!matches.length) return text
+
+      matches.sort((a, b) => a.start - b.start || b.end - a.end)
+      const merged: typeof matches = []
+      let lastEnd = 0
+      for (const m of matches) {
+        if (m.start >= lastEnd) {
+          merged.push(m)
+          lastEnd = m.end
+        }
+      }
+
+      const nodes: React.ReactNode[] = []
+      let cursor = 0
+      for (let i = 0; i < merged.length; i++) {
+        const m = merged[i]
+        if (m.start > cursor) {
+          nodes.push(text.slice(cursor, m.start))
+        }
+        const styleObj = COLOR_STYLES[m.note.color] || COLOR_STYLES.amber
+        nodes.push(
+          <mark
+            key={`${m.note.id}-${i}`}
+            onClick={(e) => {
+              e.stopPropagation()
+              setNotesOpen(true)
+            }}
+            title={m.note.noteText ? `Note: ${m.note.noteText}` : "Saved highlight — click to view in Notebook"}
+            className={theme === "night" ? styleObj.markNight : styleObj.mark}
+          >
+            {text.slice(m.start, m.end)}
+          </mark>
+        )
+        cursor = m.end
+      }
+      if (cursor < text.length) {
+        nodes.push(text.slice(cursor))
+      }
+      return nodes
+    },
+    [notes, theme]
+  )
+
   return (
     <div className={`min-h-screen transition-colors duration-300 ${currentTheme.bg} ${currentTheme.text}`}>
-      {/* Sticky Top Reader Bar */}
+      {/* Compact Sticky Top Reader Bar with Collapsible Dropdown Menu */}
       <div className={`sticky top-16 z-30 border-b backdrop-blur-md transition-colors ${currentTheme.bar}`}>
         <div className="h-1 w-full bg-black/5 overflow-hidden">
           <div
@@ -423,179 +499,226 @@ export default function EReader({
           />
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
-          {/* Back + Book Info */}
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 flex items-center justify-between gap-2 sm:gap-3">
+          {/* Left: Back + Compact Book Title */}
+          <div className="flex items-center gap-2.5 min-w-0">
             <Link
               href={libraryBookId ? "/library" : "/ebooks"}
-              className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border ${currentTheme.border} hover:opacity-80 transition`}
+              className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border shrink-0 ${currentTheme.border} hover:opacity-80 transition`}
             >
-              <ArrowLeft className="w-3.5 h-3.5" /> {libraryBookId ? "My Library" : "E-Library"}
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{libraryBookId ? "My Library" : "E-Library"}</span>
             </Link>
-            <div className="truncate">
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <p className="text-sm sm:text-base font-bold truncate max-w-[160px] sm:max-w-xs">{book.title}</p>
+                <p className="text-xs sm:text-sm font-bold truncate max-w-[150px] sm:max-w-xs md:max-w-md">{book.title}</p>
                 {book.sourceLabel && (
-                  <span className="hidden md:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#0066cc]/10 text-[#0066cc]">
+                  <span className="hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#0066cc]/10 text-[#0066cc] shrink-0">
                     {book.sourceLabel}
                   </span>
                 )}
               </div>
-              <p className={`text-xs truncate ${currentTheme.sub}`}>{book.author}</p>
+              <p className={`text-[11px] truncate ${currentTheme.sub}`}>{book.author}</p>
             </div>
           </div>
 
-          {/* Reading Mode Switcher: Classic Read vs Book Read */}
-          <div className={`inline-flex items-center rounded-full border p-0.5 ${currentTheme.border} bg-black/5`}>
-            <button
-              type="button"
-              onClick={() => setViewMode("classic")}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                viewMode === "classic"
-                  ? "bg-[#0066cc] text-white shadow-sm"
-                  : "hover:opacity-80"
-              }`}
-            >
-              <ScrollText className="w-3.5 h-3.5" />
-              Classic Read
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("book")}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                viewMode === "book"
-                  ? "bg-[#0066cc] text-white shadow-sm"
-                  : "hover:opacity-80"
-              }`}
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              Book Read
-            </button>
-            {book.embedUrl && (
-              <button
-                type="button"
-                onClick={() => setViewMode("scan")}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                  viewMode === "scan"
-                    ? "bg-[#0066cc] text-white shadow-sm"
-                    : "hover:opacity-80"
-                }`}
-              >
-                <Layers className="w-3.5 h-3.5" />
-                Scanned Edition
-              </button>
-            )}
-          </div>
+          {/* Right: Quick Notes + Collapsible Reader Controls Dropdown Arrow */}
+          <div className="flex items-center gap-2 shrink-0">
+            <span className={`hidden md:inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold border ${currentTheme.border} ${currentTheme.sub}`}>
+              {progressPct}%
+            </span>
 
-          {/* Typography, Theme, Notebook & Shanti Controls */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Notebook Drawer Button */}
             <button
               type="button"
               onClick={() => setNotesOpen(true)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition cursor-pointer ${currentTheme.border} hover:border-[#0066cc]`}
-              title="Open Literary Highlights & Notes (select any text to highlight)"
+              className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full border text-xs font-semibold transition cursor-pointer ${currentTheme.border} hover:border-[#0066cc]`}
+              title="Open Literary Highlights & Notes"
             >
               <NotebookPen className="w-3.5 h-3.5 text-[#0066cc]" />
-              <span>Notes</span>
+              <span className="hidden sm:inline">Notes</span>
               {notes.length > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-[#0066cc] text-white text-[10px] font-bold">
+                <span className="px-1.5 rounded-full bg-[#0066cc] text-white text-[10px] font-bold">
                   {notes.length}
                 </span>
               )}
             </button>
 
-            <div className={`hidden sm:inline-flex rounded-full border p-0.5 text-xs ${currentTheme.border}`}>
-              <button
-                type="button"
-                onClick={() => setFontFamily("serif")}
-                className={`px-2.5 py-1 rounded-full font-serif transition cursor-pointer ${
-                  fontFamily === "serif" ? "bg-[#0066cc] text-white font-semibold" : ""
+            <button
+              type="button"
+              onClick={() => setToolbarOpen((v) => !v)}
+              aria-expanded={toolbarOpen}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
+                toolbarOpen
+                  ? "bg-[#0066cc] text-white border-[#0066cc] shadow-sm"
+                  : `${currentTheme.border} hover:border-[#0066cc]`
+              }`}
+              title="Toggle Reading Controls"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Reading Tools</span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                  toolbarOpen ? "rotate-180" : ""
                 }`}
-              >
-                Serif
-              </button>
-              <button
-                type="button"
-                onClick={() => setFontFamily("sans")}
-                className={`px-2.5 py-1 rounded-full font-sans transition cursor-pointer ${
-                  fontFamily === "sans" ? "bg-[#0066cc] text-white font-semibold" : ""
-                }`}
-              >
-                Sans
-              </button>
-            </div>
-
-            <div className={`inline-flex items-center rounded-full border px-1 py-0.5 text-xs ${currentTheme.border}`}>
-              <button
-                type="button"
-                onClick={() => setFontSize((s) => Math.max(14, s - 2))}
-                className="px-2 py-0.5 font-bold hover:opacity-70 cursor-pointer"
-              >
-                A-
-              </button>
-              <span className={`px-1 text-[11px] ${currentTheme.sub}`}>{fontSize}</span>
-              <button
-                type="button"
-                onClick={() => setFontSize((s) => Math.min(26, s + 2))}
-                className="px-2 py-0.5 font-bold hover:opacity-70 cursor-pointer"
-              >
-                A+
-              </button>
-            </div>
-
-            <div className={`inline-flex items-center rounded-full border p-0.5 text-xs ${currentTheme.border}`}>
-              <button
-                type="button"
-                onClick={() => setTheme("paper")}
-                className={`px-2 py-1 rounded-full flex items-center gap-1 transition cursor-pointer ${
-                  theme === "paper" ? "bg-white text-black shadow-sm font-semibold" : ""
-                }`}
-              >
-                <Sun className="w-3 h-3" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setTheme("sepia")}
-                className={`px-2 py-1 rounded-full flex items-center gap-1 transition cursor-pointer ${
-                  theme === "sepia" ? "bg-[#e3d2b4] text-[#2b2115] font-semibold" : ""
-                }`}
-              >
-                <Sparkles className="w-3 h-3" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setTheme("night")}
-                className={`px-2 py-1 rounded-full flex items-center gap-1 transition cursor-pointer ${
-                  theme === "night" ? "bg-[#2c2c30] text-white font-semibold" : ""
-                }`}
-              >
-                <Moon className="w-3 h-3" />
-              </button>
-            </div>
-
-            {shantiSlot ? (
-              <div>{shantiSlot}</div>
-            ) : (
-              <div className="hidden xl:block">
-                <StartShantiButton
-                  gutenbergId={book.id}
-                  title={book.title}
-                  author={book.author}
-                  coverImage={book.coverImage || coverUrl(book.id)}
-                  totalPages={viewMode === "book" ? bookPages.length : totalClassicPages}
-                  compact
-                />
-              </div>
-            )}
+              />
+            </button>
           </div>
         </div>
+
+        {/* Collapsible Dropdown Panel */}
+        <AnimatePresence initial={false}>
+          {toolbarOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              className={`overflow-hidden border-t ${currentTheme.border}`}
+            >
+              <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+                {/* Reading Mode Switcher */}
+                <div className={`inline-flex items-center rounded-full border p-0.5 ${currentTheme.border} bg-black/5`}>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("classic")}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                      viewMode === "classic"
+                        ? "bg-[#0066cc] text-white shadow-sm"
+                        : "hover:opacity-80"
+                    }`}
+                  >
+                    <ScrollText className="w-3.5 h-3.5" />
+                    Classic Read
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("book")}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                      viewMode === "book"
+                        ? "bg-[#0066cc] text-white shadow-sm"
+                        : "hover:opacity-80"
+                    }`}
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    Book Read
+                  </button>
+                  {book.embedUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setViewMode("scan")}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                        viewMode === "scan"
+                          ? "bg-[#0066cc] text-white shadow-sm"
+                          : "hover:opacity-80"
+                      }`}
+                    >
+                      <Layers className="w-3.5 h-3.5" />
+                      Scanned Edition
+                    </button>
+                  )}
+                </div>
+
+                {/* Typography, Theme & Shanti Controls */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className={`inline-flex rounded-full border p-0.5 text-xs ${currentTheme.border}`}>
+                    <button
+                      type="button"
+                      onClick={() => setFontFamily("serif")}
+                      className={`px-2.5 py-1 rounded-full font-serif transition cursor-pointer ${
+                        fontFamily === "serif" ? "bg-[#0066cc] text-white font-semibold" : ""
+                      }`}
+                    >
+                      Serif
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFontFamily("sans")}
+                      className={`px-2.5 py-1 rounded-full font-sans transition cursor-pointer ${
+                        fontFamily === "sans" ? "bg-[#0066cc] text-white font-semibold" : ""
+                      }`}
+                    >
+                      Sans
+                    </button>
+                  </div>
+
+                  <div className={`inline-flex items-center rounded-full border px-1 py-0.5 text-xs ${currentTheme.border}`}>
+                    <button
+                      type="button"
+                      onClick={() => setFontSize((s) => Math.max(14, s - 2))}
+                      className="px-2 py-0.5 font-bold hover:opacity-70 cursor-pointer"
+                    >
+                      A-
+                    </button>
+                    <span className={`px-1 text-[11px] ${currentTheme.sub}`}>{fontSize}</span>
+                    <button
+                      type="button"
+                      onClick={() => setFontSize((s) => Math.min(26, s + 2))}
+                      className="px-2 py-0.5 font-bold hover:opacity-70 cursor-pointer"
+                    >
+                      A+
+                    </button>
+                  </div>
+
+                  <div className={`inline-flex items-center rounded-full border p-0.5 text-xs ${currentTheme.border}`}>
+                    <button
+                      type="button"
+                      onClick={() => setTheme("paper")}
+                      className={`px-2.5 py-1 rounded-full flex items-center gap-1 transition cursor-pointer ${
+                        theme === "paper" ? "bg-white text-black shadow-sm font-semibold" : ""
+                      }`}
+                      title="Paper Theme"
+                    >
+                      <Sun className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTheme("sepia")}
+                      className={`px-2.5 py-1 rounded-full flex items-center gap-1 transition cursor-pointer ${
+                        theme === "sepia" ? "bg-[#e3d2b4] text-[#2b2115] font-semibold" : ""
+                      }`}
+                      title="Sepia Theme"
+                    >
+                      <Sparkles className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTheme("night")}
+                      className={`px-2.5 py-1 rounded-full flex items-center gap-1 transition cursor-pointer ${
+                        theme === "night" ? "bg-[#2c2c30] text-white font-semibold" : ""
+                      }`}
+                      title="Night Theme"
+                    >
+                      <Moon className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  {shantiSlot ? (
+                    <div>{shantiSlot}</div>
+                  ) : (
+                    <div>
+                      <StartShantiButton
+                        gutenbergId={book.id}
+                        title={book.title}
+                        author={book.author}
+                        coverImage={book.coverImage || coverUrl(book.id)}
+                        totalPages={viewMode === "book" ? bookPages.length : totalClassicPages}
+                        compact
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Floating Selection Action Pill (In-Reader Highlights, Margin Notes & 1-Click Profile Quote) */}
       <AnimatePresence>
         {selectedQuote && (
           <motion.div
+            data-highlight-toolbar
+            onMouseDown={(e) => e.stopPropagation()}
             initial={{ opacity: 0, y: 16, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.96 }}
@@ -786,19 +909,19 @@ export default function EReader({
 
       {/* MODE 1: REALISTIC 2-PAGE OPEN HARDCOVER BOOK READ */}
       {viewMode === "book" && (
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-6 sm:py-10">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
           <div
-            className={`relative rounded-[28px] p-2.5 sm:p-4 md:p-6 shadow-[0_30px_80px_rgba(0,0,0,0.45)] border-2 transition-colors ${currentTheme.bookCover}`}
+            className={`relative rounded-[24px] p-2 sm:p-3 md:p-4 shadow-[0_24px_70px_rgba(0,0,0,0.38)] border-2 transition-colors ${currentTheme.bookCover}`}
             style={{ perspective: "1800px" }}
           >
-            <div className={`relative rounded-[20px] p-1 sm:p-2 ${currentTheme.pageEdge} shadow-inner`}>
+            <div className={`relative rounded-[18px] p-1 sm:p-1.5 ${currentTheme.pageEdge} shadow-inner`}>
               <div
                 onClick={() => {
                   setBookmarked(true)
                   toast.success(`Bookmarked Spread ${bookSpread + 1}`)
                 }}
                 title="Bookmark current spread"
-                className="hidden lg:block absolute -top-3 left-1/2 -translate-x-1/2 z-30 w-6 h-12 bg-gradient-to-b from-[#b91c1c] to-[#7f1d1d] shadow-md cursor-pointer transition-transform hover:translate-y-0.5"
+                className="hidden lg:block absolute -top-2.5 left-1/2 -translate-x-1/2 z-30 w-5 h-10 bg-gradient-to-b from-[#b91c1c] to-[#7f1d1d] shadow-md cursor-pointer transition-transform hover:translate-y-0.5"
                 style={{
                   clipPath: "polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%)",
                 }}
@@ -826,7 +949,7 @@ export default function EReader({
                     duration: 0.38,
                     ease: [0.16, 1, 0.3, 1],
                   }}
-                  className={`relative grid grid-cols-1 lg:grid-cols-2 rounded-[16px] overflow-hidden shadow-xl ${currentTheme.pageBg}`}
+                  className={`relative grid grid-cols-1 lg:grid-cols-2 lg:h-[calc(100vh-12.5rem)] lg:min-h-[460px] lg:max-h-[760px] rounded-[14px] overflow-hidden shadow-xl ${currentTheme.pageBg}`}
                 >
                   <div
                     aria-hidden="true"
@@ -842,7 +965,7 @@ export default function EReader({
                   {/* LEFT PAGE */}
                   <div
                     onClick={goPrevSpread}
-                    className={`relative flex flex-col justify-between min-h-[580px] sm:min-h-[660px] px-6 sm:px-10 md:px-14 py-8 sm:py-10 border-b lg:border-b-0 lg:border-r ${currentTheme.border} select-text`}
+                    className={`relative flex flex-col justify-between min-h-[380px] lg:min-h-0 lg:h-full px-5 sm:px-8 md:px-12 py-5 sm:py-6 border-b lg:border-b-0 lg:border-r ${currentTheme.border} select-text overflow-hidden`}
                     style={{
                       backgroundImage:
                         theme === "night"
@@ -850,50 +973,52 @@ export default function EReader({
                           : "linear-gradient(90deg, rgba(0,0,0,0.03) 0%, rgba(0,0,0,0) 8%, rgba(0,0,0,0) 92%, rgba(0,0,0,0.04) 100%)",
                     }}
                   >
-                    <div>
+                    <div className="flex-1 min-h-0 flex flex-col">
                       <div
-                        className={`flex items-center justify-between text-[11px] uppercase tracking-[0.2em] pb-4 mb-6 border-b ${currentTheme.border} ${currentTheme.sub}`}
+                        className={`flex items-center justify-between text-[11px] uppercase tracking-[0.2em] pb-3 mb-4 border-b shrink-0 ${currentTheme.border} ${currentTheme.sub}`}
                       >
                         <span>{leftPageIndex + 1}</span>
                         <span className="truncate max-w-[240px] font-semibold">{book.title}</span>
                       </div>
 
-                      {bookSpread === 0 && (
-                        <div className={`mb-6 pb-5 border-b ${currentTheme.border}`}>
-                          <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#0066cc] mb-1">
-                            {book.sourceLabel || "Digital Edition"}
-                          </p>
-                          <h1
-                            className={`text-xl sm:text-2xl font-bold tracking-tight ${
-                              fontFamily === "serif" ? "font-serif" : "font-sans"
-                            }`}
-                          >
-                            {book.title}
-                          </h1>
-                          <p className={`text-xs mt-1 italic ${currentTheme.sub}`}>by {book.author}</p>
-                        </div>
-                      )}
+                      <div className="flex-1 overflow-y-auto pr-1">
+                        {bookSpread === 0 && (
+                          <div className={`mb-5 pb-4 border-b ${currentTheme.border}`}>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#0066cc] mb-1">
+                              {book.sourceLabel || "Digital Edition"}
+                            </p>
+                            <h1
+                              className={`text-xl sm:text-2xl font-bold tracking-tight ${
+                                fontFamily === "serif" ? "font-serif" : "font-sans"
+                              }`}
+                            >
+                              {book.title}
+                            </h1>
+                            <p className={`text-xs mt-1 italic ${currentTheme.sub}`}>by {book.author}</p>
+                          </div>
+                        )}
 
-                      <div
-                        style={{ fontSize: `${fontSize}px`, lineHeight }}
-                        className={`space-y-4 ${fontFamily === "serif" ? "font-serif" : "font-sans"}`}
-                      >
-                        {leftParagraphs.map((para, idx) => (
-                          <p
-                            key={idx}
-                            className={`text-justify hyphens-auto ${
-                              bookSpread === 0 && idx === 0
-                                ? "first-letter:float-left first-letter:text-5xl first-letter:font-bold first-letter:pr-3 first-letter:leading-none first-letter:text-[#0066cc]"
-                                : "indent-6"
-                            }`}
-                          >
-                            {para}
-                          </p>
-                        ))}
+                        <div
+                          style={{ fontSize: `${fontSize}px`, lineHeight }}
+                          className={`space-y-3.5 ${fontFamily === "serif" ? "font-serif" : "font-sans"}`}
+                        >
+                          {leftParagraphs.map((para, idx) => (
+                            <p
+                              key={idx}
+                              className={`text-justify hyphens-auto ${
+                                bookSpread === 0 && idx === 0
+                                  ? "first-letter:float-left first-letter:text-5xl first-letter:font-bold first-letter:pr-3 first-letter:leading-none first-letter:text-[#0066cc]"
+                                  : "indent-6"
+                              }`}
+                            >
+                              {renderHighlightedText(para)}
+                            </p>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
-                    <div className={`pt-6 mt-6 flex items-center justify-between text-xs ${currentTheme.sub}`}>
+                    <div className={`pt-3 mt-3 border-t ${currentTheme.border} flex items-center justify-between text-xs shrink-0 ${currentTheme.sub}`}>
                       <button
                         type="button"
                         onClick={(e) => {
@@ -912,7 +1037,7 @@ export default function EReader({
                   {/* RIGHT PAGE */}
                   <div
                     onClick={goNextSpread}
-                    className="relative flex flex-col justify-between min-h-[580px] sm:min-h-[660px] px-6 sm:px-10 md:px-14 py-8 sm:py-10 select-text"
+                    className="relative flex flex-col justify-between min-h-[380px] lg:min-h-0 lg:h-full px-5 sm:px-8 md:px-12 py-5 sm:py-6 select-text overflow-hidden"
                     style={{
                       backgroundImage:
                         theme === "night"
@@ -920,48 +1045,50 @@ export default function EReader({
                           : "linear-gradient(90deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0) 8%, rgba(0,0,0,0) 92%, rgba(0,0,0,0.03) 100%)",
                     }}
                   >
-                    <div>
+                    <div className="flex-1 min-h-0 flex flex-col">
                       <div
-                        className={`flex items-center justify-between text-[11px] uppercase tracking-[0.2em] pb-4 mb-6 border-b ${currentTheme.border} ${currentTheme.sub}`}
+                        className={`flex items-center justify-between text-[11px] uppercase tracking-[0.2em] pb-3 mb-4 border-b shrink-0 ${currentTheme.border} ${currentTheme.sub}`}
                       >
                         <span className="truncate max-w-[240px] font-semibold">{book.author}</span>
                         <span>{rightParagraphs.length > 0 ? rightPageIndex + 1 : ""}</span>
                       </div>
 
-                      {rightParagraphs.length > 0 ? (
-                        <div
-                          style={{ fontSize: `${fontSize}px`, lineHeight }}
-                          className={`space-y-4 ${fontFamily === "serif" ? "font-serif" : "font-sans"}`}
-                        >
-                          {rightParagraphs.map((para, idx) => (
-                            <p key={idx} className="text-justify hyphens-auto indent-6">
-                              {para}
+                      <div className="flex-1 overflow-y-auto pr-1">
+                        {rightParagraphs.length > 0 ? (
+                          <div
+                            style={{ fontSize: `${fontSize}px`, lineHeight }}
+                            className={`space-y-3.5 ${fontFamily === "serif" ? "font-serif" : "font-sans"}`}
+                          >
+                            {rightParagraphs.map((para, idx) => (
+                              <p key={idx} className="text-justify hyphens-auto indent-6">
+                                {renderHighlightedText(para)}
+                              </p>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="h-full flex flex-col items-center justify-center text-center py-12">
+                            <BookOpen className={`w-10 h-10 mb-3 opacity-30 ${currentTheme.sub}`} />
+                            <p className="text-sm font-semibold">End of Available Text</p>
+                            <p className={`text-xs mt-1 max-w-xs ${currentTheme.sub}`}>
+                              You have reached the final page of this edition in Book Read mode.
                             </p>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-center py-16">
-                          <BookOpen className={`w-10 h-10 mb-3 opacity-30 ${currentTheme.sub}`} />
-                          <p className="text-sm font-semibold">End of Available Text</p>
-                          <p className={`text-xs mt-1 max-w-xs ${currentTheme.sub}`}>
-                            You have reached the final page of this edition in Book Read mode.
-                          </p>
-                          {book.externalReadUrl && (
-                            <a
-                              href={book.externalReadUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0066cc] text-white text-xs font-semibold hover:bg-[#0071e3] transition"
-                            >
-                              View Source Edition <ExternalLink className="w-3.5 h-3.5" />
-                            </a>
-                          )}
-                        </div>
-                      )}
+                            {book.externalReadUrl && (
+                              <a
+                                href={book.externalReadUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0066cc] text-white text-xs font-semibold hover:bg-[#0071e3] transition"
+                              >
+                                View Source Edition <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    <div className={`pt-6 mt-6 flex items-center justify-between text-xs ${currentTheme.sub}`}>
+                    <div className={`pt-3 mt-3 border-t ${currentTheme.border} flex items-center justify-between text-xs shrink-0 ${currentTheme.sub}`}>
                       <span className="font-mono text-[11px]">
                         {rightParagraphs.length > 0 ? `Page ${rightPageIndex + 1}` : "Finis"}
                       </span>
@@ -983,7 +1110,7 @@ export default function EReader({
             </div>
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-4 px-2">
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 px-2">
             <button
               type="button"
               onClick={goPrevSpread}
@@ -1079,7 +1206,7 @@ export default function EReader({
           >
             {slice.map((p, idx) => (
               <p key={idx} className="leading-relaxed text-justify">
-                {p}
+                {renderHighlightedText(p)}
               </p>
             ))}
           </div>

@@ -11,6 +11,7 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { Providers } from "@/components/Providers"
 import { MascotCompanion } from "@/components/mascots/AksharSetuMascots"
+import { OnboardingModal } from "@/components/onboarding/OnboardingModal"
 import { Toaster } from "sonner"
 import "./globals.css"
 
@@ -140,16 +141,17 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable} ${fraunces.variable} ${caveat.variable} ${silkscreen.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans bg-[#F2EBE1] text-[#1D1D1F]">
+      <body className="min-h-full flex flex-col font-sans bg-[#F2EBE1] text-[#1D1D1F] overflow-x-clip">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(rootJsonLd) }}
         />
         <Providers>
           <Navbar />
-          <main className="flex-1 flex flex-col">{children}</main>
+          <main className="flex-1 flex flex-col overflow-x-clip">{children}</main>
           <Footer />
           <MascotCompanion />
+          <OnboardingModal />
           <Toaster richColors position="top-center" />
         </Providers>
       </body>
